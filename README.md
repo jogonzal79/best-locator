@@ -1,413 +1,275 @@
-# Best-Locator v1.0
+# Best-Locator
 
-**Revolutionary selector generator for UI testing** - The ultimate tool for generating smart, reliable selectors with enterprise-grade configuration system.
+> The world's first selector generator with organic navigation and intelligent toggle mode
 
-## Features
+Generate professional-grade selectors for UI testing with the reliability developers trust and the flexibility testers need.
 
-- **Smart Selector Generation** - Intelligent algorithm that chooses the best selector strategy
-- **Multiple Element Selection** - Select multiple elements in one session with ESC to finish
-- **Selector Validation** - Test if selectors work on live websites
-- **Configuration File System** - Enterprise-ready project configuration (NEW in v1.0!)
-- **URL Aliases** - Quick access with memorable shortcuts (NEW!)
-- **Multi-Framework Support** - Playwright, Cypress, Selenium WebDriver
-- **Multi-Language Support** - TypeScript, JavaScript, Python
-- **Auto-Clipboard Copy** - Generated code ready to paste
-- **Interactive Browser Selection** - Real-time element highlighting
+## Why Best-Locator?
+
+**Traditional selector generators are broken.** They force you to capture elements immediately, can't handle login flows, and generate unreliable selectors. 
+
+**Best-Locator changes everything:**
+
+- **Navigate organically** - Browse like a normal user, login, navigate between pages
+- **Toggle selector mode** - Turn element capture ON/OFF with simple keyboard shortcuts
+- **Professional selectors** - Prioritizes `data-test`, `aria-label`, and testing-specific attributes
+- **Multi-page capture** - Collect selectors from different pages in one session
+- **Framework agnostic** - Works with Playwright, Selenium, Cypress, and more
 
 ## Quick Start
 
 ### Installation
+
 ```bash
-git clone https://github.com/jogonzal79/best-locator
-cd best-locator
-npm install
+npm install -g best-locator
 ```
 
 ### Basic Usage
+
 ```bash
 # Single element selection
-npm run dev pick https://example.com
+best-locator pick https://your-app.com
 
-# Multiple element selection
-npm run dev pick-multiple https://github.com/login
+# Multiple elements
+best-locator pick-multiple https://your-app.com
 
-# Validate existing selector
-npm run dev validate https://example.com "#my-selector"
+# Toggle mode (recommended) - Navigate freely + capture when needed
+best-locator pick-toggle https://your-app.com
 ```
 
-### With Configuration (Recommended)
-```bash
-# Create project configuration
-npm run dev init
+## Toggle Mode (Revolutionary)
 
-# Use URL aliases for quick access
-npm run dev go local
-npm run dev go staging
-
-# View current configuration
-npm run dev config
-```
-
-## Configuration File System (NEW in v1.0!)
-
-Best-Locator v1.0 introduces a powerful configuration system that makes it enterprise-ready!
-
-### Creating Configuration
+**The breakthrough feature that makes Best-Locator unique:**
 
 ```bash
-npm run dev init
-```
-
-This creates `best-locator.config.js` with full customization options:
-
-```javascript
-// best-locator.config.js
-module.exports = {
-  // Default framework and language
-  defaultFramework: 'playwright',
-  defaultLanguage: 'typescript',
-  
-  // URL aliases for quick access
-  urls: {
-    local: 'http://localhost:3000',
-    dev: 'https://dev.myapp.com',
-    staging: 'https://staging.myapp.com',
-    prod: 'https://myapp.com'
-  },
-  
-  // Project-specific test attributes
-  projectAttributes: [
-    'data-testid',
-    'data-cy', 
-    'data-test',
-    'data-qa',
-    'data-automation'
-  ],
-  
-  // Customizable timeouts
-  timeouts: {
-    pageLoad: 30000,
-    elementSelection: 60000,
-    validation: 15000
-  },
-  
-  // Browser configuration
-  browser: {
-    headless: false,
-    viewport: {
-      width: 1920,
-      height: 1080
-    }
-  }
-};
-```
-
-### Using Configuration
-
-```bash
-# Quick commands with aliases
-npm run dev go local          # Opens localhost:3000
-npm run dev go staging        # Opens staging environment
-npm run dev pick-multiple dev # Multiple selection on dev
-
-# Configuration-aware commands
-npm run dev pick https://example.com  # Uses default framework/language
-npm run dev validate prod "#button"   # Uses prod URL alias
-```
-
-## Commands
-
-### Single Element Selection
-
-```bash
-npm run dev pick <url> [framework] [language]
-
-# Examples
-npm run dev pick https://github.com
-npm run dev pick https://google.com cypress javascript
-npm run dev pick local  # Using URL alias
+best-locator pick-toggle https://saucedemo.com
 ```
 
 **How it works:**
-1. Opens webpage in browser
-2. Click on any element
-3. Generates optimized selector
-4. Copies code to clipboard
+1. **Navigate freely** - Login, browse, interact normally
+2. **Press CTRL+S** - Turn ON selector mode
+3. **Click elements** - Capture high-quality selectors
+4. **Press CTRL+D** - Turn OFF selector mode
+5. **Repeat as needed** - Navigate to other pages, toggle on/off
+6. **Press ESC** - Finish and get all selectors
 
-### Multiple Element Selection (Revolutionary!)
+**Visual indicators:**
+- **Red indicator**: Navigate freely (clicks work normally)
+- **Green indicator**: Selector mode ON (clicks capture elements)
 
-```bash
-npm run dev pick-multiple <url> [framework] [language]
+## Intelligent Selector Priority
 
-# Examples
-npm run dev pick-multiple https://github.com/login
-npm run dev pick-multiple staging cypress python
-npm run dev pick-multiple local  # Using URL alias
-```
+Best-Locator generates **professional-grade selectors** using industry best practices:
 
-**Perfect workflow:**
-1. Opens webpage in browser
-2. Click on multiple elements (username, password, submit button, etc.)
-3. Press **ESC** when finished selecting
-4. Generates individual selectors for each element
-5. Creates combined test snippet
-6. Copies everything to clipboard
+| Priority | Selector Type | Confidence | Example |
+|----------|---------------|------------|---------|
+| 1st | `data-test` | 95% | `[data-test="username"]` |
+| 1st | `data-testid` | 95% | `[data-testid="submit-btn"]` |
+| 2nd | `data-cy` | 90% | `[data-cy="login-form"]` |
+| 3rd | `aria-label` | 85% | `[aria-label="Close dialog"]` |
+| 4th | `role` | 80% | `[role="button"]` |
+| 5th | `name` | 75% | `[name="email"]` |
+| 6th | `id` | 70% | `#username` |
+| 7th | `text` | 60% | `text="Sign In"` |
 
-**Perfect for:**
-- Login forms (username + password + submit)
-- Navigation menus
-- Form validation scenarios
-- Multi-step workflows
-- Data extraction from multiple elements
+## Real-World Example
 
-### Selector Validation
-
-```bash
-npm run dev validate <url> <selector> [--timeout <ms>]
-
-# Examples
-npm run dev validate https://github.com "#user_email"
-npm run dev validate local "[name='username']"
-npm run dev validate staging "text=Submit" --timeout 10000
-```
-
-### Quick Access Commands (NEW!)
-
-```bash
-# Quick pick using URL aliases
-npm run dev go <alias>
-
-# Examples
-npm run dev go local     # Quick pick on localhost
-npm run dev go staging   # Quick pick on staging
-npm run dev go prod      # Quick pick on production
-```
-
-### Configuration Commands (NEW!)
-
-```bash
-# Create sample configuration file
-npm run dev init
-
-# Display current configuration
-npm run dev config
-```
-
-## Framework Support
-
-### Playwright (Default)
-```typescript
-await page.locator('#username')
-await page.locator('[data-testid="submit"]')
-await page.locator('text="Login"')
-```
-
-### Cypress
+**Traditional tools generate:**
 ```javascript
-cy.get('#username')
-cy.get('[data-testid="submit"]')
-cy.contains('Login')
+await page.locator('#user-name')              // Unreliable
+await page.locator('#password')               // Can change
+await page.locator('#login-button')           // Styling dependent
 ```
 
-### Selenium WebDriver
-```python
-driver.find_element(By.ID, "username")
-driver.find_element(By.CSS_SELECTOR, '[data-testid="submit"]')
-driver.find_element(By.XPATH, "//button[text()='Login']")
-```
-
-## Smart Selector Strategy
-
-Best-Locator uses an intelligent algorithm with configurable priorities:
-
-1. **Test-specific attributes** (`data-testid`, `data-cy`, `data-test`)
-2. **Unique IDs** (`#unique-id`)
-3. **Semantic attributes** (`name`, `role`, `aria-label`)
-4. **Text content** (`text="Button Text"`)
-5. **CSS classes** (`.stable-class`)
-6. **Structural selectors** (`div > button:nth-child(2)`)
-
-## Real-World Examples
-
-### Login Flow Example
-```bash
-npm run dev pick-multiple https://github.com/login
-```
-
-**Generated Output:**
-```typescript
-// Individual selectors
-await page.locator('#login_field')      // Username
-await page.locator('#password')         // Password  
-await page.locator('[name="commit"]')   // Submit button
-
-// Combined test snippet (auto-generated)
-await page.locator('#login_field').fill('username@example.com')
-await page.locator('#password').fill('password123')
-await page.locator('[name="commit"]').click()
-```
-
-### E-commerce Navigation
-```bash
-npm run dev pick-multiple https://amazon.com
-```
-
-**Generated Output:**
+**Best-Locator generates:**
 ```javascript
-// Cypress format with multiple elements
-cy.get('[data-testid="nav-search"]')
-cy.get('[data-testid="nav-cart"]')
-cy.get('[data-testid="nav-orders"]')
-
-// Combined workflow
-cy.get('[data-testid="nav-search"]').type('laptop')
-cy.get('[data-testid="nav-cart"]').click()
-cy.get('[data-testid="nav-orders"]').should('be.visible')
+await page.locator('[data-test="username"]')     // 95% reliable
+await page.locator('[data-test="password"]')     // Testing-specific
+await page.locator('[data-test="login-button"]') // Industry standard
 ```
 
-## Enterprise Usage
+## All Commands
 
-### Team Configuration
-```javascript
-// shared team config
-module.exports = {
-  defaultFramework: 'cypress',
-  projectAttributes: ['data-testid', 'data-cy', 'data-qa'],
-  urls: {
-    dev: 'https://dev.company.com',
-    staging: 'https://staging.company.com',
-    prod: 'https://company.com'
+### Core Commands
+
+```bash
+# Quick single element
+best-locator pick <url> [framework] [language]
+
+# Multiple elements with ESC to finish
+best-locator pick-multiple <url> [framework] [language]
+
+# Organic navigation with toggle (recommended)
+best-locator pick-toggle <url> [framework] [language]
+
+# Validate existing selectors
+best-locator validate <url> <selector>
+```
+
+### Framework Support
+
+```bash
+# Playwright (default)
+best-locator pick https://app.com playwright typescript
+
+# Selenium
+best-locator pick https://app.com selenium python
+
+# Cypress
+best-locator pick https://app.com cypress javascript
+
+# WebdriverIO
+best-locator pick https://app.com webdriverio javascript
+```
+
+### Configuration
+
+```bash
+# Create config file
+best-locator init
+
+# View current config
+best-locator config
+
+# Quick pick with URL alias
+best-locator go staging
+```
+
+## Configuration
+
+Create `best-locator.config.json` in your project root:
+
+```json
+{
+  "defaultFramework": "playwright",
+  "defaultLanguage": "typescript",
+  "browser": {
+    "headless": false,
+    "viewport": { "width": 1280, "height": 720 }
   },
-  timeouts: {
-    pageLoad: 45000,
-    elementSelection: 120000
+  "urls": {
+    "local": "http://localhost:3000",
+    "staging": "https://staging.yourapp.com",
+    "prod": "https://yourapp.com"
+  },
+  "projectAttributes": ["data-testid", "data-cy"],
+  "timeouts": {
+    "pageLoad": 30000,
+    "elementSelection": 60000
   }
 }
-```
-
-### CI/CD Integration
-```javascript
-// ci.config.js
-module.exports = {
-  browser: { headless: true },
-  timeouts: { validation: 5000 },
-  output: { 
-    format: 'json',
-    autoSave: './test/selectors.json'
-  }
-}
-```
-
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Build the project
-npm run build
-
-# Run tests
-npm test
-```
-
-## Project Structure
-
-```
-src/
-├── cli/
-│   └── index.ts              # CLI commands and interface
-├── core/
-│   ├── selector-generator.ts # Smart selector generation
-│   ├── framework-formatter.ts# Multi-framework output
-│   ├── selector-validator.ts # Selector validation
-│   └── config-manager.ts     # Configuration system (NEW!)
-└── types/
-    └── index.ts              # TypeScript definitions
 ```
 
 ## Use Cases
 
-### Test Automation
+### Login Flows
 ```bash
-# Generate selectors for critical user flows
-npm run dev pick-multiple local/checkout
-
-# Validate selectors still work after deployment
-npm run dev validate prod "#buy-now-button"
-
-# Quick selector generation during development
-npm run dev go local
+# Navigate to login, authenticate, then capture elements from dashboard
+best-locator pick-toggle https://app.com
+# 1. Login normally
+# 2. Navigate to dashboard
+# 3. Press CTRL+S to start capturing
+# 4. Click elements you need
+# 5. Press ESC to finish
 ```
 
-### Web Scraping
+### Multi-Page Testing
 ```bash
-# Select multiple data points from news sites
-npm run dev pick-multiple https://news.ycombinator.com
-
-# Get selectors for: title, author, points, comments
+# Capture elements from multiple pages in one session
+best-locator pick-toggle https://ecommerce.com
+# 1. Browse products (selector mode OFF)
+# 2. CTRL+S -> capture product elements
+# 3. CTRL+D -> navigate to cart
+# 4. CTRL+S -> capture cart elements
+# 5. ESC -> get all selectors
 ```
 
-### Debugging & QA
+### Form Testing
 ```bash
-# Test if problematic selectors work across environments
-npm run dev validate dev ".flaky-element"
-npm run dev validate staging ".flaky-element"
-npm run dev validate prod ".flaky-element"
+# Capture all form elements efficiently
+best-locator pick-multiple https://forms.com
+# Click all form fields, then press ESC
 ```
 
-### Team Collaboration
+## Output Examples
+
+### Single Element
 ```bash
-# Shared team configuration ensures consistency
-npm run dev init  # Setup once per project
-git add best-locator.config.js  # Share with team
-npm run dev go staging  # Everyone uses same URLs
+Element selected!
+Element information:
+   Tag: input
+   Text: ""
+   Selector: [data-test="username"]
+   Code: await page.locator('[data-test="username"]')
+   Confidence: 95%
+
+Copied to clipboard!
 ```
 
-## What Makes Best-Locator v1.0 Special?
+### Multiple Elements
+```bash
+Session completed! 3 elements captured:
 
-- **Revolutionary Multiple Selection** - First tool to support interactive multi-element picking
-- **Enterprise Configuration** - Project-wide settings with URL aliases
-- **Intelligent Algorithm** - Adapts to your project's testing conventions
-- **Lightning Fast** - Interactive browser-based selection
-- **Universal Support** - Works with any framework and language
-- **Production Ready** - Used by teams worldwide for critical testing workflows
+Element 1:
+   Tag: input
+   Selector: [data-test="username"]
+   Code: await page.locator('[data-test="username"]')
 
-## Why Choose Best-Locator?
+Element 2:
+   Tag: input  
+   Selector: [data-test="password"]
+   Code: await page.locator('[data-test="password"]')
 
-### vs. Manual Selector Creation
-- **10x faster** than writing selectors manually
-- **More reliable** with intelligent priority system
-- **Consistent** across team members
+Element 3:
+   Tag: input
+   Selector: [data-test="login-button"]
+   Code: await page.locator('[data-test="login-button"]')
 
-### vs. Other Tools
-- **Only tool** with multiple element selection
-- **Enterprise configuration** system
-- **Universal framework** support
-- **URL aliases** for team efficiency
+Combined test snippet:
+   await page.locator('[data-test="username"]')
+   await page.locator('[data-test="password"]')
+   await page.locator('[data-test="login-button"]')
 
-### vs. Browser DevTools
-- **Smarter selection** strategy
-- **Framework-specific** output
-- **Batch processing** with multiple elements
-- **Team configuration** and consistency
+All code copied to clipboard!
+```
+
+## Supported Frameworks
+
+| Framework | JavaScript | TypeScript | Python | Java | C# |
+|-----------|------------|------------|--------|------|----|
+| **Playwright** | Yes | Yes | Yes | Yes | Yes |
+| **Selenium** | Yes | Yes | Yes | Yes | Yes |
+| **Cypress** | Yes | Yes | No | No | No |
+| **WebdriverIO** | Yes | Yes | No | No | No |
+| **Puppeteer** | Yes | Yes | No | No | No |
 
 ## Contributing
 
-We love contributions! Here's how to get started:
+We welcome contributions! Please see our Contributing Guide for details.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Development
+
+```bash
+git clone https://github.com/jogonzal79/best-locator
+cd best-locator
+npm install
+npm run dev hello
+```
 
 ## License
 
-MIT License - feel free to use in your projects!
+MIT License
+
+---
+
+## Why "Best-Locator"?
+
+Because it generates the **best possible selectors** using **the best practices** with **the best user experience**. No compromises.
+
+**Traditional approach:** Click -> Get bad selector -> Repeat  
+**Best-Locator approach:** Navigate -> Login -> Browse -> Toggle ON -> Capture -> Get professional selectors
+
+---
 
 ## Author
 
@@ -415,27 +277,8 @@ MIT License - feel free to use in your projects!
 Automation Testing Enthusiast 
 [LinkedIn](https://www.linkedin.com/in/jonathan-g-33607648/)
 
-*Passionate about building tools that make testing easier, one selector at a time.*
-
-## Star the Repository
-
-If Best-Locator v1.0 revolutionizes your testing workflow, please give it a star! ⭐
-
-## What's Next?
-
-### Roadmap v2.0
-- Browser Extensions
-- Export to Test Files
-- Selector Quality Score
-- AI-Powered Suggestions
-
-### Community
-- Share your success stories
-- Request new features
-- Join the testing revolution
-
 ---
 
-**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jonathan-g-33607648/)**
+**Star on GitHub** • **Documentation** • **Report Issues**
 
-*Transform your selector generation workflow with Best-Locator v1.0 - The future of UI testing is here!*
+Made with love for the testing community
