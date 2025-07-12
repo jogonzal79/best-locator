@@ -10,6 +10,7 @@ Best-Locator is a CLI tool that intelligently generates selectors for your UI te
 
 - 🖱️ **Interactive element selection** - Just click on any element
 - 🧠 **Smart selector generation** - Uses intelligent heuristics to find the best selector
+- ✅ **Selector validation** - Test if your selectors still work
 - 🔧 **Multi-framework support** - Playwright, Cypress, and Selenium
 - 🌐 **Multi-language support** - TypeScript, JavaScript, Python, Java, C#
 - 📋 **Auto-copy to clipboard** - Generated code is automatically copied
@@ -43,17 +44,31 @@ npm run dev pick https://example.com cypress javascript
 
 # Generate Selenium Python selector
 npm run dev pick https://example.com selenium python
+
+# Validate if a selector works
+npm run dev validate https://example.com "#login-button"
+
+# Validate with custom timeout
+npm run dev validate https://example.com "#login-button" -t=10000
 ```
 
 ## 📖 How It Works
 
+### Generate Selectors
 1. **Open the tool** with your target URL
 2. **Click on any element** you want to test
 3. **Get the optimal selector** automatically generated
 4. **Use the code** - it's already copied to your clipboard!
 
-### Example Workflow
+### Validate Selectors
+1. **Run the validate command** with URL and selector
+2. **Get instant feedback** - does it work? Is it unique?
+3. **See detailed info** - visibility, clickability, attributes
+4. **Get suggestions** if the selector fails
 
+### Example Workflows
+
+#### Generating Selectors
 ```bash
 $ npm run dev pick https://www.google.com cypress javascript
 
@@ -86,15 +101,42 @@ $ npm run dev pick https://www.google.com cypress javascript
 ✅ Copied to clipboard!
 ```
 
+#### Validating Selectors
+```bash
+$ npm run dev validate https://www.google.com "#APjFqb"
+
+🔍 Validating selector on https://www.google.com...
+🎯 Selector: #APjFqb
+⏱️  Timeout: 30000ms
+🌐 Loading page...
+✅ Page loaded successfully!
+
+📊 Validation Results:
+   Selector: #APjFqb
+   Status: ✅ PASSED
+   Elements found: 1
+
+📋 Element Details:
+   Tag: textarea
+   Text: ""
+   Visible: ✅
+   Clickable: ✅
+
+🏷️  Attributes:
+   id: APjFqb
+   class: gLFyf
+   name: q
+   role: combobox
+   aria-label: Buscar
+```
+
 ## 🎛️ Command Reference
 
-### Basic Syntax
+### Generate Selectors
 
 ```bash
 npm run dev pick <url> [framework] [language]
 ```
-
-### Parameters
 
 **`<url>`** (Required)  
 Target webpage URL to analyze  
@@ -110,8 +152,27 @@ Programming language for the generated code
 *Options: `typescript`, `javascript`, `python`*  
 *Default: `typescript`*
 
+### Validate Selectors
+
+```bash
+npm run dev validate <url> <selector> [options]
+```
+
+**`<url>`** (Required)  
+Target webpage URL to test against  
+*Example: `https://example.com`*
+
+**`<selector>`** (Required)  
+CSS selector to validate  
+*Example: `"#login-button"`, `".submit-btn"`, `"[data-testid='submit']"`*
+
+**Options:**
+- `-t, --timeout=<ms>` - Custom timeout in milliseconds (default: 30000)
+  *Example: `-t=10000` for 10 seconds*
+
 ### Examples
 
+#### Generating Selectors
 ```bash
 # Playwright with TypeScript (default)
 npm run dev pick https://app.example.com
@@ -124,6 +185,24 @@ npm run dev pick https://app.example.com selenium python
 
 # Playwright with Python
 npm run dev pick https://app.example.com playwright python
+```
+
+#### Validating Selectors
+```bash
+# Basic validation
+npm run dev validate https://app.example.com "#login-button"
+
+# Validate CSS class
+npm run dev validate https://app.example.com ".submit-btn"
+
+# Validate data attribute
+npm run dev validate https://app.example.com "[data-testid='checkout']"
+
+# Validate with custom timeout (10 seconds)
+npm run dev validate https://app.example.com "#slow-loading-element" -t=10000
+
+# Validate complex selector
+npm run dev validate https://app.example.com "form input[type='email']"
 ```
 
 ## 🧠 Selector Intelligence
@@ -196,6 +275,7 @@ best-locator/
 │   │   └── index.ts              # Main CLI interface
 │   ├── core/
 │   │   ├── selector-generator.ts # Intelligent selector generation
+│   │   ├── selector-validator.ts # Selector validation engine
 │   │   └── framework-formatter.ts # Multi-framework output formatting
 │   └── utils/                    # Utility functions
 ├── tests/                        # Test files
@@ -278,20 +358,28 @@ We welcome contributions! Here's how you can help:
 ### For QA Engineers
 - Always prefer `data-testid` attributes when available
 - Use Best-Locator early in development to identify missing test attributes
+- **Validate selectors regularly** - use `validate` command to catch breaking changes
 - Copy the generated selectors and save them in your test documentation
 
 ### For Developers
 - Add `data-testid` attributes to your components for better testing
 - Use semantic HTML elements with proper roles and labels
 - Avoid generated class names for test selectors
+- **Test your changes** - run `validate` before deploying UI changes
 
 ### Common Use Cases
 ```bash
 # Testing a login form
 npm run dev pick https://app.com/login cypress javascript
 
+# Validating after UI changes
+npm run dev validate https://staging.app.com "#login-form"
+
 # Testing e-commerce checkout
 npm run dev pick https://shop.com/checkout selenium python
+
+# Validating critical user flows
+npm run dev validate https://prod.app.com "[data-testid='purchase-button']"
 
 # Testing dashboard widgets
 npm run dev pick https://dashboard.com playwright typescript
@@ -320,6 +408,7 @@ npm install
 - Check if there are any overlays blocking the element
 
 **Selector not working in tests**
+- **First, validate it**: `npm run dev validate https://your-app.com "your-selector"`
 - Verify the element still exists with the same attributes
 - Check if the page has dynamic content that changes selectors
 - Consider using more stable selectors like data-testid

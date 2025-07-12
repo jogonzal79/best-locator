@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import { chromium } from 'playwright';
 import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
+import { SelectorValidator } from '../core/selector-validator.js';
 
 // Declarar tipos para el objeto window
 declare global {
@@ -41,9 +42,6 @@ program
     console.log(chalk.blue(`🚀 Opening ${url}...`));
     console.log(chalk.yellow(`📋 Framework: ${framework}`));
     console.log(chalk.yellow(`💬 Language: ${language}`));
-    
-    // ... resto del código igual
-    
     
     try {
       // Abrir el navegador
@@ -146,6 +144,52 @@ program
       
     } catch (error: any) {
       console.log(chalk.red('❌ Error:'), error.message);
+    }
+  });
+
+// Comando validate - validar selectores existentes
+program
+  .command('validate <url> <selector>')
+  .description('Validate if a selector works on a webpage')
+  .option('-t, --timeout <timeout>', 'timeout in milliseconds', '30000')
+  .action(async (url: string, selector: string, options: { timeout: string }) => {
+    console.log(chalk.blue(`🔍 Validating selector on ${url}...`));
+    console.log(chalk.yellow(`🎯 Selector: ${selector}`));
+    console.log(chalk.yellow(`⏱️  Timeout: ${options.timeout}ms`));
+    
+    try {
+      // Abrir el navegador
+      const browser = await chromium.launch({ 
+        headless: false // Para que puedas ver qué está pasando
+      });
+      
+      const page = await browser.newPage();
+      
+      // Ir a la URL
+      console.log(chalk.blue('🌐 Loading page...'));
+      await page.goto(url, { timeout: parseInt(options.timeout) });
+      
+      console.log(chalk.green('✅ Page loaded successfully!'));
+      
+      // Validar el selector
+      const validator = new SelectorValidator();
+      const result = await validator.validate(page, selector);
+      
+      // Mostrar resultados
+      validator.displayResult(result, selector);
+      
+      // Cerrar navegador
+      console.log(chalk.blue('\n🔄 Closing browser...'));
+      await browser.close();
+      
+      // Exit code basado en resultado
+      if (result.status === 'failed') {
+        process.exit(1); // Para CI/CD
+      }
+      
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error:'), error.message);
+      process.exit(1);
     }
   });
 
