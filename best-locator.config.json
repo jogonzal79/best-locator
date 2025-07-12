@@ -1,0 +1,40 @@
+{
+  "defaultFramework": "playwright",
+  "defaultLanguage": "typescript",
+  "timeouts": {
+    "pageLoad": 30000,
+    "elementSelection": 60000,
+    "validation": 15000
+  },
+  "selectorStrategy": {
+    "testAttributes": 1,
+    "ids": 2,
+    "semanticAttributes": 3,
+    "textContent": 4,
+    "cssClasses": 5
+  },
+  "projectAttributes": [
+    "data-testid",
+    "data-cy", 
+    "data-test",
+    "data-qa"
+  ],
+  "browser": {
+    "headless": false,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "output": {
+    "format": "string",
+    "includeConfidence": true,
+    "includeXPath": false
+  },
+  "urls": {
+    "local": "http://localhost:3000",
+    "google": "https://www.google.com",
+    "github": "https://github.com",
+    "staging": "https://staging.myapp.com"
+  }
+}

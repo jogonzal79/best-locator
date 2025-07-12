@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { SelectorValidator } from '../core/selector-validator.js';
+import { ConfigManager } from '../core/config-manager.js';
 
 // Declarar tipos para el objeto window
 declare global {
@@ -21,41 +22,77 @@ declare global {
 // Creamos el programa principal
 const program = new Command();
 
+// Inicializar ConfigManager
+const configManager = new ConfigManager();
+
 // Configuramos la información básica del CLI
 program
   .name('best-locator')
   .description('🎯 Universal selector generator for UI testing')
-  .version('0.1.0');
+  .version('1.0.0');
 
 // Comando hello (para testing)
 program
   .command('hello')
   .description('Test that our CLI works')
   .action(() => {
-    console.log(chalk.green('🎉 Hello! Best-Locator is working!'));
+    console.log(chalk.green('🎉 Hello! Best-Locator v1.0 is working!'));
     console.log(chalk.blue('✨ Ready to generate awesome selectors!'));
+    if (configManager.hasConfigFile()) {
+      console.log(chalk.green('⚙️  Configuration file detected!'));
+    }
+  });
+
+// Comando para crear configuración de ejemplo
+program
+  .command('init')
+  .description('Create a sample configuration file')
+  .action(() => {
+    configManager.createSampleConfig();
   });
 
 // Comando pick - nuestro comando principal (modo single)
 program
   .command('pick <url> [framework] [language]')
   .description('Pick an element from a webpage and generate selector')
-  .action(async (url: string, framework = 'playwright', language = 'typescript') => {
-    console.log(chalk.blue(`🚀 Opening ${url}...`));
-    console.log(chalk.yellow(`📋 Framework: ${framework}`));
-    console.log(chalk.yellow(`💬 Language: ${language}`));
+  .action(async (url: string, framework?: string, language?: string) => {
+    // Usar configuración por defecto si no se especifica
+    const config = configManager.getConfig();
+    const finalFramework = framework || config.defaultFramework;
+    const finalLanguage = language || config.defaultLanguage;
+    
+    // Resolver URL si es un alias
+    const resolvedUrl = configManager.getUrl(url) || url;
+    
+    console.log(chalk.blue(`🚀 Opening ${resolvedUrl}...`));
+    console.log(chalk.yellow(`📋 Framework: ${finalFramework}`));
+    console.log(chalk.yellow(`💬 Language: ${finalLanguage}`));
+    if (configManager.hasConfigFile()) {
+      console.log(chalk.green(`⚙️  Using config file`));
+    }
+    if (resolvedUrl !== url) {
+      console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
+    }
     console.log(chalk.magenta(`🔀 Single mode: ON`));
     
     try {
-      // Abrir el navegador
+      // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
-        headless: false // Para que podamos ver el navegador
+        headless: config.browser.headless,
+        ...(config.browser.userAgent && { 
+          args: [`--user-agent=${config.browser.userAgent}`] 
+        })
       });
       
       const page = await browser.newPage();
       
-      // Ir a la URL
-      await page.goto(url);
+      // Configurar viewport
+      await page.setViewportSize(config.browser.viewport);
+      
+      // Ir a la URL con timeout configurado
+      await page.goto(resolvedUrl, { 
+        timeout: config.timeouts.pageLoad 
+      });
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('👆 Click on any element to select it...'));
@@ -94,8 +131,10 @@ program
         `
       });
       
-      // Esperar hasta que el usuario haga click en un elemento
-      await page.waitForFunction('window.elementSelected', { timeout: 60000 });
+      // Esperar hasta que el usuario haga click en un elemento (con timeout configurado)
+      await page.waitForFunction('window.elementSelected', { 
+        timeout: config.timeouts.elementSelection 
+      });
       
       // Obtener la información del elemento seleccionado
       const elementInfo: any = await page.evaluate('window.selectedElementInfo');
@@ -107,10 +146,10 @@ program
       console.log(chalk.white(`   Classes: ${elementInfo.className || '(none)'}`));
       console.log(chalk.white(`   Text: ${elementInfo.textContent.substring(0, 50)}${elementInfo.textContent.length > 50 ? '...' : ''}`));
       
-      // Mostrar atributos importantes
+      // Mostrar atributos importantes (usar atributos del proyecto)
       console.log(chalk.blue('🏷️  Attributes:'));
       Object.entries(elementInfo.attributes).forEach(([key, value]) => {
-        if (['data-testid', 'data-cy', 'data-test', 'role', 'aria-label'].includes(key)) {
+        if (config.projectAttributes.includes(key) || ['role', 'aria-label'].includes(key)) {
           console.log(chalk.green(`   ${key}: ${value}`));
         } else if (['id', 'class', 'name', 'type'].includes(key)) {
           console.log(chalk.yellow(`   ${key}: ${value}`));
@@ -125,12 +164,14 @@ program
       console.log(chalk.cyan('🎯 Best Selector:'));
       console.log(chalk.yellow(`   ${selectorResult.selector}`));
       console.log(chalk.white(`   Type: ${selectorResult.type}`));
-      console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
+      if (config.output.includeConfidence) {
+        console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
+      }
       
       // ✨ Formatear para el framework específico
-      console.log(chalk.green(`\n📋 Formatted for ${framework} ${language}:`));
+      console.log(chalk.green(`\n📋 Formatted for ${finalFramework} ${finalLanguage}:`));
       const formatter = new FrameworkFormatter();
-      const formattedCode = formatter.format(selectorResult.selector, framework, language);
+      const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
       console.log(chalk.blue(`   ${formattedCode}`));
 
       // 📋 Copiar al portapapeles
@@ -154,20 +195,44 @@ program
 program
   .command('pick-multiple <url> [framework] [language]')
   .description('Pick multiple elements from a webpage and generate selectors')
-  .action(async (url: string, framework = 'playwright', language = 'typescript') => {
-    console.log(chalk.blue(`🚀 Opening ${url}...`));
-    console.log(chalk.yellow(`📋 Framework: ${framework}`));
-    console.log(chalk.yellow(`💬 Language: ${language}`));
+  .action(async (url: string, framework?: string, language?: string) => {
+    // Usar configuración por defecto si no se especifica
+    const config = configManager.getConfig();
+    const finalFramework = framework || config.defaultFramework;
+    const finalLanguage = language || config.defaultLanguage;
+    
+    // Resolver URL si es un alias
+    const resolvedUrl = configManager.getUrl(url) || url;
+    
+    console.log(chalk.blue(`🚀 Opening ${resolvedUrl}...`));
+    console.log(chalk.yellow(`📋 Framework: ${finalFramework}`));
+    console.log(chalk.yellow(`💬 Language: ${finalLanguage}`));
+    if (configManager.hasConfigFile()) {
+      console.log(chalk.green(`⚙️  Using config file`));
+    }
+    if (resolvedUrl !== url) {
+      console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
+    }
     console.log(chalk.magenta(`🔀 Multiple mode: ON`));
     
     try {
-      // Abrir el navegador
+      // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
-        headless: false
+        headless: config.browser.headless,
+        ...(config.browser.userAgent && { 
+          args: [`--user-agent=${config.browser.userAgent}`] 
+        })
       });
       
       const page = await browser.newPage();
-      await page.goto(url);
+      
+      // Configurar viewport
+      await page.setViewportSize(config.browser.viewport);
+      
+      // Ir a la URL con timeout configurado
+      await page.goto(resolvedUrl, { 
+        timeout: config.timeouts.pageLoad 
+      });
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('🔀 Multiple mode enabled!'));
@@ -230,11 +295,13 @@ program
         `
       });
       
-      // Esperar hasta que presione ESC
+      // Esperar hasta que presione ESC (con timeout configurado)
       console.log(chalk.blue('⏳ Waiting for ESC key... (make multiple clicks then press ESC)'));
 
       try {
-        await page.waitForFunction('window.multipleSelectionComplete', { timeout: 300000 });
+        await page.waitForFunction('window.multipleSelectionComplete', { 
+          timeout: config.timeouts.elementSelection 
+        });
         console.log(chalk.green('✅ ESC detected - processing selections...'));
       } catch (error) {
         console.log(chalk.red('⏰ Timeout waiting for ESC - processing current selections...'));
@@ -258,7 +325,7 @@ program
       
       for (const elementInfo of selectedElements) {
         const selectorResult = generator.generateSelector(elementInfo);
-        const formattedCode = formatter.format(selectorResult.selector, framework, language);
+        const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
         
         results.push({
           order: elementInfo.order,
@@ -274,7 +341,9 @@ program
         console.log(chalk.white(`   Text: "${elementInfo.textContent.substring(0, 30)}${elementInfo.textContent.length > 30 ? '...' : ''}"`));
         console.log(chalk.yellow(`   Selector: ${selectorResult.selector}`));
         console.log(chalk.cyan(`   Code: ${formattedCode}`));
-        console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
+        if (config.output.includeConfidence) {
+          console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
+        }
       }
       
       // Generar snippet combinado
@@ -303,23 +372,42 @@ program
 program
   .command('validate <url> <selector>')
   .description('Validate if a selector works on a webpage')
-  .option('-t, --timeout <timeout>', 'timeout in milliseconds', '30000')
-  .action(async (url: string, selector: string, options: { timeout: string }) => {
-    console.log(chalk.blue(`🔍 Validating selector on ${url}...`));
+  .option('-t, --timeout <timeout>', 'timeout in milliseconds')
+  .action(async (url: string, selector: string, options: { timeout?: string }) => {
+    // Usar configuración para timeout si no se especifica
+    const config = configManager.getConfig();
+    const timeoutValue = options.timeout ? parseInt(options.timeout) : config.timeouts.validation;
+    
+    // Resolver URL si es un alias
+    const resolvedUrl = configManager.getUrl(url) || url;
+    
+    console.log(chalk.blue(`🔍 Validating selector on ${resolvedUrl}...`));
     console.log(chalk.yellow(`🎯 Selector: ${selector}`));
-    console.log(chalk.yellow(`⏱️  Timeout: ${options.timeout}ms`));
+    console.log(chalk.yellow(`⏱️  Timeout: ${timeoutValue}ms`));
+    if (configManager.hasConfigFile()) {
+      console.log(chalk.green(`⚙️  Using config file`));
+    }
+    if (resolvedUrl !== url) {
+      console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
+    }
     
     try {
-      // Abrir el navegador
+      // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
-        headless: false // Para que puedas ver qué está pasando
+        headless: config.browser.headless,
+        ...(config.browser.userAgent && { 
+          args: [`--user-agent=${config.browser.userAgent}`] 
+        })
       });
       
       const page = await browser.newPage();
       
+      // Configurar viewport
+      await page.setViewportSize(config.browser.viewport);
+      
       // Ir a la URL
       console.log(chalk.blue('🌐 Loading page...'));
-      await page.goto(url, { timeout: parseInt(options.timeout) });
+      await page.goto(resolvedUrl, { timeout: config.timeouts.pageLoad });
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       
@@ -344,6 +432,140 @@ program
       process.exit(1);
     }
   });
+// Comandos simplificados con aliases
+program
+  .command('go <alias>')
+  .description('Quick pick using URL alias from config')
+  .action(async (alias: string) => {
+    const config = configManager.getConfig();
+    const url = configManager.getUrl(alias);
+    
+    if (!url) {
+      console.log(chalk.red(`❌ URL alias '${alias}' not found in config`));
+      console.log(chalk.yellow('💡 Available aliases:'));
+      Object.keys(config.urls).forEach(key => {
+        console.log(chalk.blue(`   ${key}: ${config.urls[key]}`));
+      });
+      console.log(chalk.cyan('\n🔧 Run "npm run dev init" to create a config file'));
+      return;
+    }
+    
+    console.log(chalk.green(`🚀 Quick pick mode for '${alias}'`));
+    
+    // Ejecutar pick con configuración por defecto
+    try {
+      const browser = await chromium.launch({ 
+        headless: config.browser.headless 
+      });
+      
+      const page = await browser.newPage();
+      await page.setViewportSize(config.browser.viewport);
+      await page.goto(url, { timeout: config.timeouts.pageLoad });
+      
+      console.log(chalk.green('✅ Page loaded successfully!'));
+      console.log(chalk.cyan('👆 Click on any element to select it...'));
+      
+      // [Mismo código de inyección que el comando pick]
+      await page.addScriptTag({
+        content: `
+          document.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const element = event.target;
+            element.style.outline = '3px solid #ff0000';
+            element.style.backgroundColor = '#ffff0050';
+            
+            window.selectedElementInfo = {
+              tagName: element.tagName.toLowerCase(),
+              id: element.id || '',
+              className: element.className || '',
+              textContent: element.textContent?.trim() || '',
+              attributes: {}
+            };
+            
+            for (let attr of element.attributes) {
+              window.selectedElementInfo.attributes[attr.name] = attr.value;
+            }
+            
+            window.elementSelected = true;
+          }, true);
+        `
+      });
+      
+      await page.waitForFunction('window.elementSelected', { 
+        timeout: config.timeouts.elementSelection 
+      });
+      
+      const elementInfo: any = await page.evaluate('window.selectedElementInfo');
+      
+      console.log(chalk.green('\n🎯 Element selected!'));
+      
+      const generator = new SelectorGenerator();
+      const selectorResult = generator.generateSelector(elementInfo);
+      
+      console.log(chalk.cyan('🎯 Best Selector:'));
+      console.log(chalk.yellow(`   ${selectorResult.selector}`));
+      
+      const formatter = new FrameworkFormatter();
+      const formattedCode = formatter.format(
+        selectorResult.selector, 
+        config.defaultFramework, 
+        config.defaultLanguage
+      );
+      console.log(chalk.blue(`   ${formattedCode}`));
 
+      try {
+        const clipboardy = await import('clipboardy');
+        await clipboardy.default.write(formattedCode);
+        console.log(chalk.green('✅ Copied to clipboard!'));
+      } catch (error) {
+        console.log(chalk.yellow('⚠️  Could not copy to clipboard'));
+      }
+      
+      await browser.close();
+      
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error:'), error.message);
+    }
+  });
+
+// Comando para mostrar configuración actual
+program
+  .command('config')
+  .description('Show current configuration')
+  .action(() => {
+    const config = configManager.getConfig();
+    
+    console.log(chalk.blue('⚙️  Current Configuration:'));
+    console.log(chalk.white(`   Default Framework: ${config.defaultFramework}`));
+    console.log(chalk.white(`   Default Language: ${config.defaultLanguage}`));
+    console.log(chalk.white(`   Headless Mode: ${config.browser.headless}`));
+    console.log(chalk.white(`   Viewport: ${config.browser.viewport.width}x${config.browser.viewport.height}`));
+    
+    console.log(chalk.blue('\n🔗 URL Aliases:'));
+    if (Object.keys(config.urls).length === 0) {
+      console.log(chalk.yellow('   No URL aliases configured'));
+    } else {
+      Object.entries(config.urls).forEach(([key, value]) => {
+        console.log(chalk.green(`   ${key}: ${value}`));
+      });
+    }
+    
+    console.log(chalk.blue('\n🏷️  Project Attributes:'));
+    config.projectAttributes.forEach(attr => {
+      console.log(chalk.green(`   ${attr}`));
+    });
+    
+    console.log(chalk.blue('\n⏱️  Timeouts:'));
+    console.log(chalk.white(`   Page Load: ${config.timeouts.pageLoad}ms`));
+    console.log(chalk.white(`   Element Selection: ${config.timeouts.elementSelection}ms`));
+    console.log(chalk.white(`   Validation: ${config.timeouts.validation}ms`));
+    
+    if (!configManager.hasConfigFile()) {
+      console.log(chalk.yellow('\n💡 No config file found - using defaults'));
+      console.log(chalk.cyan('🔧 Run "npm run dev init" to create a config file'));
+    }
+  });
 // Ejecutamos el programa
 program.parse();
