@@ -85,6 +85,13 @@ program
       });
       
       const page = await browser.newPage();
+
+      
+      // Configurar timeout infinito para la página
+      page.setDefaultTimeout(0);  // Esta línea es nueva
+
+      // Configurar viewport
+      await page.setViewportSize(config.browser.viewport);
       
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
@@ -367,6 +374,281 @@ program
       console.log(chalk.red('❌ Error:'), error.message);
     }
   });
+
+// Comando pick-toggle - navegación libre con toggle
+program
+  .command('pick-toggle <url> [framework] [language]')
+  .description('Pick elements with toggle mode - navigate freely and turn selector mode on/off')
+  .action(async (url: string, framework?: string, language?: string) => {
+    // Usar configuración por defecto si no se especifica
+    const config = configManager.getConfig();
+    const finalFramework = framework || config.defaultFramework;
+    const finalLanguage = language || config.defaultLanguage;
+    
+    // Resolver URL si es un alias
+    const resolvedUrl = configManager.getUrl(url) || url;
+    
+    console.log(chalk.blue(`🚀 Opening ${resolvedUrl}...`));
+    console.log(chalk.yellow(`📋 Framework: ${finalFramework}`));
+    console.log(chalk.yellow(`💬 Language: ${finalLanguage}`));
+    if (configManager.hasConfigFile()) {
+      console.log(chalk.green(`⚙️  Using config file`));
+    }
+    if (resolvedUrl !== url) {
+      console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
+    }
+    console.log(chalk.magenta(`🎛️ Toggle mode: ON`));
+    
+    try {
+      // Abrir el navegador con configuración
+      const browser = await chromium.launch({ 
+        headless: config.browser.headless,
+        ...(config.browser.userAgent && { 
+          args: [`--user-agent=${config.browser.userAgent}`] 
+        })
+      });
+      
+      const page = await browser.newPage();
+      
+      // Configurar timeout infinito para la página
+      page.setDefaultTimeout(0);
+
+      // Configurar viewport
+      await page.setViewportSize(config.browser.viewport);
+      
+      // Ir a la URL con timeout configurado
+      await page.goto(resolvedUrl, { 
+        timeout: config.timeouts.pageLoad 
+      });
+      
+      console.log(chalk.green('✅ Page loaded successfully!'));
+      console.log(chalk.cyan('🎛️ Toggle mode enabled!'));
+      console.log(chalk.red('🔴 SELECTOR MODE: OFF - Navigate freely'));
+      console.log(chalk.blue('💡 Press CTRL+S to turn ON selector mode'));
+      console.log(chalk.blue('💡 Press CTRL+D to turn OFF selector mode'));
+      console.log(chalk.yellow('💡 Press ESC to finish and get results'));
+      
+      // Inyectar JavaScript para modo toggle
+      await page.addScriptTag({
+        content: `
+          // Estado global
+          window.bestLocatorState = {
+            selectorMode: false,
+            selectedElements: [],
+            elementCounter: 0
+          };
+          
+          // Crear indicador visual
+          const indicator = document.createElement('div');
+          indicator.id = 'best-locator-indicator';
+          indicator.style.cssText = \`
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 99999;
+            pointer-events: none;
+            background: #ff4444;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          \`;
+          indicator.textContent = '🔴 SELECTOR: OFF';
+          document.body.appendChild(indicator);
+          
+          // Función para actualizar indicador
+          function updateIndicator() {
+            const indicator = document.getElementById('best-locator-indicator');
+            if (window.bestLocatorState.selectorMode) {
+              indicator.textContent = '🟢 SELECTOR: ON';
+              indicator.style.background = '#44ff44';
+              indicator.style.color = 'black';
+            } else {
+              indicator.textContent = '🔴 SELECTOR: OFF';
+              indicator.style.background = '#ff4444';
+              indicator.style.color = 'white';
+            }
+          }
+          
+          // Función para mostrar notificación
+          function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = \`
+              position: fixed;
+              top: 60px;
+              right: 10px;
+              padding: 12px 16px;
+              border-radius: 4px;
+              font-family: monospace;
+              font-size: 14px;
+              font-weight: bold;
+              z-index: 99999;
+              background: #333;
+              color: white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            \`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+              if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+              }
+            }, 2000);
+          }
+          
+          // Toggle selector mode
+          function toggleSelectorMode(enable) {
+            window.bestLocatorState.selectorMode = enable;
+            updateIndicator();
+            
+            if (enable) {
+              showNotification('🎯 SELECTOR MODE: ON - Click elements to capture!');
+            } else {
+              showNotification('🌐 SELECTOR MODE: OFF - Navigate freely!');
+            }
+          }
+          
+          // Escuchar teclas de control
+          document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 's') {
+              event.preventDefault();
+              toggleSelectorMode(true);
+            } else if (event.ctrlKey && event.key === 'd') {
+              event.preventDefault();
+              toggleSelectorMode(false);
+            } else if (event.key === 'Escape') {
+              window.toggleSessionComplete = true;
+            }
+          });
+          
+          // Escuchar clicks
+          document.addEventListener('click', function(event) {
+            if (window.bestLocatorState.selectorMode) {
+              // MODO ON - Capturar selector
+              event.preventDefault();
+              event.stopPropagation();
+              
+              const element = event.target;
+              window.bestLocatorState.elementCounter++;
+              
+              // Highlight del elemento
+              element.style.outline = '3px solid #ff0000';
+              element.style.backgroundColor = '#ffff0050';
+              
+              // Guardar información del elemento
+              const elementInfo = {
+                order: window.bestLocatorState.elementCounter,
+                tagName: element.tagName.toLowerCase(),
+                id: element.id || '',
+                className: element.className || '',
+                textContent: element.textContent?.trim() || '',
+                pageUrl: window.location.href,
+                attributes: {}
+              };
+              
+              // Capturar TODOS los atributos del elemento
+              for (let attr of element.attributes) {
+                elementInfo.attributes[attr.name] = attr.value;
+              }
+              
+              window.bestLocatorState.selectedElements.push(elementInfo);
+              console.log('✅ Element captured:', window.bestLocatorState.elementCounter, elementInfo.tagName);
+              
+              // Mostrar notificación
+              showNotification(\`✅ Element \${window.bestLocatorState.elementCounter} captured! (\${window.bestLocatorState.selectedElements.length} total)\`);
+              
+            } else {
+              // MODO OFF - Navegación libre (no hacer nada especial)
+              console.log('🌐 Free navigation - click ignored for selection');
+            }
+          }, true);
+          
+          console.log('🎛️ Toggle mode script loaded successfully');
+        `
+      });
+      
+      // Esperar hasta que presione ESC (con timeout configurado)
+      console.log(chalk.blue('⏳ Use CTRL+S/CTRL+D to toggle selector mode, ESC to finish...'));
+      console.log(chalk.yellow('⏰ Session expires in 10 minutes if no activity'));
+
+      try {
+        await page.waitForFunction('window.toggleSessionComplete', { timeout: 600000 });  // 10 minutos
+        console.log(chalk.green('✅ ESC detected - processing session...'));
+      } catch (error) {
+        console.log(chalk.yellow('⏰ 10 minute session expired - processing captured elements...'));
+      }
+
+
+      
+      // Obtener todos los elementos seleccionados
+      const sessionData: any = await page.evaluate('window.bestLocatorState');
+      const selectedElements = sessionData.selectedElements || [];
+      
+      if (selectedElements.length === 0) {
+        console.log(chalk.yellow('⚠️  No elements were captured'));
+        await browser.close();
+        return;
+      }
+      
+      // Procesar cada elemento
+      console.log(chalk.green(`\n🎯 Session completed! ${selectedElements.length} elements captured:`));
+      
+      const generator = new SelectorGenerator();
+      const formatter = new FrameworkFormatter();
+      const results = [];
+      
+      for (const elementInfo of selectedElements) {
+        const selectorResult = generator.generateSelector(elementInfo);
+        const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
+        
+        results.push({
+          order: elementInfo.order,
+          tagName: elementInfo.tagName,
+          textContent: elementInfo.textContent,
+          pageUrl: elementInfo.pageUrl,
+          selector: selectorResult.selector,
+          code: formattedCode,
+          confidence: selectorResult.confidence
+        });
+        
+        console.log(chalk.blue(`\n📋 Element ${elementInfo.order}:`));
+        console.log(chalk.white(`   Tag: ${elementInfo.tagName}`));
+        console.log(chalk.white(`   Page: ${elementInfo.pageUrl}`));
+        console.log(chalk.white(`   Text: "${elementInfo.textContent.substring(0, 30)}${elementInfo.textContent.length > 30 ? '...' : ''}"`));
+        console.log(chalk.yellow(`   Selector: ${selectorResult.selector}`));
+        console.log(chalk.cyan(`   Code: ${formattedCode}`));
+        if (config.output.includeConfidence) {
+          console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
+        }
+      }
+      
+      // Generar snippet combinado
+      console.log(chalk.green('\n✨ Combined test snippet:'));
+      const combinedCode = results.map(r => `   ${r.code}`).join('\n');
+      console.log(chalk.blue(combinedCode));
+      
+      // Copiar al portapapeles
+      try {
+        const clipboardy = await import('clipboardy');
+        await clipboardy.default.write(combinedCode);
+        console.log(chalk.green('\n📋 All code copied to clipboard!'));
+      } catch (error) {
+        console.log(chalk.yellow('⚠️  Could not copy to clipboard'));
+      }
+      
+      console.log(chalk.red('\n🔄 Closing browser...'));
+      await browser.close();
+      
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error:'), error.message);
+    }
+  });
+
+
 
 // Comando validate - validar selectores existentes
 program
