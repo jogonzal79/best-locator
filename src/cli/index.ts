@@ -75,6 +75,16 @@ program
     }
     console.log(chalk.magenta(`🔀 Single mode: ON`));
     
+    // ✨ VALIDAR COMBINACIÓN ANTES DE ABRIR NAVEGADOR
+    const formatter = new FrameworkFormatter();
+    try {
+      // Test rápido para validar la combinación
+      formatter.format('[data-test="test"]', finalFramework, finalLanguage);
+    } catch (validationError: any) {
+      console.log(chalk.red('❌ Error:'), validationError.message);
+      return; // Salir sin abrir navegador
+    }
+    
     try {
       // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
@@ -85,14 +95,10 @@ program
       });
       
       const page = await browser.newPage();
-
       
       // Configurar timeout infinito para la página
-      page.setDefaultTimeout(0);  // Esta línea es nueva
+      page.setDefaultTimeout(0);
 
-      // Configurar viewport
-      await page.setViewportSize(config.browser.viewport);
-      
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
       
@@ -177,7 +183,6 @@ program
       
       // ✨ Formatear para el framework específico
       console.log(chalk.green(`\n📋 Formatted for ${finalFramework} ${finalLanguage}:`));
-      const formatter = new FrameworkFormatter();
       const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
       console.log(chalk.blue(`   ${formattedCode}`));
 
@@ -221,6 +226,16 @@ program
       console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
     }
     console.log(chalk.magenta(`🔀 Multiple mode: ON`));
+    
+    // ✨ VALIDAR COMBINACIÓN ANTES DE ABRIR NAVEGADOR
+    const formatter = new FrameworkFormatter();
+    try {
+      // Test rápido para validar la combinación
+      formatter.format('[data-test="test"]', finalFramework, finalLanguage);
+    } catch (validationError: any) {
+      console.log(chalk.red('❌ Error:'), validationError.message);
+      return; // Salir sin abrir navegador
+    }
     
     try {
       // Abrir el navegador con configuración
@@ -276,9 +291,10 @@ program
               attributes: {}
             };
             
-            // Capturar algunos atributos básicos
-            if (element.id) elementInfo.attributes['id'] = element.id;
-            if (element.className) elementInfo.attributes['class'] = element.className;
+            // Capturar TODOS los atributos del elemento
+            for (let attr of element.attributes) {
+              elementInfo.attributes[attr.name] = attr.value;
+            }
             
             window.selectedElements.push(elementInfo);
             console.log('✅ Element saved:', elementCounter, elementInfo.tagName);
@@ -327,7 +343,6 @@ program
       console.log(chalk.green(`\n🎯 ${selectedElements.length} elements selected!`));
       
       const generator = new SelectorGenerator();
-      const formatter = new FrameworkFormatter();
       const results = [];
       
       for (const elementInfo of selectedElements) {
@@ -398,6 +413,16 @@ program
       console.log(chalk.blue(`🔗 URL alias '${url}' → ${resolvedUrl}`));
     }
     console.log(chalk.magenta(`🎛️ Toggle mode: ON`));
+    
+    // ✨ VALIDAR COMBINACIÓN ANTES DE ABRIR NAVEGADOR
+    const formatter = new FrameworkFormatter();
+    try {
+      // Test rápido para validar la combinación
+      formatter.format('[data-test="test"]', finalFramework, finalLanguage);
+    } catch (validationError: any) {
+      console.log(chalk.red('❌ Error:'), validationError.message);
+      return; // Salir sin abrir navegador
+    }
     
     try {
       // Abrir el navegador con configuración
@@ -582,8 +607,6 @@ program
         console.log(chalk.yellow('⏰ 10 minute session expired - processing captured elements...'));
       }
 
-
-      
       // Obtener todos los elementos seleccionados
       const sessionData: any = await page.evaluate('window.bestLocatorState');
       const selectedElements = sessionData.selectedElements || [];
@@ -598,7 +621,6 @@ program
       console.log(chalk.green(`\n🎯 Session completed! ${selectedElements.length} elements captured:`));
       
       const generator = new SelectorGenerator();
-      const formatter = new FrameworkFormatter();
       const results = [];
       
       for (const elementInfo of selectedElements) {
@@ -647,8 +669,6 @@ program
       console.log(chalk.red('❌ Error:'), error.message);
     }
   });
-
-
 
 // Comando validate - validar selectores existentes
 program
@@ -714,6 +734,7 @@ program
       process.exit(1);
     }
   });
+
 // Comandos simplificados con aliases
 program
   .command('go <alias>')
@@ -849,5 +870,6 @@ program
       console.log(chalk.cyan('🔧 Run "npm run dev init" to create a config file'));
     }
   });
+
 // Ejecutamos el programa
 program.parse();
