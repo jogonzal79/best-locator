@@ -237,7 +237,7 @@ MIT License - feel free to use in your projects!
 
 **Jonathan Gonzalez**  
 🧪 Automation Testing Enthusiast  
-📧 [LinkedIn](https://www.linkedin.com/in/jogonzal/)
+📧 [LinkedIn](https://www.linkedin.com/in/jonathan-g-33607648/)
 
 *Passionate about building tools that make testing easier, one selector at a time.*
 
