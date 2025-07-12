@@ -236,7 +236,7 @@ MIT License - feel free to use in your projects!
 ## 👨‍💻 Author
 
 **Jonathan Gonzalez**  
-🧪 Automation Testing Enthusiast & Developer  
+🧪 Automation Testing Enthusiast  
 📧 [LinkedIn](https://www.linkedin.com/in/jogonzal/)
 
 *Passionate about building tools that make testing easier, one selector at a time.*
