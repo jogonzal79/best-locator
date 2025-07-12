@@ -247,6 +247,6 @@ If Best-Locator helps you generate better selectors, please give it a star! ⭐
 
 ---
 
-**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jogonzal/)**
+**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jonathan-g-33607648/)**
 
 *Transform your selector generation workflow with Best-Locator!*
