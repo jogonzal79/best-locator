@@ -236,8 +236,8 @@ MIT License - feel free to use in your projects!
 ## 👨‍💻 Author
 
 **Jonathan Gonzalez**  
-🧪 Automation Testing Enthusiast & Developer  
-📧 [LinkedIn](https://www.linkedin.com/in/jogonzal/)
+🧪 Automation Testing Enthusiast  
+📧 [LinkedIn](https://www.linkedin.com/in/jonathan-g-33607648/)
 
 *Passionate about building tools that make testing easier, one selector at a time.*
 
@@ -247,6 +247,6 @@ If Best-Locator helps you generate better selectors, please give it a star! ⭐
 
 ---
 
-**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jogonzal/)**
+**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jonathan-g-33607648/)**
 
 *Transform your selector generation workflow with Best-Locator!*
