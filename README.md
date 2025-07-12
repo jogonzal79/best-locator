@@ -233,12 +233,20 @@ npm run dev validate https://staging.myapp.com ".flaky-element"
 
 MIT License - feel free to use in your projects!
 
+## 👨‍💻 Author
+
+**Jonathan Gonzalez**  
+🧪 Automation Testing Enthusiast & Developer  
+📧 [LinkedIn](https://www.linkedin.com/in/jogonzal/)
+
+*Passionate about building tools that make testing easier, one selector at a time.*
+
 ## 🌟 Star the Repository
 
 If Best-Locator helps you generate better selectors, please give it a star! ⭐
 
 ---
 
-**Made with ❤️ for the testing community**
+**Made with ❤️ for the testing community by [Jonathan Gonzalez](https://www.linkedin.com/in/jogonzal/)**
 
 *Transform your selector generation workflow with Best-Locator!*
