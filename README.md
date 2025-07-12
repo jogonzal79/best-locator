@@ -240,8 +240,8 @@ All code copied to clipboard!
 | **Playwright** | Yes | Yes | Yes | Yes | Yes |
 | **Selenium** | Yes | Yes | Yes | Yes | Yes |
 | **Cypress** | Yes | Yes | No | No | No |
-| **WebdriverIO** | Yes | Yes | No | No | No |
-| **Puppeteer** | Yes | Yes | No | No | No |
+
+
 
 ## Contributing
 
