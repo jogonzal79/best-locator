@@ -4,6 +4,8 @@
 
 Best-Locator is a CLI tool that intelligently generates selectors for your UI tests by letting you simply click on any element in your browser. It supports multiple testing frameworks and programming languages, automatically copying the generated code to your clipboard.
 
+**Created by [Jonathan Gonzalez](https://github.com/jogonzal79)** - Product Owner & QA Engineer
+
 ## ✨ Features
 
 - 🖱️ **Interactive element selection** - Just click on any element
@@ -20,7 +22,7 @@ Best-Locator is a CLI tool that intelligently generates selectors for your UI te
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/best-locator.git
+git clone https://github.com/jogonzal79/best-locator.git
 cd best-locator
 
 # Install dependencies
@@ -94,11 +96,19 @@ npm run dev pick <url> [framework] [language]
 
 ### Parameters
 
-| Parameter | Description | Options | Default |
-|-----------|-------------|---------|---------|
-| `url` | Target webpage URL | Any valid URL | Required |
-| `framework` | Testing framework | `playwright`, `cypress`, `selenium` | `playwright` |
-| `language` | Programming language | `typescript`, `javascript`, `python` | `typescript` |
+**`<url>`** (Required)  
+Target webpage URL to analyze  
+*Example: `https://example.com`*
+
+**`[framework]`** (Optional)  
+Testing framework to generate code for  
+*Options: `playwright`, `cypress`, `selenium`*  
+*Default: `playwright`*
+
+**`[language]`** (Optional)  
+Programming language for the generated code  
+*Options: `typescript`, `javascript`, `python`*  
+*Default: `typescript`*
 
 ### Examples
 
@@ -203,7 +213,7 @@ best-locator/
 ### Setup
 ```bash
 # Clone and install
-git clone https://github.com/your-username/best-locator.git
+git clone https://github.com/jogonzal79/best-locator.git
 cd best-locator
 npm install
 
@@ -316,9 +326,10 @@ npm install
 
 ## 📞 Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-username/best-locator/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-username/best-locator/discussions)
-- 📧 **Email**: your-email@example.com
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/jogonzal79/best-locator/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/jogonzal79/best-locator/discussions)
+- 📧 **Email**: jogonzal79@gmail.com
+- 💼 **LinkedIn**: [Jonathan Gonzalez](https://www.linkedin.com/in/jonathan-g-33607648/)
 
 ## 📄 License
 
@@ -329,10 +340,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Playwright](https://playwright.dev/) - For the amazing browser automation
 - [Commander.js](https://github.com/tj/commander.js/) - For the CLI framework
 - [Chalk](https://github.com/chalk/chalk) - For beautiful terminal colors
-- The QA community for inspiration and feedback
+- The QA automation community for inspiration and feedback
 
 ---
 
-**Made with ❤️ for the QA automation community**
+**Made with ❤️ by [Jonathan Gonzalez](https://github.com/jogonzal79) for the QA automation community**
 
 *If Best-Locator helps you write better tests, consider giving it a ⭐ on GitHub!*
