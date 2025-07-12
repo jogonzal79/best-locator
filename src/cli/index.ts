@@ -595,6 +595,16 @@ program
           console.log('🎛️ Toggle mode script loaded successfully');
         `
       });
+
+      // ✨ DETECTAR CIERRE DEL NAVEGADOR
+      page.on('close', () => {
+      console.log(chalk.yellow('\n🚪 Browser closed by user - processing captured elements...'));
+      });
+
+      browser.on('disconnected', () => {
+      console.log(chalk.yellow('\n🔌 Browser disconnected - finishing session...'));
+      });
+
       
       // Esperar hasta que presione ESC (con timeout configurado)
       console.log(chalk.blue('⏳ Use CTRL+S/CTRL+D to toggle selector mode, ESC to finish...'));
@@ -607,9 +617,17 @@ program
         console.log(chalk.yellow('⏰ 10 minute session expired - processing captured elements...'));
       }
 
+      
       // Obtener todos los elementos seleccionados
-      const sessionData: any = await page.evaluate('window.bestLocatorState');
-      const selectedElements = sessionData.selectedElements || [];
+      let selectedElements = [];
+      try {
+        const sessionData: any = await page.evaluate('window.bestLocatorState');
+        selectedElements = sessionData.selectedElements || [];
+      } catch (error) {
+        // Si la página se cerró, no podemos obtener elementos
+        console.log(chalk.yellow('⚠️  Unable to retrieve elements - browser was closed before processing'));
+        selectedElements = [];
+}
       
       if (selectedElements.length === 0) {
         console.log(chalk.yellow('⚠️  No elements were captured'));
