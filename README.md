@@ -1,311 +1,170 @@
-# Best-Locator 🎯
+# 🎯 Best-Locator
 
-> Universal selector generator for UI testing frameworks
-
-Best-Locator is a CLI tool that intelligently generates selectors for your UI tests by letting you simply click on any element in your browser. It supports multiple testing frameworks and programming languages, automatically copying the generated code to your clipboard.
-
-**Created by [Jonathan Gonzalez](https://github.com/jogonzal79)** - Product Owner & QA Engineer
+**Universal selector generator for UI testing** - The ultimate tool for generating smart, reliable selectors for Playwright, Cypress, and Selenium.
 
 ## ✨ Features
 
-- 🖱️ **Interactive element selection** - Just click on any element
-- 🧠 **Smart selector generation** - Uses intelligent heuristics to find the best selector
-- ✅ **Selector validation** - Test if your selectors still work
-- 🔧 **Multi-framework support** - Playwright, Cypress, and Selenium
-- 🌐 **Multi-language support** - TypeScript, JavaScript, Python, Java, C#
-- 📋 **Auto-copy to clipboard** - Generated code is automatically copied
-- ⚡ **Fast and lightweight** - No browser extensions needed
-- 🎨 **Beautiful CLI output** - Colored and organized information
+- 🧠 **Smart Selector Generation** - Intelligent algorithm that chooses the best selector strategy
+- 🔍 **Selector Validation** - Test if selectors work on live websites
+- 🚀 **Multiple Element Selection** - Select multiple elements in one session *(NEW!)*
+- 🎭 **Multi-Framework Support** - Playwright, Cypress, Selenium WebDriver
+- 🌐 **Multi-Language Support** - TypeScript, JavaScript, Python
+- 📋 **Auto-Clipboard Copy** - Generated code ready to paste
+- ⚡ **Fast & Interactive** - Real-time element selection in browser
 
 ## 🚀 Quick Start
 
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/jogonzal79/best-locator.git
-cd best-locator
-
 # Install dependencies
 npm install
 
-# Install Playwright browsers (first time only)
-npx playwright install
-```
-
-### Basic Usage
-
-```bash
-# Generate Playwright TypeScript selector (default)
+# Single element selection
 npm run dev pick https://example.com
 
-# Generate Cypress JavaScript selector
-npm run dev pick https://example.com cypress javascript
+# Multiple element selection (NEW!)
+npm run dev pick-multiple https://example.com
 
-# Generate Selenium Python selector
-npm run dev pick https://example.com selenium python
-
-# Validate if a selector works
-npm run dev validate https://example.com "#login-button"
-
-# Validate with custom timeout
-npm run dev validate https://example.com "#login-button" -t=10000
+# Validate existing selector
+npm run dev validate https://example.com "#my-selector"
 ```
 
-## 📖 How It Works
+## 📖 Commands
 
-### Generate Selectors
-1. **Open the tool** with your target URL
-2. **Click on any element** you want to test
-3. **Get the optimal selector** automatically generated
-4. **Use the code** - it's already copied to your clipboard!
+### 🎯 Single Element Selection
 
-### Validate Selectors
-1. **Run the validate command** with URL and selector
-2. **Get instant feedback** - does it work? Is it unique?
-3. **See detailed info** - visibility, clickability, attributes
-4. **Get suggestions** if the selector fails
-
-### Example Workflows
-
-#### Generating Selectors
-```bash
-$ npm run dev pick https://www.google.com cypress javascript
-
-🚀 Opening https://www.google.com...
-📋 Framework: cypress
-💬 Language: javascript
-✅ Page loaded successfully!
-👆 Click on any element to select it...
-
-🎯 Element selected!
-📋 Element information:
-   Tag: input
-   ID: APjFqb
-   Classes: gLFyf
-   Text: 
-🏷️  Attributes:
-   aria-label: Buscar
-   id: APjFqb
-   name: q
-   role: combobox
-
-🧠 Generating smart selector...
-🎯 Best Selector:
-   #APjFqb
-   Type: id
-   Confidence: 85%
-
-📋 Formatted for cypress javascript:
-   cy.get('#APjFqb')
-✅ Copied to clipboard!
-```
-
-#### Validating Selectors
-```bash
-$ npm run dev validate https://www.google.com "#APjFqb"
-
-🔍 Validating selector on https://www.google.com...
-🎯 Selector: #APjFqb
-⏱️  Timeout: 30000ms
-🌐 Loading page...
-✅ Page loaded successfully!
-
-📊 Validation Results:
-   Selector: #APjFqb
-   Status: ✅ PASSED
-   Elements found: 1
-
-📋 Element Details:
-   Tag: textarea
-   Text: ""
-   Visible: ✅
-   Clickable: ✅
-
-🏷️  Attributes:
-   id: APjFqb
-   class: gLFyf
-   name: q
-   role: combobox
-   aria-label: Buscar
-```
-
-## 🎛️ Command Reference
-
-### Generate Selectors
+Pick one element and generate its selector:
 
 ```bash
 npm run dev pick <url> [framework] [language]
+
+# Examples
+npm run dev pick https://github.com
+npm run dev pick https://google.com playwright typescript
+npm run dev pick https://example.com cypress javascript
 ```
 
-**`<url>`** (Required)  
-Target webpage URL to analyze  
-*Example: `https://example.com`*
+**How it works:**
+1. Opens the webpage in browser
+2. Click on any element
+3. Generates optimized selector
+4. Copies code to clipboard
 
-**`[framework]`** (Optional)  
-Testing framework to generate code for  
-*Options: `playwright`, `cypress`, `selenium`*  
-*Default: `playwright`*
+### 🔥 Multiple Element Selection *(NEW!)*
 
-**`[language]`** (Optional)  
-Programming language for the generated code  
-*Options: `typescript`, `javascript`, `python`*  
-*Default: `typescript`*
-
-### Validate Selectors
+Select multiple elements in one session - perfect for forms, navigation, and complex workflows:
 
 ```bash
-npm run dev validate <url> <selector> [options]
+npm run dev pick-multiple <url> [framework] [language]
+
+# Examples
+npm run dev pick-multiple https://github.com/login
+npm run dev pick-multiple https://example.com cypress python
 ```
 
-**`<url>`** (Required)  
-Target webpage URL to test against  
-*Example: `https://example.com`*
+**How it works:**
+1. Opens the webpage in browser
+2. Click on multiple elements (username, password, submit button, etc.)
+3. Press **ESC** when finished selecting
+4. Generates individual selectors for each element
+5. Creates combined test snippet
+6. Copies everything to clipboard
 
-**`<selector>`** (Required)  
-CSS selector to validate  
-*Example: `"#login-button"`, `".submit-btn"`, `"[data-testid='submit']"`*
+**Perfect for:**
+- 📝 Login forms (username + password + submit)
+- 🧭 Navigation menus
+- ✅ Form validation scenarios
+- 🔄 Multi-step workflows
+- 📊 Data extraction from multiple elements
 
-**Options:**
-- `-t, --timeout=<ms>` - Custom timeout in milliseconds (default: 30000)
-  *Example: `-t=10000` for 10 seconds*
+### ✅ Selector Validation
 
-### Examples
+Test if a selector works on a live webpage:
 
-#### Generating Selectors
 ```bash
-# Playwright with TypeScript (default)
-npm run dev pick https://app.example.com
+npm run dev validate <url> <selector>
 
-# Cypress with JavaScript
-npm run dev pick https://app.example.com cypress javascript
-
-# Selenium with Python
-npm run dev pick https://app.example.com selenium python
-
-# Playwright with Python
-npm run dev pick https://app.example.com playwright python
+# Examples
+npm run dev validate https://github.com "#user_email"
+npm run dev validate https://google.com "[name='q']"
+npm run dev validate https://example.com "text=Click me" --timeout 10000
 ```
 
-#### Validating Selectors
-```bash
-# Basic validation
-npm run dev validate https://app.example.com "#login-button"
+## 🎭 Framework Support
 
-# Validate CSS class
-npm run dev validate https://app.example.com ".submit-btn"
-
-# Validate data attribute
-npm run dev validate https://app.example.com "[data-testid='checkout']"
-
-# Validate with custom timeout (10 seconds)
-npm run dev validate https://app.example.com "#slow-loading-element" -t=10000
-
-# Validate complex selector
-npm run dev validate https://app.example.com "form input[type='email']"
-```
-
-## 🧠 Selector Intelligence
-
-Best-Locator uses a smart heuristic system to generate the most reliable selectors:
-
-### Priority Order
-
-1. **`data-testid`** (95% confidence) - Best practice for testing
-2. **`data-cy`** (90% confidence) - Cypress convention
-3. **`id`** (85% confidence) - Unique identifiers
-4. **`text content`** (70% confidence) - For buttons and links
-5. **`CSS classes`** (50% confidence) - Fallback option
-6. **`tag name`** (30% confidence) - Last resort
-
-### Example Outputs by Framework
-
-#### Playwright
+### Playwright (Default)
 ```typescript
-// TypeScript
-await page.locator('#login-button')
-await page.getByTestId('submit-btn')
-await page.getByText('Click here')
-
-// Python
-page.locator("#login-button")
-page.get_by_test_id("submit-btn")
-page.get_by_text("Click here")
+await page.locator('#username')
+await page.locator('[data-testid="submit"]')
+await page.locator('text="Login"')
 ```
-
-#### Cypress
-```javascript
-// JavaScript/TypeScript
-cy.get('#login-button')
-cy.findByTestId('submit-btn')
-cy.contains('Click here')
-```
-
-#### Selenium
-```python
-# Python
-driver.find_element(By.CSS_SELECTOR, "#login-button")
-driver.find_element(By.CSS_SELECTOR, "[data-testid='submit-btn']")
-
-# Java
-driver.findElement(By.cssSelector("#login-button"))
-driver.findElement(By.cssSelector("[data-testid='submit-btn']"))
-```
-
-## 🔧 Framework Support
-
-### Playwright
-- **Languages**: TypeScript, JavaScript, Python, Java, C#
-- **Features**: Modern async/await syntax, cross-browser support
 
 ### Cypress
-- **Languages**: JavaScript, TypeScript
-- **Features**: jQuery-style selectors, built-in retry logic
-
-### Selenium
-- **Languages**: Python, Java, C#, JavaScript, Ruby
-- **Features**: Classic WebDriver syntax, widespread adoption
-
-## 📁 Project Structure
-
+```javascript
+cy.get('#username')
+cy.get('[data-testid="submit"]')
+cy.contains('Login')
 ```
-best-locator/
-├── src/
-│   ├── cli/
-│   │   └── index.ts              # Main CLI interface
-│   ├── core/
-│   │   ├── selector-generator.ts # Intelligent selector generation
-│   │   ├── selector-validator.ts # Selector validation engine
-│   │   └── framework-formatter.ts # Multi-framework output formatting
-│   └── utils/                    # Utility functions
-├── tests/                        # Test files
-├── examples/                     # Usage examples
-├── package.json
-└── README.md
+
+### Selenium WebDriver
+```python
+driver.find_element(By.ID, "username")
+driver.find_element(By.CSS_SELECTOR, '[data-testid="submit"]')
+driver.find_element(By.XPATH, "//button[text()='Login']")
+```
+
+## 🧠 Smart Selector Strategy
+
+Best-Locator uses an intelligent algorithm to choose the best selector:
+
+1. **🎯 Test-specific attributes** (`data-testid`, `data-cy`, `data-test`)
+2. **🆔 Unique IDs** (`#unique-id`)
+3. **🏷️ Semantic attributes** (`name`, `role`, `aria-label`)
+4. **📝 Text content** (`text="Button Text"`)
+5. **🎨 CSS classes** (`.stable-class`)
+6. **🏗️ Structural selectors** (`div > button:nth-child(2)`)
+
+## 📊 Examples
+
+### Login Form Example
+```bash
+npm run dev pick-multiple https://github.com/login
+```
+
+**Output:**
+```typescript
+// Individual selectors
+await page.locator('#login_field')      // Username
+await page.locator('#password')         // Password  
+await page.locator('[name="commit"]')   // Submit button
+
+// Combined test snippet
+await page.locator('#login_field').fill('username')
+await page.locator('#password').fill('password')
+await page.locator('[name="commit"]').click()
+```
+
+### E-commerce Navigation
+```bash
+npm run dev pick-multiple https://amazon.com
+```
+
+**Output:**
+```javascript
+// Cypress format
+cy.get('[data-testid="nav-search"]')
+cy.get('[data-testid="nav-cart"]')
+cy.get('[data-testid="nav-orders"]')
 ```
 
 ## 🛠️ Development
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-
-### Setup
 ```bash
-# Clone and install
-git clone https://github.com/jogonzal79/best-locator.git
-cd best-locator
+# Install dependencies
 npm install
 
-# Install Playwright browsers
-npx playwright install
-
 # Run in development mode
-npm run dev pick https://example.com
-```
+npm run dev
 
-### Building
-```bash
 # Build the project
 npm run build
 
@@ -313,126 +172,73 @@ npm run build
 npm test
 ```
 
+## 📁 Project Structure
+
+```
+src/
+├── cli/
+│   └── index.ts          # CLI commands and interface
+├── core/
+│   ├── selector-generator.ts    # Smart selector generation
+│   ├── framework-formatter.ts   # Multi-framework output
+│   └── selector-validator.ts    # Selector validation
+└── types/
+    └── index.ts          # TypeScript definitions
+```
+
+## 🎯 Use Cases
+
+### 🧪 Test Automation
+```bash
+# Generate selectors for login flow
+npm run dev pick-multiple https://myapp.com/login
+
+# Validate critical selectors still work
+npm run dev validate https://myapp.com "#checkout-button"
+```
+
+### 🔍 Web Scraping
+```bash
+# Select multiple data points
+npm run dev pick-multiple https://news.ycombinator.com
+
+# Get selectors for title, author, points, comments
+```
+
+### 🐛 Debugging
+```bash
+# Test if problematic selector works
+npm run dev validate https://staging.myapp.com ".flaky-element"
+```
+
+## 🏆 Why Best-Locator?
+
+- **🎯 Intelligent** - Chooses the most reliable selector strategy
+- **⚡ Fast** - Interactive browser-based selection
+- **🔄 Multi-Framework** - Works with Playwright, Cypress, Selenium
+- **🌐 Multi-Language** - TypeScript, JavaScript, Python support
+- **🚀 Multiple Selection** - Revolutionary multi-element picking
+- **✅ Validation** - Test selectors on live websites
+- **📋 Ready-to-Use** - Auto-generated code, clipboard-ready
+
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**
-4. **Add tests** if applicable
-5. **Commit your changes**: `git commit -m 'Add amazing feature'`
-6. **Push to the branch**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request**
-
-### Areas for Contribution
-
-- 🆕 **New frameworks**: WebdriverIO, TestCafe, etc.
-- 🌍 **New languages**: Kotlin, PHP, Go, etc.
-- 🎯 **Better selectors**: Improve heuristic algorithms
-- 🐛 **Bug fixes**: Help us squash bugs
-- 📖 **Documentation**: Improve docs and examples
-
-## 📋 Roadmap
-
-### v0.2.0 - Enhanced Features
-- [ ] Batch processing for multiple URLs
-- [ ] Selector validation
-- [ ] Configuration files
-- [ ] Better error handling
-
-### v0.3.0 - Advanced Capabilities
-- [ ] Visual element highlighting
-- [ ] Selector stability testing
-- [ ] Integration with CI/CD pipelines
-- [ ] Web interface
-
-### v1.0.0 - Production Ready
-- [ ] npm package distribution
-- [ ] Comprehensive test coverage
-- [ ] Performance optimizations
-- [ ] Enterprise features
-
-## 💡 Tips & Best Practices
-
-### For QA Engineers
-- Always prefer `data-testid` attributes when available
-- Use Best-Locator early in development to identify missing test attributes
-- **Validate selectors regularly** - use `validate` command to catch breaking changes
-- Copy the generated selectors and save them in your test documentation
-
-### For Developers
-- Add `data-testid` attributes to your components for better testing
-- Use semantic HTML elements with proper roles and labels
-- Avoid generated class names for test selectors
-- **Test your changes** - run `validate` before deploying UI changes
-
-### Common Use Cases
-```bash
-# Testing a login form
-npm run dev pick https://app.com/login cypress javascript
-
-# Validating after UI changes
-npm run dev validate https://staging.app.com "#login-form"
-
-# Testing e-commerce checkout
-npm run dev pick https://shop.com/checkout selenium python
-
-# Validating critical user flows
-npm run dev validate https://prod.app.com "[data-testid='purchase-button']"
-
-# Testing dashboard widgets
-npm run dev pick https://dashboard.com playwright typescript
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Browser doesn't open**
-```bash
-# Reinstall Playwright browsers
-npx playwright install
-```
-
-**Command not found**
-```bash
-# Make sure you're in the project directory
-cd best-locator
-npm install
-```
-
-**Element not detected**
-- Make sure the element is visible and clickable
-- Try waiting for the page to fully load
-- Check if there are any overlays blocking the element
-
-**Selector not working in tests**
-- **First, validate it**: `npm run dev validate https://your-app.com "your-selector"`
-- Verify the element still exists with the same attributes
-- Check if the page has dynamic content that changes selectors
-- Consider using more stable selectors like data-testid
-
-## 📞 Support
-
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/jogonzal79/best-locator/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/jogonzal79/best-locator/discussions)
-- 📧 **Email**: jogonzal79@gmail.com
-- 💼 **LinkedIn**: [Jonathan Gonzalez](https://www.linkedin.com/in/jonathan-g-33607648/)
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - feel free to use in your projects!
 
-## 🙏 Acknowledgments
+## 🌟 Star the Repository
 
-- [Playwright](https://playwright.dev/) - For the amazing browser automation
-- [Commander.js](https://github.com/tj/commander.js/) - For the CLI framework
-- [Chalk](https://github.com/chalk/chalk) - For beautiful terminal colors
-- The QA automation community for inspiration and feedback
+If Best-Locator helps you generate better selectors, please give it a star! ⭐
 
 ---
 
-**Made with ❤️ by [Jonathan Gonzalez](https://github.com/jogonzal79) for the QA automation community**
+**Made with ❤️ for the testing community**
 
-*If Best-Locator helps you write better tests, consider giving it a ⭐ on GitHub!*
+*Transform your selector generation workflow with Best-Locator!*
