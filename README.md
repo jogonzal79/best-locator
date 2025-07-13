@@ -47,6 +47,7 @@ npm run dev hello
 # Expected output:
 🎉 Hello! Best-Locator v1.0 is working!
 ✨ Ready to generate awesome selectors!
+⚙️ Configuration file detected!
 ```
 
 ### Basic Usage
