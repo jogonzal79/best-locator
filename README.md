@@ -31,8 +31,6 @@ npm install
 # Build the project
 npm run build
 
-## ✅ **La instalación está correcta:**
-
 # Clone the repository
 git clone https://github.com/jogonzal79/best-locator
 cd best-locator
