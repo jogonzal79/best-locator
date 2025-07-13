@@ -28,13 +28,13 @@ npm install -g best-locator
 
 ```bash
 # Single element selection
-best-locator pick https://your-app.com
+npm run dev pick https://your-app.com
 
 # Multiple elements
-best-locator pick-multiple https://your-app.com
+npm run dev pick-multiple https://your-app.com
 
 # Toggle mode (recommended) - Navigate freely + capture when needed
-best-locator pick-toggle https://your-app.com
+npm run dev pick-toggle https://your-app.com
 ```
 
 ## Toggle Mode (Revolutionary)
@@ -42,7 +42,7 @@ best-locator pick-toggle https://your-app.com
 **The breakthrough feature that makes Best-Locator unique:**
 
 ```bash
-best-locator pick-toggle https://saucedemo.com
+npm run dev pick-toggle https://saucedemo.com
 ```
 
 **How it works:**
@@ -94,45 +94,45 @@ await page.locator('[data-test="login-button"]') // Industry standard
 
 ```bash
 # Quick single element
-best-locator pick <url> [framework] [language]
+npm run dev pick <url> [framework] [language]
 
 # Multiple elements with ESC to finish
-best-locator pick-multiple <url> [framework] [language]
+npm run dev pick-multiple <url> [framework] [language]
 
 # Organic navigation with toggle (recommended)
-best-locator pick-toggle <url> [framework] [language]
+npm run dev pick-toggle <url> [framework] [language]
 
 # Validate existing selectors
-best-locator validate <url> <selector>
+npm run dev validate <url> <selector>
 ```
 
 ### Framework Support
 
 ```bash
 # Playwright (default)
-best-locator pick https://app.com playwright typescript
+npm run dev pick https://app.com playwright typescript
 
 # Selenium
-best-locator pick https://app.com selenium python
+npm run dev pick https://app.com selenium python
 
 # Cypress
-best-locator pick https://app.com cypress javascript
+npm run dev pick https://app.com cypress javascript
 
 # WebdriverIO
-best-locator pick https://app.com webdriverio javascript
+npm run dev pick https://app.com webdriverio javascript
 ```
 
 ### Configuration
 
 ```bash
 # Create config file
-best-locator init
+npm run dev init
 
 # View current config
-best-locator config
+npm run dev config
 
 # Quick pick with URL alias
-best-locator go staging
+npm run dev go staging
 ```
 
 ## Configuration
@@ -165,7 +165,7 @@ Create `best-locator.config.json` in your project root:
 ### Login Flows
 ```bash
 # Navigate to login, authenticate, then capture elements from dashboard
-best-locator pick-toggle https://app.com
+npm run dev pick-toggle https://app.com
 # 1. Login normally
 # 2. Navigate to dashboard
 # 3. Press CTRL+S to start capturing
@@ -176,7 +176,7 @@ best-locator pick-toggle https://app.com
 ### Multi-Page Testing
 ```bash
 # Capture elements from multiple pages in one session
-best-locator pick-toggle https://ecommerce.com
+npm run dev pick-toggle https://ecommerce.com
 # 1. Browse products (selector mode OFF)
 # 2. CTRL+S -> capture product elements
 # 3. CTRL+D -> navigate to cart
@@ -187,7 +187,7 @@ best-locator pick-toggle https://ecommerce.com
 ### Form Testing
 ```bash
 # Capture all form elements efficiently
-best-locator pick-multiple https://forms.com
+npm run dev pick-multiple https://forms.com
 # Click all form fields, then press ESC
 ```
 
