@@ -102,10 +102,24 @@ program
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
       
-      // Ir a la URL con timeout configurado
+    // Ir a la URL con timeout configurado
+    try {
       await page.goto(resolvedUrl, { 
         timeout: config.timeouts.pageLoad 
       });
+      console.log(chalk.green('✅ Page loaded successfully!'));
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error loading page:'), error.message);
+      console.log(chalk.yellow('💡 Possible causes:'));
+      console.log(chalk.yellow('   - URL is unreachable or very slow'));
+      console.log(chalk.yellow('   - Network connectivity issues'));
+      console.log(chalk.yellow('   - Page requires longer load time'));
+      console.log(chalk.blue('🔧 Try: increase pageLoad timeout in config or check URL'));
+      
+      // Cerrar navegador y salir limpiamente
+      await browser.close();
+      return;
+    }
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('👆 Click on any element to select it...'));
@@ -251,10 +265,24 @@ program
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
       
-      // Ir a la URL con timeout configurado
+    // Ir a la URL con timeout configurado
+    try {
       await page.goto(resolvedUrl, { 
         timeout: config.timeouts.pageLoad 
       });
+      console.log(chalk.green('✅ Page loaded successfully!'));
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error loading page:'), error.message);
+      console.log(chalk.yellow('💡 Possible causes:'));
+      console.log(chalk.yellow('   - URL is unreachable or very slow'));
+      console.log(chalk.yellow('   - Network connectivity issues'));
+      console.log(chalk.yellow('   - Page requires longer load time'));
+      console.log(chalk.blue('🔧 Try: increase pageLoad timeout in config or check URL'));
+      
+      // Cerrar navegador y salir limpiamente
+      await browser.close();
+      return;
+    }
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('🔀 Multiple mode enabled!'));
@@ -441,10 +469,24 @@ program
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
       
-      // Ir a la URL con timeout configurado
+    // Ir a la URL con timeout configurado
+    try {
       await page.goto(resolvedUrl, { 
         timeout: config.timeouts.pageLoad 
       });
+      console.log(chalk.green('✅ Page loaded successfully!'));
+    } catch (error: any) {
+      console.log(chalk.red('❌ Error loading page:'), error.message);
+      console.log(chalk.yellow('💡 Possible causes:'));
+      console.log(chalk.yellow('   - URL is unreachable or very slow'));
+      console.log(chalk.yellow('   - Network connectivity issues'));
+      console.log(chalk.yellow('   - Page requires longer load time'));
+      console.log(chalk.blue('🔧 Try: increase pageLoad timeout in config or check URL'));
+      
+      // Cerrar navegador y salir limpiamente
+      await browser.close();
+      return;
+    }
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('🎛️ Toggle mode enabled!'));
