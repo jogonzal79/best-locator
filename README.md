@@ -164,8 +164,6 @@ npm run dev pick https://app.com selenium python
 # Cypress
 npm run dev pick https://app.com cypress javascript
 
-# WebdriverIO
-npm run dev pick https://app.com webdriverio javascript
 ```
 
 ### Configuration
