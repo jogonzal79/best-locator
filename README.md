@@ -21,7 +21,58 @@ Generate professional-grade selectors for UI testing with the reliability develo
 ### Installation
 
 ```bash
-npm install -g best-locator
+# Clone the repository
+git clone https://github.com/jogonzal79/best-locator
+cd best-locator
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+¡🎯 **¡PERFECTO! Se ve excelente!**
+
+## ✅ **La instalación está correcta:**
+
+```bash
+# Clone the repository
+git clone https://github.com/jogonzal79/best-locator
+cd best-locator
+
+# Install dependencies  
+npm install
+
+# Build the project
+npm run build
+```
+
+## 🔧 **Solo falta agregar la verificación:**
+
+**Después de la línea 32 (`npm run build`), agregar:**
+
+```markdown
+### Verify Installation
+```bash
+npm run dev hello
+```
+
+**Expected output:**
+```
+🎉 Hello! Best-Locator v1.0 is working!
+✨ Ready to generate awesome selectors!
+```
+```
+
+## 📋 **Y después continúa con Basic Usage:**
+
+Perfecto que la sección **Basic Usage** ya venga después. Solo asegúrate de que todos los comandos en esa sección tengan `npm run dev` en lugar de `best-locator`.
+
+## 🎉 **¡Tu README se ve muy profesional!**
+
+Con esos cambios, la instalación será clara y funcional para cualquier persona que quiera usar Best-Locator.
+
+¿Ya actualizaste también todos los comandos en la sección "Basic Usage" para que usen `npm run dev`? 🚀
+
 ```
 
 ### Basic Usage
