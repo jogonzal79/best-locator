@@ -30,7 +30,6 @@ npm install
 
 # Build the project
 npm run build
-¡🎯 **¡PERFECTO! Se ve excelente!**
 
 ## ✅ **La instalación está correcta:**
 
@@ -47,8 +46,6 @@ npm run build
 ```
 
 ## 🔧 **Solo falta agregar la verificación:**
-
-**Después de la línea 32 (`npm run build`), agregar:**
 
 ```markdown
 ### Verify Installation
