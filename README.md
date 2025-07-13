@@ -133,15 +133,23 @@ await page.locator('[data-test="login-button"]') // Industry standard
 ```bash
 # Quick single element
 npm run dev pick <url> [framework] [language]
+# Example:
+npm run dev pick https://saucedemo.com playwright typescript
 
 # Multiple elements with ESC to finish
 npm run dev pick-multiple <url> [framework] [language]
+# Example:
+npm run dev pick-multiple https://saucedemo.com selenium python
 
 # Organic navigation with toggle (recommended)
 npm run dev pick-toggle <url> [framework] [language]
+# Example:
+npm run dev pick-toggle https://saucedemo.com cypress javascript
 
 # Validate existing selectors
 npm run dev validate <url> <selector>
+# Example:
+npm run dev validate https://saucedemo.com "[data-test='username']"
 ```
 
 ### Framework Support
