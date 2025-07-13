@@ -62,6 +62,18 @@ npm run dev pick-multiple https://your-app.com
 # Toggle mode (recommended) - Navigate freely + capture when needed
 npm run dev pick-toggle https://your-app.com
 ```
+### Framework & Language Support
+
+| Framework | Command Example |
+|-----------|-----------------|
+| **Playwright** | `npm run dev pick-toggle https://your-app.com playwright typescript` |
+| **Selenium** | `npm run dev pick-toggle https://your-app.com selenium python` |
+| **Cypress** | `npm run dev pick-toggle https://your-app.com cypress javascript` |
+
+**Supported Languages:**
+- **Playwright:** JavaScript, TypeScript, Python, Java, C#
+- **Selenium:** JavaScript, TypeScript, Python, Java, C#  
+- **Cypress:** JavaScript, TypeScript
 
 ## Toggle Mode (Revolutionary)
 
