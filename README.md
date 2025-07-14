@@ -15,10 +15,9 @@ Generate professional-grade selectors for UI testing with the reliability develo
 - **Professional selectors** - Prioritizes `data-test`, `aria-label`, and testing-specific attributes
 - **Multi-page capture** - Collect selectors from different pages in one session
 - **Framework agnostic** - Works with Playwright, Selenium, Cypress, and more
+- **Graphical User Interface** - Beautiful desktop app with premium design
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
 # Clone the repository
@@ -31,26 +30,46 @@ npm install
 # Build the project
 npm run build
 
-# Clone the repository
-git clone https://github.com/jogonzal79/best-locator
-cd best-locator
-
-# Install dependencies  
-npm install
-
-# Build the project
-npm run build
-
 # Verify Installation
 npm run dev hello
-
-# Expected output:
-🎉 Hello! Best-Locator v1.0 is working!
-✨ Ready to generate awesome selectors!
-⚙️ Configuration file detected!
 ```
 
-### Basic Usage
+**Expected output:**
+```
+Hello! Best-Locator v1.0 is working!
+Ready to generate awesome selectors!
+Configuration file detected!
+```
+
+## Usage Options
+
+### Option 1: Graphical User Interface (Recommended)
+
+Launch the beautiful desktop application:
+
+```bash
+npm run gui
+```
+
+**Features:**
+- **Premium glassmorphism design** with modern UI
+- **Live preview** of generated selectors
+- **Visual feedback** and status indicators
+- **Framework/language selection** with smart validation
+- **Real-time output** with syntax highlighting
+- **Copy buttons** for easy code integration
+- **Target URL validation** and alias support
+
+**How to use the GUI:**
+1. Enter your target URL
+2. Select framework (Playwright, Selenium, Cypress)
+3. Choose language (TypeScript, JavaScript, Python, Java, C#)
+4. Click your preferred capture mode:
+   - **Pick Single** - Capture one element
+   - **Pick Multiple** - Capture multiple elements
+   - **Toggle Mode** - Navigate freely with toggle capture
+
+### Option 2: Command Line Interface
 
 ```bash
 # Single element selection
@@ -62,6 +81,7 @@ npm run dev pick-multiple https://your-app.com
 # Toggle mode (recommended) - Navigate freely + capture when needed
 npm run dev pick-toggle https://your-app.com
 ```
+
 ### Framework & Language Support
 
 | Framework | Command Example |
@@ -92,8 +112,8 @@ npm run dev pick-toggle https://saucedemo.com
 6. **Press ESC** - Finish and get all selectors
 
 **Visual indicators:**
-- **Red indicator**: Navigate freely (clicks work normally)
-- **Green indicator**: Selector mode ON (clicks capture elements)
+- **Red outline**: Navigate freely (clicks work normally)
+- **Green outline**: Selector mode ON (clicks capture elements)
 
 ## Intelligent Selector Priority
 
@@ -126,6 +146,26 @@ await page.locator('[data-test="password"]')     // Testing-specific
 await page.locator('[data-test="login-button"]') // Industry standard
 ```
 
+## GUI Features
+
+### Visual Interface
+- **Premium design** with glassmorphism effects
+- **Responsive layout** optimized for productivity
+- **Dark theme output area** for better code readability
+- **Real-time validation** of inputs and combinations
+
+### Smart Controls
+- **Framework selection** with automatic language filtering
+- **URL validation** with support for aliases
+- **Status indicators** showing command progress
+- **Copy functionality** for individual or multiple selectors
+
+### User Experience
+- **No DevTools by default** - clean interface
+- **Keyboard shortcuts** clearly displayed
+- **Loading states** with cancel options
+- **Error handling** with clear messages
+
 ## All Commands
 
 ### Core Commands
@@ -133,23 +173,15 @@ await page.locator('[data-test="login-button"]') // Industry standard
 ```bash
 # Quick single element
 npm run dev pick <url> [framework] [language]
-# Example:
-npm run dev pick https://saucedemo.com playwright typescript
 
 # Multiple elements with ESC to finish
 npm run dev pick-multiple <url> [framework] [language]
-# Example:
-npm run dev pick-multiple https://saucedemo.com selenium python
 
 # Organic navigation with toggle (recommended)
 npm run dev pick-toggle <url> [framework] [language]
-# Example:
-npm run dev pick-toggle https://saucedemo.com cypress javascript
 
 # Validate existing selectors
 npm run dev validate <url> <selector>
-# Example:
-npm run dev validate https://saucedemo.com "[data-test='username']"
 ```
 
 ### Framework Support
@@ -163,7 +195,6 @@ npm run dev pick https://app.com selenium python
 
 # Cypress
 npm run dev pick https://app.com cypress javascript
-
 ```
 
 ### Configuration
@@ -175,8 +206,11 @@ npm run dev init
 # View current config
 npm run dev config
 
-# Quick pick with URL alias
-npm run dev go staging
+# Launch GUI
+npm run gui
+
+# Launch GUI in development mode
+npm run gui-dev
 ```
 
 ## Configuration
@@ -237,7 +271,17 @@ npm run dev pick-multiple https://forms.com
 
 ## Output Examples
 
-### Single Element
+### GUI Output
+The graphical interface displays generated selectors in clean, organized cards with:
+- **Syntax highlighting** for better readability
+- **Confidence scores** for each selector
+- **Individual copy buttons** for each selector
+- **Copy all functionality** for batch operations
+- **Real-time feedback** during capture
+
+### CLI Output
+
+**Single Element:**
 ```bash
 Element selected!
 Element information:
@@ -250,7 +294,7 @@ Element information:
 Copied to clipboard!
 ```
 
-### Multiple Elements
+**Multiple Elements:**
 ```bash
 Session completed! 3 elements captured:
 
@@ -285,7 +329,20 @@ All code copied to clipboard!
 | **Selenium** | Yes | Yes | Yes | Yes | Yes |
 | **Cypress** | Yes | Yes | No | No | No |
 
+## GUI Troubleshooting
 
+### Common Issues
+
+**Spinner stuck after closing browser:**
+- Press `Ctrl+R` or use `View > Reload` to reset the interface
+
+**Framework/Language validation:**
+- The GUI automatically validates combinations (e.g., Cypress only supports JS/TS)
+- Invalid combinations are automatically corrected
+
+**URL validation:**
+- URLs must start with `http://` or `https://`
+- Aliases from config file are also supported
 
 ## Contributing
 
@@ -297,7 +354,12 @@ We welcome contributions! Please see our Contributing Guide for details.
 git clone https://github.com/jogonzal79/best-locator
 cd best-locator
 npm install
+
+# Test CLI
 npm run dev hello
+
+# Test GUI
+npm run gui-dev
 ```
 
 ## License

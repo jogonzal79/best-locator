@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best-Locator GUI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎯 Best-Locator</h1>
+                <p class="subtitle">Universal Selector Generator</p>
+            </div>
+            <div class="version">v1.1.0</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- URL Input Section -->
+            <section class="url-section">
+                <label for="url-input" class="label">🌐 Target URL:</label>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="url-input" 
+                        placeholder="https://your-app.com or alias (local, staging, prod)"
+                    />
+                    <button id="validate-url" class="btn-secondary">✓</button>
+                </div>
+            </section>
+
+            <!-- Framework & Language Selection -->
+            <section class="options-section">
+                <div class="option-group">
+                    <label for="framework-select" class="label">⚙️ Framework:</label>
+                    <select id="framework-select">
+                        <option value="playwright">Playwright</option>
+                        <option value="selenium">Selenium</option>
+                        <option value="cypress">Cypress</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label for="language-select" class="label">💬 Language:</label>
+                    <select id="language-select">
+                        <option value="typescript">TypeScript</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="csharp">C#</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <section class="actions-section">
+                <div class="action-group">
+                    <button id="pick-single" class="btn-primary">
+                        <span class="btn-icon">👆</span>
+                        <div class="btn-content">
+                            <div class="btn-title">Pick Single</div>
+                            <div class="btn-description">Select one element</div>
+                        </div>
+                    </button>
+                    
+                    <button id="pick-multiple" class="btn-primary">
+                        <span class="btn-icon">🔀</span>
+                        <div class="btn-content">
+                            <div class="btn-title">Pick Multiple</div>
+                            <div class="btn-description">Select multiple elements</div>
+                        </div>
+                    </button>
+                    
+                    <button id="pick-toggle" class="btn-primary featured">
+                        <span class="btn-icon">🎛️</span>
+                        <div class="btn-content">
+                            <div class="btn-title">Toggle Mode</div>
+                            <div class="btn-description">Navigate freely + toggle capture</div>
+                            <div class="btn-controls">⌨️ CTRL+S/D to toggle • ESC to finish</div>
+                        </div>
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Output Section -->
+        <section class="output-section">
+            <div class="output-header">
+                <h3>📤 Generated Selectors</h3>
+                <button id="clear-output" class="btn-small">Clear</button>
+            </div>
+            <div id="output-container" class="output-container">
+                <div class="output-placeholder">
+                    Ready to generate selectors! 🚀
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Panel -->
+        <section id="results-panel" class="results-panel hidden">
+            <div class="results-header">
+                <h3>🎯 Generated Selectors</h3>
+                <div class="results-actions">
+                    <button id="copy-all-selectors" class="btn-copy">📋 Copy All</button>
+                    <button id="clear-results" class="btn-small">Clear</button>
+                </div>
+            </div>
+            <div id="results-container" class="results-container">
+                <!-- Los selectores aparecerán aquí -->
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-left">
+                <span id="status-text">Ready</span>
+            </div>
+            <div class="status-right">
+                <span id="config-status">No config loaded</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Executing command...</p>
+        </div>
+    </div>
+
+    <!-- Modal for Selector Validation -->
+    <div id="validation-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔍 Validate Selector</h3>
+                <button id="modal-close" class="btn-small">✕</button>
+            </div>
+            <div class="modal-body">
+                <label for="validation-url" class="label">URL:</label>
+                <input type="text" id="validation-url" placeholder="https://your-app.com" />
+                
+                <label for="validation-selector" class="label">Selector:</label>
+                <input type="text" id="validation-selector" placeholder='[data-test="username"]' />
+                
+                <button id="validate-submit" class="btn-primary">Validate</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

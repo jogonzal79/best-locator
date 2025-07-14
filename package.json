@@ -1,16 +1,20 @@
 {
   "name": "bestlocator",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "description": "",
-  "main": "index.js",
+  "description": "Universal selector generator for UI testing",
+  "main": "src/gui/main.cjs",
   "scripts": {
     "dev": "ts-node --esm src/cli/index.ts",
+    "gui": "electron src/gui/main.cjs",
+    "gui-dev": "cross-env NODE_ENV=development electron src/gui/main.cjs",
+    "build": "tsc",
+    "build-gui": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["testing", "automation", "selectors", "playwright", "selenium", "cypress"],
+  "author": "Jonathan Gonzalez",
+  "license": "MIT",
   "dependencies": {
     "chalk": "^5.4.1",
     "clipboardy": "^4.0.0",
@@ -19,7 +23,29 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.13",
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
+  },
+  "build": {
+    "appId": "com.bestlocator.app",
+    "productName": "Best-Locator",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "icon": "assets/icon.png"
+    }
   }
 }
