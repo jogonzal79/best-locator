@@ -41,59 +41,53 @@ Ready to generate awesome selectors!
 Configuration file detected!
 ```
 
+## Quick Start
+
+**Try Best-Locator in 30 seconds:**
+
+```bash
+# Launch the beautiful GUI
+npm run gui
+
+# Or use CLI directly
+npm run dev pick-toggle https://saucedemo.com
+```
+
+**In the GUI:**
+1. Enter URL: `https://saucedemo.com`
+2. Select: Playwright + TypeScript 
+3. Click: **Toggle Mode**
+4. Navigate freely, press CTRL+S to capture, ESC to finish
+
+**Get professional selectors instantly!**
+
 ## Usage Options
 
 ### Option 1: Graphical User Interface (Recommended)
-
-Launch the beautiful desktop application:
 
 ```bash
 npm run gui
 ```
 
-**Features:**
-- **Premium glassmorphism design** with modern UI
-- **Live preview** of generated selectors
-- **Visual feedback** and status indicators
-- **Framework/language selection** with smart validation
-- **Real-time output** with syntax highlighting
-- **Copy buttons** for easy code integration
-- **Target URL validation** and alias support
-
-**How to use the GUI:**
-1. Enter your target URL
-2. Select framework (Playwright, Selenium, Cypress)
-3. Choose language (TypeScript, JavaScript, Python, Java, C#)
-4. Click your preferred capture mode:
-   - **Pick Single** - Capture one element
-   - **Pick Multiple** - Capture multiple elements
-   - **Toggle Mode** - Navigate freely with toggle capture
+**Modern desktop app with:**
+- Premium glassmorphism design
+- Live preview of generated selectors
+- Framework/language selection with smart validation
+- Real-time output with syntax highlighting
+- Copy buttons for easy integration
 
 ### Option 2: Command Line Interface
 
 ```bash
-# Single element selection
+# Single element
 npm run dev pick https://your-app.com
 
-# Multiple elements
+# Multiple elements  
 npm run dev pick-multiple https://your-app.com
 
-# Toggle mode (recommended) - Navigate freely + capture when needed
+# Toggle mode (recommended)
 npm run dev pick-toggle https://your-app.com
 ```
-
-### Framework & Language Support
-
-| Framework | Command Example |
-|-----------|-----------------|
-| **Playwright** | `npm run dev pick-toggle https://your-app.com playwright typescript` |
-| **Selenium** | `npm run dev pick-toggle https://your-app.com selenium python` |
-| **Cypress** | `npm run dev pick-toggle https://your-app.com cypress javascript` |
-
-**Supported Languages:**
-- **Playwright:** JavaScript, TypeScript, Python, Java, C#
-- **Selenium:** JavaScript, TypeScript, Python, Java, C#  
-- **Cypress:** JavaScript, TypeScript
 
 ## Toggle Mode (Revolutionary)
 
@@ -146,72 +140,21 @@ await page.locator('[data-test="password"]')     // Testing-specific
 await page.locator('[data-test="login-button"]') // Industry standard
 ```
 
-## GUI Features
+## Framework & Language Support
 
-### Visual Interface
-- **Premium design** with glassmorphism effects
-- **Responsive layout** optimized for productivity
-- **Dark theme output area** for better code readability
-- **Real-time validation** of inputs and combinations
+| Framework | JavaScript | TypeScript | Python | Java | C# |
+|-----------|------------|------------|--------|------|----|
+| **Playwright** | Yes | Yes | Yes | Yes | Yes |
+| **Selenium** | Yes | Yes | Yes | Yes | Yes |
+| **Cypress** | Yes | Yes | No | No | No |
 
-### Smart Controls
-- **Framework selection** with automatic language filtering
-- **URL validation** with support for aliases
-- **Status indicators** showing command progress
-- **Copy functionality** for individual or multiple selectors
+**Command Examples:**
 
-### User Experience
-- **No DevTools by default** - clean interface
-- **Keyboard shortcuts** clearly displayed
-- **Loading states** with cancel options
-- **Error handling** with clear messages
-
-## All Commands
-
-### Core Commands
-
-```bash
-# Quick single element
-npm run dev pick <url> [framework] [language]
-
-# Multiple elements with ESC to finish
-npm run dev pick-multiple <url> [framework] [language]
-
-# Organic navigation with toggle (recommended)
-npm run dev pick-toggle <url> [framework] [language]
-
-# Validate existing selectors
-npm run dev validate <url> <selector>
-```
-
-### Framework Support
-
-```bash
-# Playwright (default)
-npm run dev pick https://app.com playwright typescript
-
-# Selenium
-npm run dev pick https://app.com selenium python
-
-# Cypress
-npm run dev pick https://app.com cypress javascript
-```
-
-### Configuration
-
-```bash
-# Create config file
-npm run dev init
-
-# View current config
-npm run dev config
-
-# Launch GUI
-npm run gui
-
-# Launch GUI in development mode
-npm run gui-dev
-```
+| Framework | Command Example |
+|-----------|-----------------|
+| **Playwright** | `npm run dev pick-toggle https://your-app.com playwright typescript` |
+| **Selenium** | `npm run dev pick-toggle https://your-app.com selenium python` |
+| **Cypress** | `npm run dev pick-toggle https://your-app.com cypress javascript` |
 
 ## Configuration
 
@@ -236,6 +179,18 @@ Create `best-locator.config.json` in your project root:
     "elementSelection": 60000
   }
 }
+```
+
+**Configuration Commands:**
+```bash
+# Create config file
+npm run dev init
+
+# View current config
+npm run dev config
+
+# Launch GUI in development mode
+npm run gui-dev
 ```
 
 ## Use Cases
@@ -321,13 +276,56 @@ Combined test snippet:
 All code copied to clipboard!
 ```
 
-## Supported Frameworks
+## All Commands
 
-| Framework | JavaScript | TypeScript | Python | Java | C# |
-|-----------|------------|------------|--------|------|----|
-| **Playwright** | Yes | Yes | Yes | Yes | Yes |
-| **Selenium** | Yes | Yes | Yes | Yes | Yes |
-| **Cypress** | Yes | Yes | No | No | No |
+### Core Commands
+
+```bash
+# Quick single element
+npm run dev pick <url> [framework] [language]
+
+# Multiple elements with ESC to finish
+npm run dev pick-multiple <url> [framework] [language]
+
+# Organic navigation with toggle (recommended)
+npm run dev pick-toggle <url> [framework] [language]
+
+# Validate existing selectors
+npm run dev validate <url> <selector>
+```
+
+### Framework Support
+
+```bash
+# Playwright (default)
+npm run dev pick https://app.com playwright typescript
+
+# Selenium
+npm run dev pick https://app.com selenium python
+
+# Cypress
+npm run dev pick https://app.com cypress javascript
+```
+
+## GUI Features
+
+### Visual Interface
+- **Premium design** with glassmorphism effects
+- **Responsive layout** optimized for productivity
+- **Dark theme output area** for better code readability
+- **Real-time validation** of inputs and combinations
+
+### Smart Controls
+- **Framework selection** with automatic language filtering
+- **URL validation** with support for aliases
+- **Status indicators** showing command progress
+- **Copy functionality** for individual or multiple selectors
+
+### User Experience
+- **No DevTools by default** - clean interface
+- **Keyboard shortcuts** clearly displayed
+- **Loading states** with cancel options
+- **Error handling** with clear messages
 
 ## GUI Troubleshooting
 
