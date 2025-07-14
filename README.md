@@ -40,8 +40,28 @@ npm run build
 
 # Install browser dependencies
 npx playwright install
+```
 
-# Verify Installation
+### Required Setup
+
+**After building, you must update the package.json script configuration:**
+
+1. **Open `package.json`**
+2. **Find the `"scripts"` section**
+3. **Change this line:**
+   ```json
+   "dev": "ts-node --esm src/cli/index.ts"
+   ```
+4. **To this:**
+   ```json
+   "dev": "node dist/cli/index.js"
+   ```
+
+This change is **required for all users** because the project needs to run compiled JavaScript files instead of TypeScript files directly.
+
+### Verify Installation
+
+```bash
 npm run dev hello
 ```
 
@@ -54,20 +74,12 @@ Configuration file detected!
 
 ### Installation Troubleshooting
 
-#### Windows Users - Common Issues
+#### Common Issues (All Platforms)
 
 **Issue 1: TypeScript compilation fails**
 
-If you get `ERR_UNKNOWN_FILE_EXTENSION` errors:
+If you get `ERR_UNKNOWN_FILE_EXTENSION` or module not found errors, create proper `tsconfig.json`:
 
-```cmd
-# Check if tsconfig.json exists
-type tsconfig.json
-
-# If missing or incorrect, create proper tsconfig.json:
-```
-
-Create `tsconfig.json` with this content:
 ```json
 {
   "compilerOptions": {
@@ -99,7 +111,7 @@ Create `tsconfig.json` with this content:
 
 **Issue 2: "No inputs were found" during build**
 
-```cmd
+```bash
 # Install TypeScript globally
 npm install -g typescript
 
@@ -107,23 +119,9 @@ npm install -g typescript
 npm run build
 ```
 
-**Issue 3: Script configuration error**
+**Issue 3: Browser executable not found**
 
-If `npm run dev` tries to run `.ts` files directly, edit `package.json`:
-
-Find the `"scripts"` section and change:
-```json
-"dev": "ts-node --esm src/cli/index.ts"
-```
-
-To:
-```json
-"dev": "node dist/cli/index.js"
-```
-
-**Issue 4: Browser executable not found**
-
-```cmd
+```bash
 # Install Playwright browsers
 npx playwright install
 
@@ -131,7 +129,7 @@ npx playwright install
 npx playwright install chromium
 ```
 
-**Issue 5: Permission errors on Windows**
+**Issue 4: Permission errors (Windows)**
 
 Run Command Prompt or PowerShell as Administrator, then repeat installation steps.
 
@@ -462,6 +460,7 @@ npm run dev pick https://app.com cypress javascript
 - Ensure the project is built: `npm run build`
 - Verify CLI works first: `npm run dev hello`
 - Check browser installation: `npx playwright install`
+- Confirm package.json script is updated (see Required Setup section)
 
 ## Contributing
 
