@@ -19,6 +19,14 @@ Generate professional-grade selectors for UI testing with the reliability develo
 
 ## Installation
 
+### Prerequisites
+
+- **Node.js** version 16 or higher
+- **NPM** (comes with Node.js)
+- **Git** (for cloning the repository)
+
+### Basic Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/jogonzal79/best-locator
@@ -30,6 +38,9 @@ npm install
 # Build the project
 npm run build
 
+# Install browser dependencies
+npx playwright install
+
 # Verify Installation
 npm run dev hello
 ```
@@ -40,6 +51,106 @@ Hello! Best-Locator v1.0 is working!
 Ready to generate awesome selectors!
 Configuration file detected!
 ```
+
+### Installation Troubleshooting
+
+#### Windows Users - Common Issues
+
+**Issue 1: TypeScript compilation fails**
+
+If you get `ERR_UNKNOWN_FILE_EXTENSION` errors:
+
+```cmd
+# Check if tsconfig.json exists
+type tsconfig.json
+
+# If missing or incorrect, create proper tsconfig.json:
+```
+
+Create `tsconfig.json` with this content:
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "allowJs": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
+```
+
+**Issue 2: "No inputs were found" during build**
+
+```cmd
+# Install TypeScript globally
+npm install -g typescript
+
+# Rebuild the project
+npm run build
+```
+
+**Issue 3: Script configuration error**
+
+If `npm run dev` tries to run `.ts` files directly, edit `package.json`:
+
+Find the `"scripts"` section and change:
+```json
+"dev": "ts-node --esm src/cli/index.ts"
+```
+
+To:
+```json
+"dev": "node dist/cli/index.js"
+```
+
+**Issue 4: Browser executable not found**
+
+```cmd
+# Install Playwright browsers
+npx playwright install
+
+# Or install only Chromium (faster)
+npx playwright install chromium
+```
+
+**Issue 5: Permission errors on Windows**
+
+Run Command Prompt or PowerShell as Administrator, then repeat installation steps.
+
+#### Verification Steps
+
+After installation, verify everything works:
+
+```bash
+# 1. Test basic functionality
+npm run dev hello
+
+# 2. Test browser launching
+npm run dev pick-toggle https://saucedemo.com
+
+# 3. Test GUI
+npm run gui
+```
+
+If any step fails, refer to the specific issue above.
 
 ## Quick Start
 
@@ -108,6 +219,11 @@ npm run dev pick-toggle https://saucedemo.com
 **Visual indicators:**
 - **Red outline**: Navigate freely (clicks work normally)
 - **Green outline**: Selector mode ON (clicks capture elements)
+
+**Key Feature: Navigation Persistence**
+- Toggle mode works across page navigation
+- Login flows are fully supported
+- Selectors can be captured from multiple pages in one session
 
 ## Intelligent Selector Priority
 
@@ -341,6 +457,11 @@ npm run dev pick https://app.com cypress javascript
 **URL validation:**
 - URLs must start with `http://` or `https://`
 - Aliases from config file are also supported
+
+**Command execution fails:**
+- Ensure the project is built: `npm run build`
+- Verify CLI works first: `npm run dev hello`
+- Check browser installation: `npx playwright install`
 
 ## Contributing
 
