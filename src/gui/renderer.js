@@ -29,26 +29,12 @@ const elements = {
     cancelCommand: document.getElementById('cancel-command')
 };
 
-// Cancelar comando actual
-function cancelCurrentCommand() {
-    if (isCommandRunning) {
-        isCommandRunning = false;
-        showLoading(false);
-        updateStatus('Command cancelled by user ⚠️', 'error');
-        showFormattedOutput('❌ Command cancelled by user', 'error');
-        
-        // Nota: El timeout en main.cjs se encargará de matar el proceso
-        console.log('🚫 Command cancelled by user');
-    }
-}
-
 // Estado de la aplicación
 let currentConfig = null;
 let isCommandRunning = false;
 let capturedSelectors = [];
 let outputBuffer = '';
 let capturedCodes = []; // Array para múltiples códigos
-// Removido isSimpleView - siempre modo simple
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', async () => {
@@ -105,25 +91,6 @@ function setupEventListeners() {
     // Cancel command
     elements.cancelCommand.addEventListener('click', cancelCurrentCommand);
     
-    // Results panel
-    if (elements.copyAllSelectors) {
-        elements.copyAllSelectors.addEventListener('click', copyAllSelectors);
-    }
-    if (elements.clearResults) {
-        elements.clearResults.addEventListener('click', clearResults);
-    }
-    
-    // Modal events
-    elements.modalClose.addEventListener('click', closeValidationModal);
-    elements.validateSubmit.addEventListener('click', submitValidation);
-    
-    // Cerrar modal con Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeValidationModal();
-        }
-    });
-    
     // Auto-validar combinación framework + lenguaje
     elements.frameworkSelect.addEventListener('change', validateCombination);
     elements.languageSelect.addEventListener('change', validateCombination);
@@ -134,27 +101,6 @@ function setupEventListeners() {
             validateUrl();
         }
     });
-}
-
-// Toggle entre vista simple y detallada
-function toggleOutputView() {
-    console.log('🔄 Toggle pressed. Current isSimpleView:', isSimpleView);
-    
-    isSimpleView = !isSimpleView;
-    
-    if (isSimpleView) {
-        elements.toggleView.textContent = '📋 Detailed';
-        elements.toggleView.title = 'Switch to detailed view';
-        document.body.classList.add('simple-view');
-        updateStatus('Simple view - showing only generated code', 'info');
-        console.log('✅ Switched to SIMPLE mode');
-    } else {
-        elements.toggleView.textContent = '🎯 Simple';
-        elements.toggleView.title = 'Switch to simple view';
-        document.body.classList.remove('simple-view');
-        updateStatus('Detailed view - showing all output', 'info');
-        console.log('✅ Switched to DETAILED mode');
-    }
 }
 
 // Validar combinación framework + lenguaje
@@ -168,7 +114,7 @@ function validateCombination() {
     const validCombinations = {
         'playwright': ['javascript', 'typescript', 'python', 'java', 'csharp'],
         'selenium': ['javascript', 'typescript', 'python', 'java', 'csharp'],
-        'cypress': ['javascript', 'typescript'] // Solo JS y TS
+        'cypress': ['javascript', 'typescript']
     };
     
     const validLanguages = validCombinations[framework] || [];
@@ -309,23 +255,37 @@ async function executeCommand(command) {
     // Si llegamos aquí, todas las validaciones pasaron
     showOutput('✅ All validations passed. Starting command...', 'success');
     
-    // Preparar argumentos
+    // Preparar argumentos CORRECTAMENTE
     const args = [url];
-    if (framework !== 'playwright') args.push(framework);
-    if (language !== 'typescript') args.push(language);
+    
+    // SIEMPRE agregar framework y language en el orden correcto
+    args.push(framework);
+    args.push(language);
+    
+    console.log('🚀 Executing command:', command, 'with args:', args);
     
     await runCommand(command, args);
 }
 
-// Ejecutar comando con loading
+// Ejecutar comando con loading optimizado
 async function runCommand(command, args = []) {
     isCommandRunning = true;
-    showLoading(true, `Executing ${command}...`);
-    updateStatus(`Running: ${command} ${args.join(' ')}`, 'active');
+    
+    // Mensaje específico según comando
+    const loadingMessages = {
+        'pick': 'Opening browser and loading page...',
+        'pick-multiple': 'Opening browser and loading page...',
+        'pick-toggle': 'Opening browser and loading page...'
+    };
+    
+    showLoading(true, loadingMessages[command] || `Executing ${command}...`);
+    updateStatus(`Preparing: ${command} ${args.join(' ')}`, 'active');
     
     // Limpiar output previo
     clearOutput();
-    if (elements.clearResults) clearResults();
+    
+    // Mostrar mensaje informativo inmediatamente
+    showOutput('🚀 Starting browser (this may take a few seconds)...', 'info');
     
     try {
         const result = await ipcRenderer.invoke('execute-command', command, args);
@@ -375,34 +335,6 @@ function isAlias(url) {
     return Object.keys(currentConfig.urls).includes(url);
 }
 
-// Abrir modal de validación
-function openValidationModal() {
-    elements.validationUrl.value = elements.urlInput.value;
-    elements.validationModal.classList.remove('hidden');
-    elements.validationSelector.focus();
-}
-
-// Cerrar modal de validación
-function closeValidationModal() {
-    elements.validationModal.classList.add('hidden');
-    elements.validationUrl.value = '';
-    elements.validationSelector.value = '';
-}
-
-// Enviar validación
-async function submitValidation() {
-    const url = elements.validationUrl.value.trim();
-    const selector = elements.validationSelector.value.trim();
-    
-    if (!url || !selector) {
-        showOutput('❌ Please enter both URL and selector', 'error');
-        return;
-    }
-    
-    closeValidationModal();
-    await runCommand('validate', [url, selector]);
-}
-
 // Mostrar/ocultar loading
 function showLoading(show, text = 'Loading...') {
     if (show) {
@@ -413,20 +345,16 @@ function showLoading(show, text = 'Loading...') {
     }
 }
 
-// Quick Actions Functions
-function showConfig() {
-    if (!currentConfig) {
-        showOutput('⚠️ No configuration loaded', 'warning');
-        return;
+// Cancelar comando actual
+function cancelCurrentCommand() {
+    if (isCommandRunning) {
+        isCommandRunning = false;
+        showLoading(false);
+        updateStatus('Command cancelled by user ⚠️', 'error');
+        showOutput('❌ Command cancelled by user', 'error');
+        
+        console.log('🚫 Command cancelled by user');
     }
-    
-    const configText = JSON.stringify(currentConfig, null, 2);
-    showOutput('📋 Current Configuration:', 'info');
-    showOutput(configText, 'info');
-}
-
-function createConfig() {
-    executeCommand('init');
 }
 
 // Simplificar la lógica de output - siempre modo simple
@@ -485,62 +413,6 @@ function updateStatus(message, type = 'info') {
         elements.statusText.classList.add('error');
     }
 }
-
-// Funciones para panel de resultados (si existe)
-function copyAllSelectors() {
-    if (capturedSelectors.length === 0) {
-        showOutput('⚠️ No selectors to copy', 'warning');
-        return;
-    }
-    
-    const allCode = capturedSelectors.map(s => s.code).join('\n');
-    
-    navigator.clipboard.writeText(allCode).then(() => {
-        showOutput(`📋 All ${capturedSelectors.length} selectors copied to clipboard!`, 'success');
-    }).catch(() => {
-        const textArea = document.createElement('textarea');
-        textArea.value = allCode;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showOutput(`📋 All ${capturedSelectors.length} selectors copied to clipboard!`, 'success');
-    });
-}
-
-function clearResults() {
-    capturedSelectors = [];
-    if (elements.resultsPanel) {
-        elements.resultsPanel.classList.add('hidden');
-        elements.resultsContainer.innerHTML = '';
-    }
-    showOutput('🗑️ Results cleared', 'info');
-}
-
-// Escuchar output en tiempo real desde el proceso principal
-ipcRenderer.on('command-output', (event, data) => {
-    outputBuffer += data.toString();
-    
-    // Procesar líneas completas
-    const lines = outputBuffer.split('\n');
-    outputBuffer = lines.pop() || '';
-    
-    lines.forEach(line => {
-        if (line.trim()) {
-            console.log('📥 Processing line:', line.trim());
-            
-            // DETECTAR CÓDIGO GENERADO (siempre en modo simple)
-            if (line.trim().startsWith('await page.locator(')) {
-                console.log('🎯 CODE DETECTED:', line.trim());
-                displaySimpleCode(line.trim());
-                return;
-            }
-            
-            // Mostrar línea normal
-            showOutput(line.trim(), 'info');
-        }
-    });
-});
 
 
 
@@ -632,6 +504,44 @@ window.copyToClipboard = function(text) {
     });
 };
 
+// Escuchar output en tiempo real desde el proceso principal
+ipcRenderer.on('command-output', (event, data) => {
+    outputBuffer += data.toString();
+    
+    // Procesar líneas completas
+    const lines = outputBuffer.split('\n');
+    outputBuffer = lines.pop() || '';
+    
+    lines.forEach(line => {
+        if (line.trim()) {
+            console.log('📥 Processing line:', line.trim());
+            
+            // DETECTAR CÓDIGO GENERADO (todos los frameworks)
+            const codePatterns = [
+                'await page.locator(',          // Playwright JS/TS
+                'page.locator(',                // Playwright Python/Java
+                'Page.Locator(',                // Playwright C#
+                'await driver.findElement(',    // Selenium JS/TS
+                'driver.find_element(',         // Selenium Python
+                'driver.findElement(',          // Selenium Java
+                'driver.FindElement(',          // Selenium C#
+                'cy.get('                       // Cypress
+            ];
+            
+            const hasCode = codePatterns.some(pattern => line.trim().includes(pattern));
+            
+            if (hasCode) {
+                console.log('🎯 CODE DETECTED:', line.trim());
+                displaySimpleCode(line.trim());
+                return;
+            }
+            
+            // Mostrar línea normal
+            showOutput(line.trim(), 'info');
+        }
+    });
+});
+
 ipcRenderer.on('command-error', (event, data) => {
     const lines = data.toString().split('\n').filter(line => line.trim());
     lines.forEach(line => {
@@ -645,6 +555,5 @@ ipcRenderer.on('command-error', (event, data) => {
 window.debugBestLocator = () => {
     console.log('Current config:', currentConfig);
     console.log('Is command running:', isCommandRunning);
-    console.log('Is simple view:', isSimpleView);
     console.log('Elements:', elements);
 };
