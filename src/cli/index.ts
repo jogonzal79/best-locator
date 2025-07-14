@@ -9,15 +9,21 @@ import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { SelectorValidator } from '../core/selector-validator.js';
 import { ConfigManager } from '../core/config-manager.js';
 
-// Declarar tipos para el objeto window
+
+// Declarar tipos para el objeto window - AMPLIADO
 declare global {
   interface Window {
     selectedElementInfo: any;
     elementSelected: boolean;
     selectedElements: any[];
     multipleSelectionComplete: boolean;
+    bestLocatorInjected: boolean;
+    bestLocatorState: any;
+    updateIndicator: () => void;
+    toggleSessionComplete: boolean;
   }
 }
+
 
 // Creamos el programa principal
 const program = new Command();
@@ -418,7 +424,7 @@ program
     }
   });
 
-// Comando pick-toggle - navegación libre con toggle
+// Comando pick-toggle - navegación libre con toggle PERSISTENTE
 program
   .command('pick-toggle <url> [framework] [language]')
   .description('Pick elements with toggle mode - navigate freely and turn selector mode on/off')
@@ -445,11 +451,10 @@ program
     // ✨ VALIDAR COMBINACIÓN ANTES DE ABRIR NAVEGADOR
     const formatter = new FrameworkFormatter();
     try {
-      // Test rápido para validar la combinación
       formatter.format('[data-test="test"]', finalFramework, finalLanguage);
     } catch (validationError: any) {
       console.log(chalk.red('❌ Error:'), validationError.message);
-      return; // Salir sin abrir navegador
+      return;
     }
     
     try {
@@ -465,28 +470,206 @@ program
       
       // Configurar timeout infinito para la página
       page.setDefaultTimeout(0);
-
+      
       // Configurar viewport
       await page.setViewportSize(config.browser.viewport);
       
-    // Ir a la URL con timeout configurado
-    try {
-      await page.goto(resolvedUrl, { 
-        timeout: config.timeouts.pageLoad 
-      });
-      console.log(chalk.green('✅ Page loaded successfully!'));
-    } catch (error: any) {
-      console.log(chalk.red('❌ Error loading page:'), error.message);
-      console.log(chalk.yellow('💡 Possible causes:'));
-      console.log(chalk.yellow('   - URL is unreachable or very slow'));
-      console.log(chalk.yellow('   - Network connectivity issues'));
-      console.log(chalk.yellow('   - Page requires longer load time'));
-      console.log(chalk.blue('🔧 Try: increase pageLoad timeout in config or check URL'));
+      // Estado global del toggle que persiste entre navegaciones
+      let globalToggleState = false;
+      const selectedElements: any[] = [];
+      let elementCounter = 0;
       
-      // Cerrar navegador y salir limpiamente
-      await browser.close();
-      return;
-    }
+      // FUNCIÓN PARA INYECTAR EL SCRIPT DE TOGGLE - CORREGIDA
+      const injectToggleScript = async () => {
+        await page.addScriptTag({
+          content: `
+            (function() {
+              // Verificar si ya está inyectado para evitar duplicados
+              if (window.bestLocatorInjected) {
+                console.log('🔄 Script already injected, updating state...');
+                // Solo actualizar el estado
+                window.bestLocatorState.selectorMode = ${globalToggleState};
+                if (window.updateIndicator) window.updateIndicator();
+                return;
+              }
+              
+              console.log('🚀 Injecting Best-Locator toggle script...');
+              window.bestLocatorInjected = true;
+              
+              // Estado global
+              window.bestLocatorState = {
+                selectorMode: ${globalToggleState},
+                selectedElements: [],
+                elementCounter: ${elementCounter}
+              };
+              
+              // Crear indicador visual
+              const indicator = document.createElement('div');
+              indicator.id = 'best-locator-indicator';
+              indicator.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 8px 12px; border-radius: 4px; font-family: monospace; font-size: 12px; font-weight: bold; z-index: 99999; pointer-events: none; background: #ff4444; color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+              indicator.textContent = '🔴 SELECTOR: OFF';
+              document.body.appendChild(indicator);
+              
+              // Función para actualizar indicador
+              window.updateIndicator = function() {
+                const indicator = document.getElementById('best-locator-indicator');
+                if (!indicator) return;
+                
+                if (window.bestLocatorState.selectorMode) {
+                  indicator.textContent = '🟢 SELECTOR: ON';
+                  indicator.style.background = '#44ff44';
+                  indicator.style.color = 'black';
+                } else {
+                  indicator.textContent = '🔴 SELECTOR: OFF';
+                  indicator.style.background = '#ff4444';
+                  indicator.style.color = 'white';
+                }
+              };
+              
+              // Función para mostrar notificación
+              function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position: fixed; top: 60px; right: 10px; padding: 12px 16px; border-radius: 4px; font-family: monospace; font-size: 14px; font-weight: bold; z-index: 99999; background: #333; color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(function() {
+                  if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                  }
+                }, 2000);
+              }
+              
+              // Toggle selector mode
+              function toggleSelectorMode(enable) {
+                window.bestLocatorState.selectorMode = enable;
+                window.updateIndicator();
+                
+                if (enable) {
+                  showNotification('🎯 SELECTOR MODE: ON - Click elements to capture!');
+                } else {
+                  showNotification('🌐 SELECTOR MODE: OFF - Navigate freely!');
+                }
+              }
+              
+              // Escuchar teclas de control
+              document.addEventListener('keydown', function(event) {
+                if (event.ctrlKey && event.key === 's') {
+                  event.preventDefault();
+                  toggleSelectorMode(true);
+                } else if (event.ctrlKey && event.key === 'd') {
+                  event.preventDefault();
+                  toggleSelectorMode(false);
+                } else if (event.key === 'Escape') {
+                  window.toggleSessionComplete = true;
+                }
+              });
+              
+              // Escuchar clicks
+              document.addEventListener('click', function(event) {
+                if (window.bestLocatorState.selectorMode) {
+                  // MODO ON - Capturar selector
+                  event.preventDefault();
+                  event.stopPropagation();
+                  
+                  const element = event.target;
+                  window.bestLocatorState.elementCounter++;
+                  
+                  // Highlight del elemento
+                  element.style.outline = '3px solid #ff0000';
+                  element.style.backgroundColor = '#ffff0050';
+                  
+                  // Guardar información del elemento
+                  const elementInfo = {
+                    order: window.bestLocatorState.elementCounter,
+                    tagName: element.tagName.toLowerCase(),
+                    id: element.id || '',
+                    className: element.className || '',
+                    textContent: element.textContent ? element.textContent.trim() : '',
+                    pageUrl: window.location.href,
+                    attributes: {}
+                  };
+                  
+                  // Capturar TODOS los atributos del elemento
+                  for (let attr of element.attributes) {
+                    elementInfo.attributes[attr.name] = attr.value;
+                  }
+                  
+                  window.bestLocatorState.selectedElements.push(elementInfo);
+                  console.log('✅ Element captured:', window.bestLocatorState.elementCounter, elementInfo.tagName);
+                  
+                  // Mostrar notificación
+                  showNotification('✅ Element ' + window.bestLocatorState.elementCounter + ' captured! (' + window.bestLocatorState.selectedElements.length + ' total)');
+                  
+                } else {
+                  // MODO OFF - Navegación libre (no hacer nada especial)
+                  console.log('🌐 Free navigation - click ignored for selection');
+                }
+              }, true);
+              
+              // Actualizar indicador inicial
+              window.updateIndicator();
+              
+              console.log('🎛️ Toggle mode script loaded successfully');
+            })();
+          `
+        });
+      };
+      
+      // DETECTAR NAVEGACIÓN Y RE-INYECTAR AUTOMÁTICAMENTE
+      page.on('framenavigated', async (frame) => {
+        if (frame === page.mainFrame()) {
+          const currentUrl = page.url();
+          console.log(chalk.blue(`🔄 Navigation detected: ${currentUrl}`));
+          console.log(chalk.yellow('🔁 Re-injecting toggle script...'));
+          
+          // Obtener estado actual antes de re-inyectar
+          try {
+            const pageState = await page.evaluate(`() => {
+              if (typeof window !== "undefined" && window.bestLocatorState) {
+                return {
+                  selectorMode: window.bestLocatorState.selectorMode,
+                  selectedElements: window.bestLocatorState.selectedElements,
+                  elementCounter: window.bestLocatorState.elementCounter
+                };
+              }
+              return null;
+            }`);
+            
+            if (pageState) {
+              const state = pageState as any;
+              globalToggleState = state.selectorMode || false;
+              selectedElements.push(...(state.selectedElements || []));
+              elementCounter = state.elementCounter || 0;
+            }
+          } catch (error) {
+            // Ignorar errores si la página anterior ya no está disponible
+            console.log(chalk.yellow('📝 Previous page state not available (normal behavior)'));
+          }
+          
+          // Re-inyectar script con estado preservado
+          setTimeout(async () => {
+            try {
+              await injectToggleScript();
+              console.log(chalk.green('✅ Toggle script re-injected successfully!'));
+            } catch (error) {
+              console.log(chalk.yellow('⚠️  Re-injection failed, will retry on next interaction'));
+            }
+          }, 1000); // Esperar 1 segundo para que la página esté lista
+        }
+      });
+      
+      // Ir a la URL inicial con timeout configurado
+      try {
+        await page.goto(resolvedUrl, { 
+          timeout: config.timeouts.pageLoad 
+        });
+        console.log(chalk.green('✅ Page loaded successfully!'));
+      } catch (error: any) {
+        console.log(chalk.red('❌ Error loading page:'), error.message);
+        await browser.close();
+        return;
+      }
       
       console.log(chalk.green('✅ Page loaded successfully!'));
       console.log(chalk.cyan('🎛️ Toggle mode enabled!'));
@@ -494,159 +677,19 @@ program
       console.log(chalk.blue('💡 Press CTRL+S to turn ON selector mode'));
       console.log(chalk.blue('💡 Press CTRL+D to turn OFF selector mode'));
       console.log(chalk.yellow('💡 Press ESC to finish and get results'));
+      console.log(chalk.green('🔄 Navigation persistence: ENABLED'));
       
-      // Inyectar JavaScript para modo toggle
-      await page.addScriptTag({
-        content: `
-          // Estado global
-          window.bestLocatorState = {
-            selectorMode: false,
-            selectedElements: [],
-            elementCounter: 0
-          };
-          
-          // Crear indicador visual
-          const indicator = document.createElement('div');
-          indicator.id = 'best-locator-indicator';
-          indicator.style.cssText = \`
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            font-weight: bold;
-            z-index: 99999;
-            pointer-events: none;
-            background: #ff4444;
-            color: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          \`;
-          indicator.textContent = '🔴 SELECTOR: OFF';
-          document.body.appendChild(indicator);
-          
-          // Función para actualizar indicador
-          function updateIndicator() {
-            const indicator = document.getElementById('best-locator-indicator');
-            if (window.bestLocatorState.selectorMode) {
-              indicator.textContent = '🟢 SELECTOR: ON';
-              indicator.style.background = '#44ff44';
-              indicator.style.color = 'black';
-            } else {
-              indicator.textContent = '🔴 SELECTOR: OFF';
-              indicator.style.background = '#ff4444';
-              indicator.style.color = 'white';
-            }
-          }
-          
-          // Función para mostrar notificación
-          function showNotification(message) {
-            const notification = document.createElement('div');
-            notification.style.cssText = \`
-              position: fixed;
-              top: 60px;
-              right: 10px;
-              padding: 12px 16px;
-              border-radius: 4px;
-              font-family: monospace;
-              font-size: 14px;
-              font-weight: bold;
-              z-index: 99999;
-              background: #333;
-              color: white;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            \`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-              if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-              }
-            }, 2000);
-          }
-          
-          // Toggle selector mode
-          function toggleSelectorMode(enable) {
-            window.bestLocatorState.selectorMode = enable;
-            updateIndicator();
-            
-            if (enable) {
-              showNotification('🎯 SELECTOR MODE: ON - Click elements to capture!');
-            } else {
-              showNotification('🌐 SELECTOR MODE: OFF - Navigate freely!');
-            }
-          }
-          
-          // Escuchar teclas de control
-          document.addEventListener('keydown', function(event) {
-            if (event.ctrlKey && event.key === 's') {
-              event.preventDefault();
-              toggleSelectorMode(true);
-            } else if (event.ctrlKey && event.key === 'd') {
-              event.preventDefault();
-              toggleSelectorMode(false);
-            } else if (event.key === 'Escape') {
-              window.toggleSessionComplete = true;
-            }
-          });
-          
-          // Escuchar clicks
-          document.addEventListener('click', function(event) {
-            if (window.bestLocatorState.selectorMode) {
-              // MODO ON - Capturar selector
-              event.preventDefault();
-              event.stopPropagation();
-              
-              const element = event.target;
-              window.bestLocatorState.elementCounter++;
-              
-              // Highlight del elemento
-              element.style.outline = '3px solid #ff0000';
-              element.style.backgroundColor = '#ffff0050';
-              
-              // Guardar información del elemento
-              const elementInfo = {
-                order: window.bestLocatorState.elementCounter,
-                tagName: element.tagName.toLowerCase(),
-                id: element.id || '',
-                className: element.className || '',
-                textContent: element.textContent?.trim() || '',
-                pageUrl: window.location.href,
-                attributes: {}
-              };
-              
-              // Capturar TODOS los atributos del elemento
-              for (let attr of element.attributes) {
-                elementInfo.attributes[attr.name] = attr.value;
-              }
-              
-              window.bestLocatorState.selectedElements.push(elementInfo);
-              console.log('✅ Element captured:', window.bestLocatorState.elementCounter, elementInfo.tagName);
-              
-              // Mostrar notificación
-              showNotification(\`✅ Element \${window.bestLocatorState.elementCounter} captured! (\${window.bestLocatorState.selectedElements.length} total)\`);
-              
-            } else {
-              // MODO OFF - Navegación libre (no hacer nada especial)
-              console.log('🌐 Free navigation - click ignored for selection');
-            }
-          }, true);
-          
-          console.log('🎛️ Toggle mode script loaded successfully');
-        `
-      });
-
+      // Inyectar script inicial
+      await injectToggleScript();
+      
       // ✨ DETECTAR CIERRE DEL NAVEGADOR
       page.on('close', () => {
-      console.log(chalk.yellow('\n🚪 Browser closed by user - processing captured elements...'));
+        console.log(chalk.yellow('\n🚪 Browser closed by user - processing captured elements...'));
       });
 
       browser.on('disconnected', () => {
-      console.log(chalk.yellow('\n🔌 Browser disconnected - finishing session...'));
+        console.log(chalk.yellow('\n🔌 Browser disconnected - finishing session...'));
       });
-
       
       // Esperar hasta que presione ESC (con timeout configurado)
       console.log(chalk.blue('⏳ Use CTRL+S/CTRL+D to toggle selector mode, ESC to finish...'));
@@ -658,32 +701,34 @@ program
       } catch (error) {
         console.log(chalk.yellow('⏰ 10 minute session expired - processing captured elements...'));
       }
-
       
       // Obtener todos los elementos seleccionados
-      let selectedElements = [];
+      let allSelectedElements = [];
       try {
         const sessionData: any = await page.evaluate('window.bestLocatorState');
-        selectedElements = sessionData.selectedElements || [];
+        allSelectedElements = sessionData?.selectedElements || [];
+        
+        // Combinar con elementos capturados en navegaciones anteriores
+        allSelectedElements = [...selectedElements, ...allSelectedElements];
       } catch (error) {
-        // Si la página se cerró, no podemos obtener elementos
-        console.log(chalk.yellow('⚠️  Unable to retrieve elements - browser was closed before processing'));
-        selectedElements = [];
-}
+        // Si la página se cerró, usar elementos capturados previamente
+        allSelectedElements = selectedElements;
+        console.log(chalk.yellow('⚠️  Using previously captured elements - browser was closed'));
+      }
       
-      if (selectedElements.length === 0) {
+      if (allSelectedElements.length === 0) {
         console.log(chalk.yellow('⚠️  No elements were captured'));
         await browser.close();
         return;
       }
       
       // Procesar cada elemento
-      console.log(chalk.green(`\n🎯 Session completed! ${selectedElements.length} elements captured:`));
+      console.log(chalk.green(`\n🎯 Session completed! ${allSelectedElements.length} elements captured:`));
       
       const generator = new SelectorGenerator();
       const results = [];
       
-      for (const elementInfo of selectedElements) {
+      for (const elementInfo of allSelectedElements) {
         const selectorResult = generator.generateSelector(elementInfo);
         const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
         
