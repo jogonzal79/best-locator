@@ -11,10 +11,17 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+
+    /* 👇 cambios clave */
+    "noEmit": false,          // genera los .js compilados
+    "outDir": "./dist",       // carpeta de salida
+    "rootDir": "./src",       // carpeta de entrada
+
+    /* opcional pero útil */
+    "allowJs": true           // permite importar .js si los necesitas
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
