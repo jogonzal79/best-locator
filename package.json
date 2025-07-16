@@ -1,6 +1,6 @@
 {
   "name": "bestlocator",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "type": "module",
   "description": "Universal selector generator for UI testing",
   "main": "src/gui/main.cjs",
