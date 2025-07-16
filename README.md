@@ -8,16 +8,16 @@ Generate professional-grade selectors for UI testing with the reliability develo
 
 ```bash
 # Install globally
-npm install -g best-locator
+npm install -g bestlocator
 
 # Start generating selectors instantly
-best-locator pick-toggle https://saucedemo.com
+bestlocator pick-toggle https://saucedemo.com
 
 # Generate single selector
-best-locator pick https://your-app.com
+bestlocator pick https://your-app.com
 
 # Get help
-best-locator --help
+bestlocator --help
 ```
 
 ## Why Best-Locator?
@@ -31,27 +31,28 @@ best-locator --help
 - **Professional selectors** - Prioritizes `data-test`, `aria-label`, and testing-specific attributes
 - **Multi-page capture** - Collect selectors from different pages in one session
 - **Framework agnostic** - Works with Playwright, Selenium, Cypress, and more
+- **30-minute sessions** - Plenty of time to navigate and capture elements
 
 ## Installation
 
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g best-locator
+npm install -g bestlocator
 ```
 
 ### Local Installation
 
 ```bash
-npm install best-locator
-npx best-locator pick-toggle https://your-app.com
+npm install bestlocator
+npx bestlocator pick-toggle https://your-app.com
 ```
 
 ### Verify Installation
 
 ```bash
-best-locator hello
-# Expected: Best-Locator v1.0.0 is working!
+bestlocator hello
+# Expected: Best-Locator v1.1.0 is working!
 ```
 
 ## Usage
@@ -61,7 +62,7 @@ best-locator hello
 The breakthrough feature that makes Best-Locator unique:
 
 ```bash
-best-locator pick-toggle https://saucedemo.com
+bestlocator pick-toggle https://saucedemo.com
 ```
 
 **How it works:**
@@ -72,22 +73,26 @@ best-locator pick-toggle https://saucedemo.com
 5. **Repeat as needed** - Navigate to other pages, toggle on/off
 6. **Press ESC** - Finish and get all selectors
 
+**Visual indicators:**
+- **Red outline**: Navigate freely (clicks work normally)
+- **Green outline**: Selector mode ON (clicks capture elements)
+
 ### Single Element Mode
 
 ```bash
-best-locator pick https://your-app.com
+bestlocator pick https://your-app.com
 ```
 
 ### Multiple Elements Mode
 
 ```bash
-best-locator pick-multiple https://your-app.com
+bestlocator pick-multiple https://your-app.com
 ```
 
 ### Validate Existing Selectors
 
 ```bash
-best-locator validate https://your-app.com '[data-test="username"]'
+bestlocator validate https://your-app.com '[data-test="username"]'
 ```
 
 ## Framework Support
@@ -100,9 +105,9 @@ best-locator validate https://your-app.com '[data-test="username"]'
 
 ```bash
 # Specify framework and language
-best-locator pick-toggle https://your-app.com playwright typescript
-best-locator pick https://your-app.com selenium python
-best-locator pick https://your-app.com cypress javascript
+bestlocator pick-toggle https://your-app.com playwright typescript
+bestlocator pick https://your-app.com selenium python
+bestlocator pick https://your-app.com cypress javascript
 ```
 
 ## Intelligent Selector Priority
@@ -125,7 +130,7 @@ Best-Locator generates **professional-grade selectors** using industry best prac
 Create a config file for your project:
 
 ```bash
-best-locator init
+bestlocator init
 ```
 
 This creates `best-locator.config.js`:
@@ -134,6 +139,22 @@ This creates `best-locator.config.js`:
 module.exports = {
   defaultFramework: 'playwright',
   defaultLanguage: 'typescript',
+  
+  // Browser settings
+  browser: {
+    headless: false,
+    viewport: {
+      width: 1280,
+      height: 720
+    }
+  },
+  
+  // Session timeouts
+  timeouts: {
+    pageLoad: 30000,        // 30 seconds to load page
+    elementSelection: 1800000, // 30 minutes for user interaction
+    validation: 15000      // 15 seconds to validate selectors
+  },
   
   // Your project's test attributes
   projectAttributes: [
@@ -155,8 +176,8 @@ module.exports = {
 Then use URL aliases:
 
 ```bash
-best-locator pick-toggle local      # Uses http://localhost:3000
-best-locator pick staging           # Uses staging URL
+bestlocator pick-toggle local      # Uses http://localhost:3000
+bestlocator pick staging           # Uses staging URL
 ```
 
 ## Real-World Examples
@@ -165,7 +186,7 @@ best-locator pick staging           # Uses staging URL
 
 ```bash
 # Navigate to login, authenticate, then capture dashboard elements
-best-locator pick-toggle https://app.com
+bestlocator pick-toggle https://app.com
 # 1. Login normally
 # 2. Navigate to dashboard  
 # 3. Press CTRL+S to start capturing
@@ -184,7 +205,7 @@ await page.locator('[data-testid="dashboard-menu"]')
 ### Multi-Page E-commerce Testing
 
 ```bash
-best-locator pick-toggle https://shop.com
+bestlocator pick-toggle https://shop.com
 # 1. Browse products (CTRL+D = selector mode OFF)
 # 2. CTRL+S = capture product elements
 # 3. Navigate to cart
@@ -192,24 +213,40 @@ best-locator pick-toggle https://shop.com
 # 5. ESC = get all selectors from both pages
 ```
 
+### Traditional vs Best-Locator
+
+**Traditional tools generate:**
+```javascript
+await page.locator('#user-name')              // Unreliable
+await page.locator('#password')               // Can change
+await page.locator('#login-button')           // Styling dependent
+```
+
+**Best-Locator generates:**
+```javascript
+await page.locator('[data-test="username"]')     // 95% reliable
+await page.locator('[data-test="password"]')     // Testing-specific
+await page.locator('[data-test="login-button"]') // Industry standard
+```
+
 ## Advanced Usage
 
 ### Custom Framework/Language
 
 ```bash
-best-locator pick-toggle https://app.com selenium python
+bestlocator pick-toggle https://app.com selenium python
 ```
 
 ### Validation with Timeout
 
 ```bash
-best-locator validate https://app.com '[data-test="button"]' --timeout 30000
+bestlocator validate https://app.com '[data-test="button"]' --timeout 30000
 ```
 
 ### View Current Config
 
 ```bash
-best-locator config
+bestlocator config
 ```
 
 ## Troubleshooting
@@ -223,35 +260,67 @@ npx playwright install
 ### Command Not Found
 ```bash
 # Verify global installation
-npm list -g best-locator
+npm list -g bestlocator
 
 # Reinstall if needed
-npm uninstall -g best-locator
-npm install -g best-locator
+npm uninstall -g bestlocator
+npm install -g bestlocator
 ```
 
 ### Permission Errors
-- **macOS/Linux**: Run with `sudo npm install -g best-locator`
+- **macOS/Linux**: Run with `sudo npm install -g bestlocator`
 - **Windows**: Run Command Prompt as Administrator
+
+### Browser Opens Too Large
+Create a config file to control browser size:
+```bash
+bestlocator init
+# Then edit best-locator.config.js to set viewport size
+```
+
+### Session Expires Too Quickly
+Best-Locator gives you 30 minutes by default. Extend it in your config:
+```javascript
+timeouts: {
+  elementSelection: 3600000  // 1 hour
+}
+```
 
 ## All Commands
 
 ```bash
 # Core Commands
-best-locator pick <url>                    # Single element
-best-locator pick-multiple <url>           # Multiple elements  
-best-locator pick-toggle <url>             # Toggle mode (recommended)
-best-locator validate <url> <selector>     # Validate selector
+bestlocator pick <url>                    # Single element
+bestlocator pick-multiple <url>           # Multiple elements  
+bestlocator pick-toggle <url>             # Toggle mode (recommended)
+bestlocator validate <url> <selector>     # Validate selector
 
 # Configuration
-best-locator init                          # Create config file
-best-locator config                        # Show current config
+bestlocator init                          # Create config file
+bestlocator config                        # Show current config
 
 # Utilities
-best-locator hello                         # Test installation
-best-locator --version                     # Show version
-best-locator --help                        # Show help
+bestlocator hello                         # Test installation
+bestlocator --version                     # Show version
+bestlocator --help                        # Show help
 ```
+
+## Use Cases
+
+### QA Engineers
+- Generate reliable selectors for manual testing
+- Validate existing test selectors
+- Create selectors for complex multi-page flows
+
+### Automation Engineers  
+- Build robust test suites with high-quality selectors
+- Handle login flows and authenticated pages
+- Generate selectors for multiple testing frameworks
+
+### Development Teams
+- Standardize selector generation across projects
+- Reduce test flakiness with better selectors
+- Speed up test creation and maintenance
 
 ## Contributing
 
@@ -260,6 +329,12 @@ We welcome contributions! Please see our Contributing Guide for details.
 ## License
 
 MIT License - see LICENSE file for details.
+
+## Author
+
+**Jonathan Gonzalez**  
+Automation Testing Enthusiast 
+[LinkedIn](https://www.linkedin.com/in/jonathan-g-33607648/)
 
 ---
 
