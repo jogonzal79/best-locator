@@ -83,9 +83,24 @@ export class ConfigManager {
       '.best-locatorrc.json'
     ];
 
+    // 🔥 BUSCAR PRIMERO EN EL DIRECTORIO ACTUAL (donde el usuario ejecuta el comando)
     for (const filePath of possiblePaths) {
-      if (fs.existsSync(filePath)) {
-        return filePath;
+      const currentDirPath = path.resolve(process.cwd(), filePath);
+      if (fs.existsSync(currentDirPath)) {
+        console.log(chalk.green(`📂 Config found: ${currentDirPath}`));
+        return currentDirPath;
+      }
+    }
+
+    // 🔍 BUSCAR EN EL HOME DIRECTORY como fallback
+    const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+    if (homeDir) {
+      for (const filePath of possiblePaths) {
+        const homeDirPath = path.resolve(homeDir, filePath);
+        if (fs.existsSync(homeDirPath)) {
+          console.log(chalk.blue(`🏠 Config found in home: ${homeDirPath}`));
+          return homeDirPath;
+        }
       }
     }
 
@@ -94,6 +109,9 @@ export class ConfigManager {
 
  private loadConfig(): BestLocatorConfig {
    if (!this.configPath) {
+     console.log(chalk.yellow('⚠️  No config file found, using defaults'));
+     console.log(chalk.blue('📍 Current directory:', process.cwd()));
+     console.log(chalk.blue('💡 Create best-locator.config.json in your project directory'));
      return DEFAULT_CONFIG;
    }
 
@@ -113,17 +131,22 @@ export class ConfigManager {
        userConfig = JSON.parse(configData);
      }
 
+     console.log(chalk.green(`✅ Config loaded from: ${this.configPath}`));
+     
+     // 🔍 Debug viewport configuration
+     if (userConfig.browser?.viewport) {
+       console.log(chalk.blue(`🖥️  Viewport: ${userConfig.browser.viewport.width}x${userConfig.browser.viewport.height}`));
+     }
 
-
-
-      // Merge con configuración por defecto
-      return this.mergeConfig(DEFAULT_CONFIG, userConfig);
-    } catch (error) {
-      console.log(chalk.yellow(`⚠️  Error loading config file: ${this.configPath}`));
-      console.log(chalk.yellow(`Using default configuration`));
-      return DEFAULT_CONFIG;
-    }
-  }
+     // Merge con configuración por defecto
+     return this.mergeConfig(DEFAULT_CONFIG, userConfig);
+   } catch (error) {
+     console.log(chalk.yellow(`⚠️  Error loading config file: ${this.configPath}`));
+     console.log(chalk.yellow(`Using default configuration`));
+     console.log(chalk.red(`Error details: ${error}`));
+     return DEFAULT_CONFIG;
+   }
+ }
 
   private mergeConfig(defaultConfig: BestLocatorConfig, userConfig: Partial<BestLocatorConfig>): BestLocatorConfig {
     return {
@@ -203,8 +226,8 @@ module.exports = {
   browser: {
     headless: false,        // true para CI/CD
     viewport: {
-      width: 1920,
-      height: 1080
+      width: 1280,          // Ancho personalizado
+      height: 720           // Alto personalizado
     },
     userAgent: undefined    // Custom user agent si necesitas
   },
@@ -226,8 +249,9 @@ module.exports = {
   }
 };`;
 
-    fs.writeFileSync('best-locator.config.js', sampleConfig);
-    console.log(chalk.green('✅ Sample configuration created: best-locator.config.js'));
+    const targetPath = path.resolve(process.cwd(), 'best-locator.config.js');
+    fs.writeFileSync(targetPath, sampleConfig);
+    console.log(chalk.green(`✅ Sample configuration created: ${targetPath}`));
     console.log(chalk.blue('📝 Edit the file to customize Best-Locator for your project'));
   }
 }
