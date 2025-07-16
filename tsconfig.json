@@ -11,20 +11,37 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-
-    /* 👇 cambios clave */
-    "noEmit": false,          // genera los .js compilados
-    "outDir": "./dist",       // carpeta de salida
-    "rootDir": "./src",       // carpeta de entrada
-
-    /* opcional pero útil */
-    "allowJs": true           // permite importar .js si los necesitas
+    
+    // Configuración de salida
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "allowJs": true,
+    
+    // Preservar estructura de directorios
+    "rootDirs": ["./src"],
+    "baseUrl": "./",
+    "paths": {
+      "*": ["node_modules/*"]
+    },
+    
+    // Optimizaciones para producción
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": true
   },
   "include": [
     "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
-  ]
+    "dist",
+    "dist-electron",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "ts-node": {
+    "esm": true
+  }
 }
