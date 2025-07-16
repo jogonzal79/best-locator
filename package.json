@@ -1,14 +1,12 @@
 {
   "name": "bestlocator",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Universal selector generator for UI testing",
   "main": "src/gui/main.cjs",
-  
   "bin": {
     "bestlocator": "./dist/cli/index.js"
   },
-  
   "scripts": {
     "dev": "node dist/cli/index.js",
     "gui": "electron src/gui/main.cjs",
@@ -18,8 +16,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run build"
   },
-  
-  "keywords": ["testing", "automation", "selectors", "playwright", "selenium", "cypress"],
+  "keywords": [
+    "testing",
+    "automation",
+    "selectors",
+    "playwright",
+    "selenium",
+    "cypress"
+  ],
   "author": "Jonathan Gonzalez",
   "license": "MIT",
   "dependencies": {
