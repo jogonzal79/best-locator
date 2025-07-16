@@ -117,9 +117,11 @@ program
       // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
         headless: config.browser.headless,
-        ...(config.browser.userAgent && { 
-          args: [`--user-agent=${config.browser.userAgent}`] 
-        })
+        args: [
+          `--window-size=${config.browser.viewport.width},${config.browser.viewport.height}`,
+          '--window-position=100,100',
+          ...(config.browser.userAgent ? [`--user-agent=${config.browser.userAgent}`] : [])
+        ]
       });
       
       const page = await browser.newPage();
@@ -283,9 +285,11 @@ program
       // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
         headless: config.browser.headless,
-        ...(config.browser.userAgent && { 
-          args: [`--user-agent=${config.browser.userAgent}`] 
-        })
+        args: [
+          `--window-size=${config.browser.viewport.width},${config.browser.viewport.height}`,
+          '--window-position=100,100',
+          ...(config.browser.userAgent ? [`--user-agent=${config.browser.userAgent}`] : [])
+        ]
       });
       
       const page = await browser.newPage();
@@ -484,9 +488,11 @@ program
       // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
         headless: config.browser.headless,
-        ...(config.browser.userAgent && { 
-          args: [`--user-agent=${config.browser.userAgent}`] 
-        })
+        args: [
+          `--window-size=${config.browser.viewport.width},${config.browser.viewport.height}`,
+          '--window-position=100,100',
+          ...(config.browser.userAgent ? [`--user-agent=${config.browser.userAgent}`] : [])
+        ]
       });
       
       const page = await browser.newPage();
@@ -785,9 +791,11 @@ program
       // Abrir el navegador con configuración
       const browser = await chromium.launch({ 
         headless: config.browser.headless,
-        ...(config.browser.userAgent && { 
-          args: [`--user-agent=${config.browser.userAgent}`] 
-        })
+        args: [
+          `--window-size=${config.browser.viewport.width},${config.browser.viewport.height}`,
+          '--window-position=100,100',
+          ...(config.browser.userAgent ? [`--user-agent=${config.browser.userAgent}`] : [])
+        ]
       });
       
       const page = await browser.newPage();
