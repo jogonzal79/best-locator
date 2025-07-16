@@ -687,7 +687,7 @@ program
       console.log(chalk.yellow('⏰ Session expires in 10 minutes if no activity'));
 
       try {
-        await page.waitForFunction('window.toggleSessionComplete', { timeout: 600000 });  // 10 minutos
+        await page.waitForFunction('window.toggleSessionComplete', { timeout: config.timeouts.elementSelection });  // 30 minutos
         console.log(chalk.green('✅ ESC detected - processing session...'));
       } catch (error) {
         console.log(chalk.yellow('⏰ 10 minute session expired - processing captured elements...'));

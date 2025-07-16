@@ -40,7 +40,7 @@ const DEFAULT_CONFIG: BestLocatorConfig = {
   defaultLanguage: 'typescript',
   timeouts: {
     pageLoad: 30000,
-    elementSelection: 60000,
+    elementSelection: 1800000,
     validation: 15000
   },
   selectorStrategy: {
@@ -54,8 +54,8 @@ const DEFAULT_CONFIG: BestLocatorConfig = {
   browser: {
     headless: false,
     viewport: {
-      width: 1920,
-      height: 1080
+      width: 1280,
+      height: 720
     }
   },
   output: {
