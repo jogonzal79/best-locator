@@ -234,7 +234,9 @@ await page.locator('[data-test="login-button"]') // Industry standard
 ### Custom Framework/Language
 
 ```bash
-bestlocator pick-toggle https://app.com selenium python
+bestlocator pick-toggle https://app.com Cypress JavaScript
+bestlocator pick-toggle <url> <framework> <language>
+
 ```
 
 ### Validation with Timeout
