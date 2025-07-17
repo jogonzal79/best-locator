@@ -8,7 +8,7 @@ Generate professional-grade selectors for UI testing with the reliability develo
 
 ```bash
 # Install globally
-npm install -g bestlocator
+npm install -g bestlocator (global) or npm install bestlocator (local)
 
 # Start generating selectors instantly
 bestlocator pick-toggle https://saucedemo.com
