@@ -15,7 +15,7 @@
   },
   "projectAttributes": [
     "data-testid",
-    "data-cy", 
+    "data-cy",
     "data-test",
     "data-qa"
   ],
@@ -36,5 +36,25 @@
     "google": "https://www.google.com",
     "github": "https://github.com",
     "staging": "https://staging.myapp.com"
+  },
+  "ai": {
+    "enabled": true,
+    "provider": "ollama",
+    "ollama": {
+      "host": "http://localhost:11434",
+      "model": "llama3.1:8b",
+      "timeout": 30000,
+      "temperature": 0.3
+    },
+    "features": {
+      "smartSelector": true,
+      "contextAnalysis": true,
+      "explainDecisions": true,
+      "suggestAlternatives": true
+    },
+    "fallback": {
+      "onTimeout": "traditional",
+      "onError": "traditional"
+    }
   }
 }

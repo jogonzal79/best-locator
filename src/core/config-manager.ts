@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
+import { AIConfig, DEFAULT_AI_CONFIG } from './ai-config.js'; // ⭐ (Import agregado)
 
 export interface BestLocatorConfig {
   defaultFramework: 'playwright' | 'cypress' | 'selenium';
@@ -33,6 +34,7 @@ export interface BestLocatorConfig {
     autoSave?: string;
   };
   urls: Record<string, string>;
+  ai: AIConfig['ai']; // ⭐ (Propiedad agregada)
 }
 
 const DEFAULT_CONFIG: BestLocatorConfig = {
@@ -63,7 +65,8 @@ const DEFAULT_CONFIG: BestLocatorConfig = {
     includeConfidence: true,
     includeXPath: false
   },
-  urls: {}
+  urls: {},
+  ai: DEFAULT_AI_CONFIG // ⭐ (Valor por defecto agregado)
 };
 
 export class ConfigManager {
@@ -107,46 +110,46 @@ export class ConfigManager {
     return '';
   }
 
- private loadConfig(): BestLocatorConfig {
-   if (!this.configPath) {
-     console.log(chalk.yellow('⚠️  No config file found, using defaults'));
-     console.log(chalk.blue('📍 Current directory:', process.cwd()));
-     console.log(chalk.blue('💡 Create best-locator.config.json in your project directory'));
-     return DEFAULT_CONFIG;
-   }
+  private loadConfig(): BestLocatorConfig {
+    if (!this.configPath) {
+      console.log(chalk.yellow('⚠️  No config file found, using defaults'));
+      console.log(chalk.blue('📍 Current directory:', process.cwd()));
+      console.log(chalk.blue('💡 Create best-locator.config.json in your project directory'));
+      return DEFAULT_CONFIG;
+    }
 
-   try {
-     let userConfig: Partial<BestLocatorConfig>;
+    try {
+      let userConfig: Partial<BestLocatorConfig>;
 
-     if (this.configPath.endsWith('.js')) {
-       // Importar módulo JavaScript
-       const fullPath = path.resolve(this.configPath);
-       // Limpiar cache para recargar cambios
-       delete require.cache[fullPath];
-       const moduleExports = require(fullPath);
-       userConfig = moduleExports.default || moduleExports;
-     } else {
-       // Leer archivo JSON
-       const configData = fs.readFileSync(this.configPath, 'utf8');
-       userConfig = JSON.parse(configData);
-     }
+      if (this.configPath.endsWith('.js')) {
+        // Importar módulo JavaScript
+        const fullPath = path.resolve(this.configPath);
+        // Limpiar cache para recargar cambios
+        delete require.cache[fullPath];
+        const moduleExports = require(fullPath);
+        userConfig = moduleExports.default || moduleExports;
+      } else {
+        // Leer archivo JSON
+        const configData = fs.readFileSync(this.configPath, 'utf8');
+        userConfig = JSON.parse(configData);
+      }
 
-     console.log(chalk.green(`✅ Config loaded from: ${this.configPath}`));
-     
-     // 🔍 Debug viewport configuration
-     if (userConfig.browser?.viewport) {
-       console.log(chalk.blue(`🖥️  Viewport: ${userConfig.browser.viewport.width}x${userConfig.browser.viewport.height}`));
-     }
+      console.log(chalk.green(`✅ Config loaded from: ${this.configPath}`));
+      
+      // 🔍 Debug viewport configuration
+      if (userConfig.browser?.viewport) {
+        console.log(chalk.blue(`🖥️  Viewport: ${userConfig.browser.viewport.width}x${userConfig.browser.viewport.height}`));
+      }
 
-     // Merge con configuración por defecto
-     return this.mergeConfig(DEFAULT_CONFIG, userConfig);
-   } catch (error) {
-     console.log(chalk.yellow(`⚠️  Error loading config file: ${this.configPath}`));
-     console.log(chalk.yellow(`Using default configuration`));
-     console.log(chalk.red(`Error details: ${error}`));
-     return DEFAULT_CONFIG;
-   }
- }
+      // Merge con configuración por defecto
+      return this.mergeConfig(DEFAULT_CONFIG, userConfig);
+    } catch (error) {
+      console.log(chalk.yellow(`⚠️  Error loading config file: ${this.configPath}`));
+      console.log(chalk.yellow(`Using default configuration`));
+      console.log(chalk.red(`Error details: ${error}`));
+      return DEFAULT_CONFIG;
+    }
+  }
 
   private mergeConfig(defaultConfig: BestLocatorConfig, userConfig: Partial<BestLocatorConfig>): BestLocatorConfig {
     return {
@@ -160,7 +163,8 @@ export class ConfigManager {
         viewport: { ...defaultConfig.browser.viewport, ...userConfig.browser?.viewport }
       },
       output: { ...defaultConfig.output, ...userConfig.output },
-      urls: { ...defaultConfig.urls, ...userConfig.urls }
+      urls: { ...defaultConfig.urls, ...userConfig.urls },
+      ai: { ...defaultConfig.ai, ...userConfig.ai } // ⭐ (Merge agregado)
     };
   }
 
@@ -246,6 +250,15 @@ module.exports = {
     dev: 'https://dev.myapp.com',
     staging: 'https://staging.myapp.com',
     prod: 'https://myapp.com'
+  },
+
+  // Configuración de IA (ejemplo)
+  ai: {
+    enabled: true,
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    temperature: 0.2,
+    maxTokens: 500
   }
 };`;
 

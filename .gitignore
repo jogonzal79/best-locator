@@ -8,6 +8,8 @@ yarn-error.log*
 dist/
 build/
 out/
+lib/
+*.tsbuildinfo
 
 # OS files
 .DS_Store
@@ -28,3 +30,33 @@ Thumbs.db
 
 # Electron
 *.log
+
+# Best-Locator específicos
+best-locator.config.json.backup
+screenshots/
+recordings/
+temp-selectors/
+
+# Playwright específicos
+playwright-report/
+test-results/
+.playwright/
+
+# AI/Ollama logs y cache
+ollama-logs/
+ai-cache/
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+*.test.ts
+
+# Optional npm cache
+.npm
+.eslintcache
+
+# Temporary files
+tmp/
+temp/
+*.tmp
