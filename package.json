@@ -1,6 +1,6 @@
 {
   "name": "bestlocator",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "type": "module",
   "description": "Universal CSS selector generator for UI testing with AI-powered smart selection. Supports Playwright, Selenium, Cypress with local Ollama integration.",
   "main": "dist/cli/index.js",
