@@ -1,5 +1,4 @@
-import fetch from 'node-fetch';
-
+// src/core/ollama-client.ts
 export interface OllamaConfig {
   host: string;
   model: string;
@@ -20,42 +19,76 @@ export class OllamaClient {
     this.config = config;
   }
 
-  async generate(prompt: string): Promise<OllamaResponse> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+// En ollama-client.ts, reemplaza el método generate:
 
-    try {
-      const response = await fetch(`${this.config.host}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.config.model,
-            prompt,
-            temperature: this.config.temperature,
-            stream: false
-        }),
-        signal: controller.signal
-      });
+async generate(prompt: string): Promise<OllamaResponse> {
+  console.log('🔥 [DEBUG] OllamaClient.generate called');
 
-      clearTimeout(timeoutId);
+  // Aumentar timeout a 120 segundos para prompts complejos
+  const AI_TIMEOUT = 120000; // 120 segundos
 
-      if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.status}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.log('🔥 [DEBUG] Request timeout triggered after 120s');
+    controller.abort();
+  }, AI_TIMEOUT);
+
+  try {
+    console.log('🔥 [DEBUG] Making fetch request to:', `${this.config.host}/api/generate`);
+    
+    const requestBody = {
+      model: this.config.model,
+      prompt: prompt,
+      temperature: 0.1,
+      stream: false,
+      options: {
+        num_predict: 40,     // ← Muy corto para evitar explicaciones
+        stop: ["\n\n", "Example", "Note", "Because"],  // ← Parar en explicaciones
+        temperature: 0.1
       }
+    };
+    
+    const response = await fetch(`${this.config.host}/api/generate`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
 
-      return await response.json() as OllamaResponse;
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Ollama request timeout');
-      }
-      throw new Error(`Ollama connection failed: ${error.message}`);
+    clearTimeout(timeoutId);
+    console.log('🔥 [DEBUG] Response received, status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
     }
-  }
 
-  // 🔄 Método ping actualizado con AbortController y sin 'timeout' obsoleto
+    const result = await response.json() as OllamaResponse;
+    console.log('🔥 [DEBUG] AI response successful');
+    return result;
+    
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    console.log('🔥 [DEBUG] Error in generate:', error.message);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Ollama request timeout - AI took too long to respond');
+    }
+    
+    throw new Error(`Ollama connection failed: ${error.message}`);
+  }
+}
+
+// También actualiza tu best-locator.config.json para aumentar el timeout:
+// "timeout": 60000  // en lugar de 30000
+
   async ping(): Promise<boolean> {
     try {
+      console.log('🔥 [DEBUG] Pinging Ollama...');
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
@@ -65,8 +98,11 @@ export class OllamaClient {
       });
       
       clearTimeout(timeoutId);
+      console.log('🔥 [DEBUG] Ping response status:', response.status);
       return response.ok;
-    } catch {
+      
+    } catch (error) {
+      console.log('🔥 [DEBUG] Ping failed:', error);
       return false;
     }
   }

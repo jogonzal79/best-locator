@@ -1,13 +1,5 @@
 // src/core/selector-generator.ts
-import { AIEngine, PageContext } from './ai-engine.js';
-
-interface ElementInfo {
-  tagName: string;
-  id: string;
-  className: string;
-  textContent: string;
-  attributes: { [key: string]: string };
-}
+import { AIEngine, PageContext, ElementInfo } from './ai-engine.js';
 
 interface SelectorResult {
   selector: string;
@@ -17,13 +9,13 @@ interface SelectorResult {
   aiAnalysis?: any;
   reasoning?: string;
   aiExplanation?: string;
+  framework_optimized?: boolean;
 }
 
 export class SelectorGenerator {
   private aiEngine?: AIEngine;
   private config: any;
 
-  // 🔧 FIX 1: Recibir toda la configuración
   constructor(config: any) {
     this.config = config;
     if (config?.ai?.enabled) {
@@ -31,39 +23,150 @@ export class SelectorGenerator {
     }
   }
 
-  // 🧠 Método con IA mejorado
-  async generateSelectorWithAI(elementInfo: ElementInfo, context: PageContext): Promise<SelectorResult> {
-    if (!this.aiEngine) {
-      console.log('⚠️  AI not available, using traditional method');
-      return this.generateSelector(elementInfo);
+  /**
+   * Generate a selector optimized for the specified framework using AI.
+   */
+  async generateSelectorWithAI(
+    elementInfo: ElementInfo,
+    context: PageContext,
+    framework: string = 'playwright'
+  ): Promise<SelectorResult> {
+    // ESTRATEGIA 1: Si el elemento tiene data-test, usar método tradicional
+    if (elementInfo.attributes['data-test'] || 
+        elementInfo.attributes['data-testid'] || 
+        elementInfo.attributes['data-cy']) {
+      
+      console.log('🎯 Element has test attributes, using optimized traditional method');
+      const traditionalResult = this.generateSelector(elementInfo);
+      
+      return {
+        ...traditionalResult,
+        type: 'ai-optimized-traditional',
+        confidence: Math.max(traditionalResult.confidence, 95),
+        reasoning: 'AI detected test attributes and used optimal traditional method'
+      };
+    }
+    
+    // ESTRATEGIA 2: Usar estrategia específica por framework
+    if (framework === 'playwright') {
+      return this.generatePlaywrightOptimized(elementInfo, context);
+    } else if (framework === 'cypress') {
+      return this.generateCypressOptimized(elementInfo, context);  
+    } else if (framework === 'selenium') {
+      return this.generateSeleniumOptimized(elementInfo, context);
+    }
+    
+    // Fallback
+    return this.generateTraditionalSelector(elementInfo);
+  }
+
+  /**
+   * Playwright-specific selector strategy
+   */
+  private generatePlaywrightOptimized(
+    elementInfo: ElementInfo,
+    context: PageContext
+  ): SelectorResult {
+    // 1. PRIORIDAD: get_by_role para Playwright
+    if (elementInfo.attributes['role'] && elementInfo.textContent) {
+      return {
+        selector: `get_by_role("${elementInfo.attributes['role']}", name="${elementInfo.textContent.trim()}")`,
+        confidence: 90,
+        type: 'playwright-role',
+        framework_optimized: true
+      };
     }
 
-    try {
-      console.log('🧠 Generating AI-enhanced selector...');
-      const aiResult = await this.aiEngine.generateSelector(elementInfo, context);
-      
-      // 🎯 FIX 2: Asegurar que retorne tipo "ai-enhanced"
+    // 2. get_by_text para elementos con texto único
+    if (elementInfo.textContent && this.isUniqueText(elementInfo.textContent)) {
       return {
-        selector: aiResult.selector,
-        confidence: Math.max(aiResult.confidence || 95, 90), // Mínimo 90% para IA
-        type: 'ai-enhanced', // ← FORZAR tipo ai-enhanced
-        aiEnhanced: true,
-        reasoning: (aiResult as any).reasoning || aiResult.type || 'AI-generated selector based on element analysis',
-        aiExplanation: (aiResult as any).explanation || (aiResult as any).reasoning || 'AI analysis completed'
+        selector: `get_by_text("${elementInfo.textContent.trim()}")`,
+        confidence: 85,
+        type: 'playwright-text',
+        framework_optimized: true
       };
-    } catch (error) {
-      console.warn('🚨 AI generation failed, falling back to traditional method:', error);
-      const traditionalResult = this.generateSelector(elementInfo);
-      // Marcar como fallback cuando IA falla
-      traditionalResult.type = 'fallback';
-      traditionalResult.confidence = Math.min(traditionalResult.confidence, 70);
-      return traditionalResult;
     }
+
+    // 3. Fallback a CSS tradicional
+    return this.generateTraditionalSelector(elementInfo);
   }
-  
+
+  /**
+   * Cypress-specific selector strategy
+   */
+  private generateCypressOptimized(
+    elementInfo: ElementInfo,
+    context: PageContext
+  ): SelectorResult {
+    // 1. data-cy tiene prioridad máxima en Cypress
+    if (elementInfo.attributes['data-cy']) {
+      return {
+        selector: `[data-cy="${elementInfo.attributes['data-cy']}"]`,
+        confidence: 95,
+        type: 'cypress-data-cy',
+        framework_optimized: true
+      };
+    }
+
+    // 2. cy.contains() para texto
+    if (elementInfo.textContent && this.isUniqueText(elementInfo.textContent)) {
+      return {
+        selector: `cy.contains("${elementInfo.textContent.trim()}")`,
+        confidence: 80,
+        type: 'cypress-contains',
+        framework_optimized: true
+      };
+    }
+
+    // 3. Fallback a CSS tradicional
+    return this.generateTraditionalSelector(elementInfo);
+  }
+
+  /**
+   * Selenium-specific selector strategy
+   */
+  private generateSeleniumOptimized(
+    elementInfo: ElementInfo,
+    context: PageContext
+  ): SelectorResult {
+    // Selenium se basa principalmente en CSS y XPath
+    // Por ahora, hacemos fallback al selector tradicional
+    return this.generateTraditionalSelector(elementInfo);
+  }
+
+  /**
+   * Fallback al método tradicional existente
+   */
+  private generateTraditionalSelector(elementInfo: ElementInfo): SelectorResult {
+    // Usar el método existente generateSelector
+    return this.generateSelector(elementInfo);
+  }
+
+  /**
+   * Verificar unicidad del texto en la página.
+   */
+  private isUniqueText(text: string): boolean {
+    if (!text || text.trim().length < 3) return false;
+    
+    const trimmed = text.trim();
+    // Texto único si es específico y no genérico
+    return trimmed.length < 50 && 
+           !this.isGenericText(trimmed) &&
+           !trimmed.match(/^\d+$/) && // No solo números
+           !trimmed.includes('...'); // No texto truncado
+  }
+
+  private isGenericText(text: string): boolean {
+    const generic = ['click', 'button', 'submit', 'ok', 'yes', 'no', 'cancel', 'close', 'save', 'edit'];
+    return generic.includes(text.toLowerCase());
+  }
+
+  /**
+   * Método tradicional de generación de selectores CSS y de texto
+   */
   generateSelector(elementInfo: ElementInfo): SelectorResult {
     console.log('🔍 Generating traditional selector for:', elementInfo.tagName);
-    
+
     // 1. MÁXIMA PRIORIDAD: data-test
     if (elementInfo.attributes['data-test']) {
       return {
@@ -73,7 +176,7 @@ export class SelectorGenerator {
         reasoning: 'Selected data-test attribute - highest reliability for testing'
       };
     }
-    
+
     // 2. data-testid
     if (elementInfo.attributes['data-testid']) {
       return {
@@ -83,8 +186,8 @@ export class SelectorGenerator {
         reasoning: 'Selected data-testid attribute - excellent for automated testing'
       };
     }
-    
-    // 3. data-cy (Cypress)
+
+    // 3. data-cy
     if (elementInfo.attributes['data-cy']) {
       return {
         selector: `[data-cy="${elementInfo.attributes['data-cy']}"]`,
@@ -93,7 +196,7 @@ export class SelectorGenerator {
         reasoning: 'Selected data-cy attribute - optimized for Cypress testing'
       };
     }
-    
+
     // 4. data-qa
     if (elementInfo.attributes['data-qa']) {
       return {
@@ -103,7 +206,7 @@ export class SelectorGenerator {
         reasoning: 'Selected data-qa attribute - designed for QA automation'
       };
     }
-    
+
     // 5. aria-label
     if (elementInfo.attributes['aria-label']) {
       return {
@@ -113,28 +216,8 @@ export class SelectorGenerator {
         reasoning: 'Selected aria-label - good accessibility and stability'
       };
     }
-    
-    // 6. role
-    if (elementInfo.attributes['role']) {
-      return {
-        selector: `[role="${elementInfo.attributes['role']}"]`,
-        confidence: 80,
-        type: 'role',
-        reasoning: 'Selected role attribute - semantic and relatively stable'
-      };
-    }
-    
-    // 7. name
-    if (elementInfo.attributes['name']) {
-      return {
-        selector: `[name="${elementInfo.attributes['name']}"]`,
-        confidence: 75,
-        type: 'name',
-        reasoning: 'Selected name attribute - common for form elements'
-      };
-    }
-    
-    // 8. id
+
+    // 6. id
     if (elementInfo.id && elementInfo.id.trim()) {
       return {
         selector: `#${elementInfo.id}`,
@@ -143,57 +226,73 @@ export class SelectorGenerator {
         reasoning: 'Selected ID - unique but may change across environments'
       };
     }
-    
-    // 9. textContent (corto y específico)
-    if (elementInfo.textContent && elementInfo.textContent.length < 50 && elementInfo.textContent.trim()) {
-      const cleanText = elementInfo.textContent.trim();
-      return {
-        selector: `text="${cleanText}"`,
-        confidence: 60,
-        type: 'text',
-        reasoning: 'Selected by text content - visible but may change with translations'
-      };
-    }
-    
-    // 10. placeholder
-    if (elementInfo.attributes['placeholder']) {
-      return {
-        selector: `[placeholder="${elementInfo.attributes['placeholder']}"]`,
-        confidence: 55,
-        type: 'placeholder',
-        reasoning: 'Selected placeholder - moderate stability, user-facing text'
-      };
-    }
-    
-    // 11. clases CSS (filtrar clases útiles)
+
+    // 7. MEJORADO: Clases CSS más inteligentes
     if (elementInfo.className && elementInfo.className.trim()) {
       const classes = elementInfo.className
         .split(' ')
-        .filter(c => c.trim() && !c.includes('error') && !c.includes('active') && !c.includes('focus'))
-        .slice(0, 2) // Máximo 2 clases
-        .join('.');
-      
-      if (classes) {
+        .filter((c) => c.trim())
+        .filter(
+          (c) =>
+            !c.includes('error') &&
+            !c.includes('active') &&
+            !c.includes('focus') &&
+            !c.includes('hover')
+        )
+        .filter((c) => c.length > 2)
+        .slice(0, 1);
+
+      if (classes.length > 0) {
+        const bestClass = classes[0];
+        if (
+          bestClass.length > 3 &&
+          !['btn', 'box', 'div', 'item'].includes(bestClass)
+        ) {
+          return {
+            selector: `.${bestClass}`,
+            confidence: 60,
+            type: 'css-class-optimized',
+            reasoning: `Selected specific CSS class "${bestClass}" - moderate stability`
+          };
+        }
+      }
+    }
+
+    // 8. textContent mejorado
+    if (
+      elementInfo.textContent &&
+      elementInfo.textContent.length < 50 &&
+      elementInfo.textContent.trim()
+    ) {
+      const cleanText = elementInfo.textContent.trim();
+      if (
+        !['click', 'button', 'submit', 'ok', 'yes', 'no'].includes(
+          cleanText.toLowerCase()
+        )
+      ) {
         return {
-          selector: `.${classes}`,
-          confidence: 40,
-          type: 'css-class',
-          reasoning: 'Selected CSS classes - lower reliability, may change with styling'
+          selector: `text="${cleanText}"`,
+          confidence: 50,
+          type: 'text-content',
+          reasoning: 'Selected by specific text content - may change with translations'
         };
       }
     }
-    
-    // 12. Fallback por tag + atributos específicos
-    if (elementInfo.attributes['type']) {
-      return {
-        selector: `${elementInfo.tagName}[type="${elementInfo.attributes['type']}"]`,
-        confidence: 30,
-        type: 'tag-type',
-        reasoning: 'Selected by tag and type - basic selector, low specificity'
-      };
+
+    // 9. tag + primera clase
+    if (elementInfo.className && elementInfo.className.trim()) {
+      const firstClass = elementInfo.className.split(' ')[0];
+      if (firstClass && firstClass.length > 2) {
+        return {
+          selector: `${elementInfo.tagName}.${firstClass}`,
+          confidence: 40,
+          type: 'tag-class-combo',
+          reasoning: `Combined tag and class selector - better than tag alone`
+        };
+      }
     }
-    
-    // 13. Último recurso: solo tag
+
+    // 10. Fallback final: solo tag
     return {
       selector: elementInfo.tagName,
       confidence: 20,

@@ -60,3 +60,16 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# AI debugging logs específicos
+🔥*debug*
+🧠*ai-logs*
+
+# Config con datos sensibles
+best-locator.config.json.production
+*.config.local.json
+
+# NPM específicos
+*.tgz
+package-lock.json
+yarn.lock

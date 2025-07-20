@@ -43,7 +43,7 @@
     "ollama": {
       "host": "http://localhost:11434",
       "model": "llama3.1:8b",
-      "timeout": 30000,
+      "timeout": 60000,
       "temperature": 0.3
     },
     "features": {

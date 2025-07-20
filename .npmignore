@@ -91,3 +91,24 @@ azure-pipelines.yml
 
 # Git específico
 .gitattributes
+
+# Archivos de debugging que agregaste
+*debug*
+*[DEBUG]*
+
+# TypeScript source maps
+*.map
+
+# Archivos de configuración local
+best-locator.config.json
+
+# Git específicos
+.gitignore
+.gitattributes
+
+# Logs de debugging de tu desarrollo
+*.debug.log
+
+# Best-Locator development específicos
+debugging/
+debug-outputs/
