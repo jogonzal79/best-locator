@@ -49,7 +49,7 @@ program
       configManager.createSampleConfig();
     }
   });
-
+// Opcion de Pick Element
 program
   .command('pick <url> [framework] [language]')
   .description('Pick an element from a webpage and generate selector')
@@ -235,7 +235,7 @@ program
       console.log(chalk.yellow('🔍 Stack trace:'), error.stack); // ← AGREGAR ESTA LÍNEA
     }
   });
-
+// Opcion de Pick Multiple Elements
 program
   .command('pick-multiple <url> [framework] [language]')
   .description('Pick multiple elements from a webpage and generate selectors')
@@ -294,6 +294,7 @@ program
       console.log(chalk.white('   Press ESC to finish and process selectors'));
       console.log(chalk.white('   Elements are captured in order of selection'));
       console.log(chalk.yellow('🐛 DEBUG: About to inject script...'));
+      
 
       await page.addInitScript(() => {
         (window as any).multipleSelectionDone = false;
@@ -418,7 +419,7 @@ program
 
         console.log(chalk.blue(`\n🔄 Analyzing element ${i + 1}/${selectedElements.length}...`));
         console.log(chalk.white(`   Tag: ${elementInfo.tagName}`));
-        console.log(chalk.white(`   Text: "${elementInfo.textContent?.substring(0, 30)}"`));
+        console.log(chalk.white(`   Text: "${(elementInfo.textContent || '').substring(0, 30)}"`));
 
         let selectorResult: any;
 
@@ -485,7 +486,7 @@ program
       console.log(chalk.yellow('🔍 Stack trace:'), error.stack); // ← AGREGAR ESTA LÍNEA
     }
   });
-
+// Opcion de Pick Toggle
 program
   .command('pick-toggle <url> [framework] [language]')
   .description('Navigate freely and toggle selector capture with CTRL+S/CTRL+D')
