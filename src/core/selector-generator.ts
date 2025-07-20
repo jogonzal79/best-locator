@@ -32,13 +32,13 @@ export class SelectorGenerator {
     framework: string = 'playwright'
   ): Promise<SelectorResult> {
     // ESTRATEGIA 1: Si el elemento tiene data-test, usar método tradicional
-    if (elementInfo.attributes['data-test'] || 
-        elementInfo.attributes['data-testid'] || 
-        elementInfo.attributes['data-cy']) {
-      
+    if (
+      elementInfo.attributes['data-test'] || 
+      elementInfo.attributes['data-testid'] || 
+      elementInfo.attributes['data-cy']
+    ) {
       console.log('🎯 Element has test attributes, using optimized traditional method');
       const traditionalResult = this.generateSelector(elementInfo);
-      
       return {
         ...traditionalResult,
         type: 'ai-optimized-traditional',
@@ -46,16 +46,14 @@ export class SelectorGenerator {
         reasoning: 'AI detected test attributes and used optimal traditional method'
       };
     }
-    
     // ESTRATEGIA 2: Usar estrategia específica por framework
     if (framework === 'playwright') {
       return this.generatePlaywrightOptimized(elementInfo, context);
     } else if (framework === 'cypress') {
-      return this.generateCypressOptimized(elementInfo, context);  
+      return this.generateCypressOptimized(elementInfo, context);
     } else if (framework === 'selenium') {
       return this.generateSeleniumOptimized(elementInfo, context);
     }
-    
     // Fallback
     return this.generateTraditionalSelector(elementInfo);
   }
@@ -76,7 +74,6 @@ export class SelectorGenerator {
         framework_optimized: true
       };
     }
-
     // 2. get_by_text para elementos con texto único
     if (elementInfo.textContent && this.isUniqueText(elementInfo.textContent)) {
       return {
@@ -86,7 +83,6 @@ export class SelectorGenerator {
         framework_optimized: true
       };
     }
-
     // 3. Fallback a CSS tradicional
     return this.generateTraditionalSelector(elementInfo);
   }
@@ -107,7 +103,6 @@ export class SelectorGenerator {
         framework_optimized: true
       };
     }
-
     // 2. cy.contains() para texto
     if (elementInfo.textContent && this.isUniqueText(elementInfo.textContent)) {
       return {
@@ -117,7 +112,6 @@ export class SelectorGenerator {
         framework_optimized: true
       };
     }
-
     // 3. Fallback a CSS tradicional
     return this.generateTraditionalSelector(elementInfo);
   }
@@ -130,7 +124,6 @@ export class SelectorGenerator {
     context: PageContext
   ): SelectorResult {
     // Selenium se basa principalmente en CSS y XPath
-    // Por ahora, hacemos fallback al selector tradicional
     return this.generateTraditionalSelector(elementInfo);
   }
 
@@ -138,22 +131,13 @@ export class SelectorGenerator {
    * Fallback al método tradicional existente
    */
   private generateTraditionalSelector(elementInfo: ElementInfo): SelectorResult {
-    // Usar el método existente generateSelector
     return this.generateSelector(elementInfo);
   }
 
-  /**
-   * Verificar unicidad del texto en la página.
-   */
   private isUniqueText(text: string): boolean {
     if (!text || text.trim().length < 3) return false;
-    
     const trimmed = text.trim();
-    // Texto único si es específico y no genérico
-    return trimmed.length < 50 && 
-           !this.isGenericText(trimmed) &&
-           !trimmed.match(/^\d+$/) && // No solo números
-           !trimmed.includes('...'); // No texto truncado
+    return trimmed.length < 50 && !this.isGenericText(trimmed) && !trimmed.match(/^\d+$/) && !trimmed.includes('...');
   }
 
   private isGenericText(text: string): boolean {
@@ -176,7 +160,6 @@ export class SelectorGenerator {
         reasoning: 'Selected data-test attribute - highest reliability for testing'
       };
     }
-
     // 2. data-testid
     if (elementInfo.attributes['data-testid']) {
       return {
@@ -186,7 +169,6 @@ export class SelectorGenerator {
         reasoning: 'Selected data-testid attribute - excellent for automated testing'
       };
     }
-
     // 3. data-cy
     if (elementInfo.attributes['data-cy']) {
       return {
@@ -196,7 +178,6 @@ export class SelectorGenerator {
         reasoning: 'Selected data-cy attribute - optimized for Cypress testing'
       };
     }
-
     // 4. data-qa
     if (elementInfo.attributes['data-qa']) {
       return {
@@ -206,7 +187,6 @@ export class SelectorGenerator {
         reasoning: 'Selected data-qa attribute - designed for QA automation'
       };
     }
-
     // 5. aria-label
     if (elementInfo.attributes['aria-label']) {
       return {
@@ -216,8 +196,25 @@ export class SelectorGenerator {
         reasoning: 'Selected aria-label - good accessibility and stability'
       };
     }
-
-    // 6. id
+    // 6. role attribute
+    if (elementInfo.attributes['role']) {
+      return {
+        selector: `[role="${elementInfo.attributes['role']}"]`,
+        confidence: 80,
+        type: 'role',
+        reasoning: 'Selected role attribute - semantic and relatively stable'
+      };
+    }
+    // 7. name attribute
+    if (elementInfo.attributes['name']) {
+      return {
+        selector: `[name="${elementInfo.attributes['name']}"]`,
+        confidence: 75,
+        type: 'name',
+        reasoning: 'Selected name attribute - common for form elements'
+      };
+    }
+    // 8. id
     if (elementInfo.id && elementInfo.id.trim()) {
       return {
         selector: `#${elementInfo.id}`,
@@ -226,8 +223,23 @@ export class SelectorGenerator {
         reasoning: 'Selected ID - unique but may change across environments'
       };
     }
-
-    // 7. MEJORADO: Clases CSS más inteligentes
+    // 9. textContent mejorado
+    if (
+      elementInfo.textContent &&
+      elementInfo.textContent.length < 50 &&
+      elementInfo.textContent.trim()
+    ) {
+      const cleanText = elementInfo.textContent.trim();
+      if (!['click', 'button', 'submit', 'ok', 'yes', 'no'].includes(cleanText.toLowerCase())) {
+        return {
+          selector: `text="${cleanText}"`,
+          confidence: 65,
+          type: 'text-content',
+          reasoning: 'Selected by specific text content - may change with translations'
+        };
+      }
+    }
+    // 10. MEJORADO: Clases CSS más inteligentes
     if (elementInfo.className && elementInfo.className.trim()) {
       const classes = elementInfo.className
         .split(' ')
@@ -241,13 +253,9 @@ export class SelectorGenerator {
         )
         .filter((c) => c.length > 2)
         .slice(0, 1);
-
       if (classes.length > 0) {
         const bestClass = classes[0];
-        if (
-          bestClass.length > 3 &&
-          !['btn', 'box', 'div', 'item'].includes(bestClass)
-        ) {
+        if (bestClass.length > 3 && !['btn', 'box', 'div', 'item'].includes(bestClass)) {
           return {
             selector: `.${bestClass}`,
             confidence: 60,
@@ -257,29 +265,16 @@ export class SelectorGenerator {
         }
       }
     }
-
-    // 8. textContent mejorado
-    if (
-      elementInfo.textContent &&
-      elementInfo.textContent.length < 50 &&
-      elementInfo.textContent.trim()
-    ) {
-      const cleanText = elementInfo.textContent.trim();
-      if (
-        !['click', 'button', 'submit', 'ok', 'yes', 'no'].includes(
-          cleanText.toLowerCase()
-        )
-      ) {
-        return {
-          selector: `text="${cleanText}"`,
-          confidence: 50,
-          type: 'text-content',
-          reasoning: 'Selected by specific text content - may change with translations'
-        };
-      }
+    // 11. placeholder
+    if (elementInfo.attributes['placeholder']) {
+      return {
+        selector: `[placeholder="${elementInfo.attributes['placeholder']}"]`,
+        confidence: 55,
+        type: 'placeholder',
+        reasoning: 'Selected placeholder - moderate stability, user-facing text'
+      };
     }
-
-    // 9. tag + primera clase
+    // 12. tag + primera clase
     if (elementInfo.className && elementInfo.className.trim()) {
       const firstClass = elementInfo.className.split(' ')[0];
       if (firstClass && firstClass.length > 2) {
@@ -291,8 +286,7 @@ export class SelectorGenerator {
         };
       }
     }
-
-    // 10. Fallback final: solo tag
+    // 13. Fallback final: solo tag
     return {
       selector: elementInfo.tagName,
       confidence: 20,
