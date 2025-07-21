@@ -152,10 +152,14 @@ export class SelectorGenerator {
    * Mapeo universal de elementos HTML a roles ARIA
    */
   private getElementRole(elementInfo: ElementInfo): string | null {
-   // console.log('🔥 [DEBUG] getElementRole - elementInfo:', JSON.stringify(elementInfo, null, 2));
+   
 
     const tag = elementInfo.tagName.toLowerCase();
     const type = elementInfo.attributes['type']?.toLowerCase();
+
+    if (tag === 'svg') {
+
+  }
     
     // Mapeo completo según estándares ARIA
     const roleMap: { [key: string]: string } = {
@@ -205,6 +209,40 @@ export class SelectorGenerator {
       }
     }
 
+    // Detectar SVGs que actúan como imágenes (logos, iconos descriptivos)
+    if (tag === 'svg') {
+      // Si tiene role="img" explícito
+      if (elementInfo.attributes['role'] === 'img') {
+        return 'img';
+      }
+      
+      // Si tiene aria-label (común en logos)
+      if (elementInfo.attributes['aria-label']) {
+        return 'img';
+      }
+      
+      // Si tiene title (indica imagen descriptiva)
+      if (elementInfo.attributes['title']) {
+        return 'img';
+      }
+      
+      // Si está dentro del contexto de logo/header (por className)
+      const className = typeof elementInfo.className === 'string' ? elementInfo.className : '';
+      if (className && 
+          (className.includes('logo') || 
+          className.includes('brand') ||
+          className.includes('header') ||
+          className.includes('icon'))) {
+        return 'img';
+      }
+    }
+      // Detectar elementos PATH dentro de SVGs (partes de logos/iconos)
+      if (tag === 'path') {
+        // Los path generalmente son parte de iconos/logos SVG
+        // Tratarlos como imágenes también
+        return 'img';
+}
+
     return roleMap[tag] || null;
   }
 
@@ -232,7 +270,7 @@ export class SelectorGenerator {
     // 0.5. Role semántico SIN texto (botones de íconos, botones X, etc.)
 
     if (detectedRole && (!elementInfo.textContent || !elementInfo.textContent.trim())) {
-     // console.log('🔥 [DEBUG] ✅ ENTERING NO-TEXT ROLE LOGIC');
+     
       return {
         selector: `get_by_role("${detectedRole}", name="")`,
         confidence: 95,

@@ -109,13 +109,13 @@ export class AIEngine {
   private parseSelectorResponse(response: any, element: ElementInfo): AIEnhancedResult {
     try {
       const responseText = response.response || '';
-      console.log('🔥 [DEBUG] EXACT AI RESPONSE:', JSON.stringify(responseText));
+      
       
       let selector = responseText.trim();
 
       // AGREGAR verificación:
       if (!selector) {
-        console.log('🔥 [DEBUG] Empty response, using fallback');
+        
         return this.getFallbackResult(element);
       }
       
@@ -123,33 +123,33 @@ export class AIEngine {
       let match = responseText.match(/<ANSWER>\s*([^<\r\n]+)\s*$/);
       if (match) {
         selector = match[1].trim();
-        console.log('🎯 [DEBUG] Found marked answer:', selector);
+        
       }
       
       // ESTRATEGIA 2: Si AI devolvió elemento HTML, extraer selector
       else if (responseText.includes('<') && responseText.includes('>')) {
-        console.log('🔄 [DEBUG] AI returned HTML element, extracting selector...');
+        
         
         // Extraer class del HTML: <div class="login_logo">
         const classMatch = responseText.match(/class="([^"]+)"/);
         if (classMatch) {
           const className = classMatch[1].split(' ')[0]; // Primera clase
           selector = `.${className}`;
-          console.log('🎯 [DEBUG] Extracted class selector:', selector);
+          
         }
         // Extraer id del HTML: <div id="myid">
         else {
           const idMatch = responseText.match(/id="([^"]+)"/);
           if (idMatch) {
             selector = `#${idMatch[1]}`;
-            console.log('🎯 [DEBUG] Extracted id selector:', selector);
+            
           }
           // Extraer tag del HTML: <button>
           else {
             const tagMatch = responseText.match(/<(\w+)/);
             if (tagMatch) {
               selector = tagMatch[1];
-              console.log('🎯 [DEBUG] Extracted tag selector:', selector);
+              
             }
           }
         }
@@ -168,7 +168,7 @@ export class AIEngine {
           const patternMatch = responseText.match(pattern);
           if (patternMatch) {
             selector = patternMatch[0];
-            console.log('🎯 [DEBUG] Found CSS selector:', selector);
+            
             break;
           }
         }
@@ -176,7 +176,7 @@ export class AIEngine {
       
       // Validar selector final
       if (selector && this.isValidSelector(selector)) {
-        console.log('🎯 [DEBUG] ✅ AI selector is valid:', selector);
+        
         
         return {
           selector: selector,
@@ -194,10 +194,10 @@ export class AIEngine {
         };
       }
       
-      console.log('🔄 [DEBUG] AI selector not valid, using fallback');
+      
       return this.getFallbackResult(element);
     } catch (error) {
-      console.log('🔥 [DEBUG] Error parsing AI response:', error);
+      
       return this.getFallbackResult(element);
     }
   }
@@ -230,11 +230,9 @@ export class AIEngine {
       /^[a-zA-Z]/.test(cleanSelector)
     );
     const isValid = hasValidStructure && (matchesPattern || isCommonSelector);
-    console.log('🔥 [DEBUG] Validating selector:', cleanSelector);
-    console.log('🔥 [DEBUG] Structure valid:', hasValidStructure,
-      '| Pattern match:', matchesPattern,
-      '| Common:', isCommonSelector,
-      '| Final:', isValid);
+    
+    
+
     return isValid;
   }
 

@@ -13,11 +13,11 @@ export class FrameworkFormatter {
   format(selector: string, framework: string, language: string): string {
     // AGREGAR verificación al inicio:
     if (!selector) {
-      console.log('🔥 [DEBUG] Empty selector received in formatter');
+      
       return 'INVALID_SELECTOR';
     }
 
-    console.log('🔥 [DEBUG] Formatting selector:', selector, 'for', framework, language);
+    
 
     // Si el selector es get_by_*, convertir a sintaxis nativa de Playwright
     if (selector.startsWith('get_by_')) {
