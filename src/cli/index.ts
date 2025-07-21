@@ -719,6 +719,19 @@ program
           console.log(chalk.white(`   Confidence: ${selectorResult.confidence}%`));
         }
 
+        // ======== SOLUCIÓN: Agregar explicación AI ======== //
+        // AI Explanation si está habilitado
+        if (options?.ai && options?.explain && config.ai?.enabled) {
+          try {
+            const aiEngine = new AIEngine(config);
+            const explanation = await aiEngine.explainSelector(selectorResult.selector, elementInfo);
+            console.log(chalk.magenta(`   💡 AI Explanation: ${explanation}`));
+          } catch {
+            console.log(chalk.yellow('   ⚠️  AI explanation not available'));
+          }
+        }
+        // ======== FIN DE SOLUCIÓN ======== //
+
         results.push({
           order: elementInfo.order,
           selector: selectorResult.selector,

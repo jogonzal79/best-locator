@@ -339,8 +339,9 @@ export class SelectorGenerator {
       }
     }
     // 10. MEJORADO: Clases CSS más inteligentes
-    if (elementInfo.className && elementInfo.className.trim()) {
-      const classes = elementInfo.className
+    const className = typeof elementInfo.className === 'string' ? elementInfo.className : '';
+    if (className && className.trim()) {
+      const classes = className
         .split(' ')
         .filter((c) => c.trim())
         .filter(
@@ -374,8 +375,9 @@ export class SelectorGenerator {
       };
     }
     // 12. tag + primera clase
-    if (elementInfo.className && elementInfo.className.trim()) {
-      const firstClass = elementInfo.className.split(' ')[0];
+    const classNameForFirstClass = typeof elementInfo.className === 'string' ? elementInfo.className : '';
+    if (classNameForFirstClass && classNameForFirstClass.trim()) {
+      const firstClass = classNameForFirstClass.split(' ')[0];
       if (firstClass && firstClass.length > 2) {
         return {
           selector: `${elementInfo.tagName}.${firstClass}`,
