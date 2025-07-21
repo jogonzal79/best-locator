@@ -112,7 +112,23 @@ program
         (window as any).selectedElementInfo = {};
       });
 
+      // MODIFICACIÓN: Se añade resaltado en hover antes del click
       await page.evaluate(() => {
+        // HOVER HIGHLIGHT - NUEVO
+        document.addEventListener('mouseover', (event: MouseEvent) => {
+          // Limpiar highlights anteriores
+          document.querySelectorAll('.bestlocator-highlighted').forEach(el => {
+            (el as HTMLElement).style.outline = '';
+            el.classList.remove('bestlocator-highlighted');
+          });
+          
+          // Highlight elemento actual
+          const target = event.target as HTMLElement;
+          target.style.outline = '2px solid #ff0000';
+          target.classList.add('bestlocator-highlighted');
+        }, true);
+
+        // CLICK CAPTURE - EXISTING (mantener igual)
         document.addEventListener('click', (event: MouseEvent) => {
           event.preventDefault();
           event.stopPropagation();
@@ -309,6 +325,20 @@ program
           (window as any).selectedElementsInfo = [];
         }
         console.log('✅ [DEBUG] selectedElementsInfo is ready:', (window as any).selectedElementsInfo);
+
+        // HOVER HIGHLIGHT - NUEVO
+        document.addEventListener('mouseover', (event: MouseEvent) => {
+          // Limpiar highlights anteriores
+          document.querySelectorAll('.bestlocator-highlighted').forEach(el => {
+            (el as HTMLElement).style.outline = '';
+            el.classList.remove('bestlocator-highlighted');
+          });
+          
+          // Highlight elemento actual
+          const target = event.target as HTMLElement;
+          target.style.outline = '2px solid #ff0000';
+          target.classList.add('bestlocator-highlighted');
+        }, true);
 
         const gatherInfo = (element: HTMLElement) => {
           console.log('📋 [DEBUG] Gathering info for:', element.tagName);
@@ -579,6 +609,21 @@ program
             selectedElements: [],
             sessionActive: true
           };
+          
+          // HOVER HIGHLIGHT - NUEVO
+          document.addEventListener('mouseover', (event: MouseEvent) => {
+            // Limpiar highlights anteriores
+            document.querySelectorAll('.bestlocator-highlighted').forEach(el => {
+              (el as HTMLElement).style.outline = '';
+              el.classList.remove('bestlocator-highlighted');
+            });
+            
+            // Highlight elemento actual
+            const target = event.target as HTMLElement;
+            target.style.outline = '2px solid #ff0000';
+            target.classList.add('bestlocator-highlighted');
+          }, true);
+
           const overlay = document.createElement('div');
           overlay.id = 'bl-toggle-overlay';
           overlay.innerHTML = `
