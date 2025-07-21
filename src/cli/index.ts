@@ -181,24 +181,55 @@ program
         return;
       }
 
+      // NUEVO: Capturar page data ANTES de cerrar browser
+      const pageContext = {
+        url: await page.url(),
+        title: await page.title(),
+        pageType: 'webapp'
+      };
+
       console.log(chalk.green('\n🎯 Element selected!'));
       console.log(chalk.white(`   Tag: ${elementInfo.tagName}`));
       console.log(chalk.white(`   Text: "${elementInfo.textContent.slice(0, 80)}${elementInfo.textContent.length > 80 ? '...' : ''}"`));
       console.log(chalk.white(`   Classes: ${elementInfo.className || '(none)'}`));
 
-      console.log(chalk.blue('\n🧠 Generating smart selector...'));
+      // NUEVO: Si usa AI, mostrar overlay en navegador
+      if (options?.ai) {
+        await page.evaluate(() => {
+          const overlay = document.createElement('div');
+          overlay.innerHTML = `
+            <div style="font-size: 18px; margin-bottom: 10px;">🧠 AI Processing...</div>
+            <div style="font-size: 14px; margin-bottom: 8px;">⏳ Generating smart selector</div>
+            <div style="font-size: 12px; color: #ccc;">This may take 10-30 seconds</div>
+            <div style="font-size: 12px; color: #ccc;">Keep this window open...</div>
+          `;
+          overlay.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 60, 114, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-family: monospace;
+            text-align: center;
+            z-index: 999999;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border: 2px solid #4CAF50;
+          `;
+          document.body.appendChild(overlay);
+        });
+      }
+
+      //console.log(chalk.blue('\n🧠 Generating smart selector...'));
       const generator = new SelectorGenerator(config);
       let selectorResult;
       const useAI = options?.ai && config.ai?.enabled;
 
       if (useAI && (generator as any).generateSelectorWithAI) {
-        const pageContext = {
-          url: await page.url(),
-          title: await page.title(),
-          pageType: 'webapp'
-        };
+        // Usar pageContext ya capturado
         try {
-          // MODIFICADO: Se agrega finalFramework como tercer parámetro
           selectorResult = await (generator as any).generateSelectorWithAI(elementInfo, pageContext, finalFramework);
         } catch (err) {
           if (options?.noFallback) {
@@ -227,7 +258,7 @@ program
         try {
           const aiEngine = new AIEngine(config);
           const explanation = await aiEngine.explainSelector(selectorResult.selector, elementInfo);
-            console.log(chalk.magenta(`\n🧠 AI Explanation: ${explanation}`));
+          console.log(chalk.magenta(`\n🧠 AI Explanation: ${explanation}`));
         } catch {
           console.log(chalk.yellow('⚠️  AI explanation not available'));
         }
@@ -248,7 +279,7 @@ program
       await browser.close();
     } catch (error: any) {
       console.log(chalk.red('❌ Error:'), error.message);
-      console.log(chalk.yellow('🔍 Stack trace:'), error.stack); // ← AGREGAR ESTA LÍNEA
+      console.log(chalk.yellow('🔍 Stack trace:'), error.stack);
     }
   });
 // Opcion de Pick Multiple Elements
@@ -310,7 +341,6 @@ program
       console.log(chalk.white('   Press ESC to finish and process selectors'));
       console.log(chalk.white('   Elements are captured in order of selection'));
       console.log(chalk.yellow('🐛 DEBUG: About to inject script...'));
-      
 
       await page.addInitScript(() => {
         (window as any).multipleSelectionDone = false;
@@ -333,7 +363,7 @@ program
             (el as HTMLElement).style.outline = '';
             el.classList.remove('bestlocator-highlighted');
           });
-          
+
           // Highlight elemento actual
           const target = event.target as HTMLElement;
           target.style.outline = '2px solid #ff0000';
@@ -425,9 +455,47 @@ program
         timeout: config.timeouts.elementSelection
       });
 
+      // NUEVO: Mostrar overlay INMEDIATAMENTE después de ESC si usa AI
+      if (options?.ai) {
+        await page.evaluate(() => {
+          const overlay = document.createElement('div');
+          overlay.innerHTML = `
+            <div style="font-size: 18px; margin-bottom: 10px;">🧠 AI Processing...</div>
+            <div style="font-size: 14px; margin-bottom: 8px;">⏳ Generating smart selectors</div>
+            <div style="font-size: 12px; color: #ccc;">This may take 30-60 seconds</div>
+            <div style="font-size: 12px; color: #ccc;">Keep this window open...</div>
+          `;
+          overlay.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 60, 114, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-family: monospace;
+            text-align: center;
+            z-index: 999999;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border: 2px solid #4CAF50;
+          `;
+          document.body.appendChild(overlay);
+        });
+        await page.waitForTimeout(1000);
+      }
+
       const cancelled = false; // (No se usa pero se mantiene por consistencia)
 
       const selectedElements: any[] = await page.evaluate('window.selectedElementsInfo');
+
+      // NUEVO: Capturar page data antes de cerrar browser
+      const pageContext = {
+        url: await page.url(),
+        title: await page.title(),
+        pageType: 'webapp'
+      };
+
       if (!selectedElements.length) {
         console.log(chalk.yellow('\n⚠️  No elements were selected'));
         await browser.close();
@@ -437,9 +505,6 @@ program
       const generator = new SelectorGenerator(config);
       const results: any[] = [];
       const useAI = options?.ai && config.ai?.enabled;
-
-      const pageTitle = await page.title();
-      const pageUrl = await page.url();
 
       console.log(chalk.green(`\n🎯 ${selectedElements.length} element(s) selected!`));
       console.log(chalk.blue(`🧠 Processing elements ${useAI ? 'with AI' : 'traditionally'}...`));
@@ -454,14 +519,9 @@ program
         let selectorResult: any;
 
         if (useAI && (generator as any).generateSelectorWithAI) {
-          const pageContext = {
-            url: pageUrl,
-            title: pageTitle,
-            pageType: 'webapp'
-          };
           try {
             console.log(chalk.magenta(`   🧠 Running AI analysis...`));
-            // MODIFICADO: Se agrega finalFramework como tercer parámetro
+            // MODIFICADO: Se Río Negro se usa el `pageContext` definido en el Paso 2
             selectorResult = await (generator as any).generateSelectorWithAI(elementInfo, pageContext, finalFramework);
             console.log(chalk.green(`   ✅ AI analysis complete`));
           } catch (err) {
@@ -513,7 +573,7 @@ program
       await browser.close();
     } catch (error: any) {
       console.log(chalk.red('❌ Error:'), error.message);
-      console.log(chalk.yellow('🔍 Stack trace:'), error.stack); // ← AGREGAR ESTA LÍNEA
+      console.log(chalk.yellow('🔍 Stack trace:'), error.stack);
     }
   });
 // Opcion de Pick Toggle
@@ -740,16 +800,50 @@ program
         timeout: config.timeouts.elementSelection
       }).catch(() => {});
 
+      // NUEVO: Mostrar overlay INMEDIATAMENTE después de ESC si usa AI
+      if (options?.ai) {
+        await page.evaluate(() => {
+          const overlay = document.createElement('div');
+          overlay.innerHTML = `
+            <div style="font-size: 18px; margin-bottom: 10px;">🧠 AI Processing...</div>
+            <div style="font-size: 14px; margin-bottom: 8px;">⏳ Generating smart selectors</div>
+            <div style="font-size: 12px; color: #ccc;">This may take 30-60 seconds</div>
+            <div style="font-size: 12px; color: #ccc;">Keep this window open...</div>
+          `;
+          overlay.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 60, 114, 0.95);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            font-family: monospace;
+            text-align: center;
+            z-index: 999999;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            border: 2px solid #4CAF50;
+          `;
+          document.body.appendChild(overlay);
+        });
+        await page.waitForTimeout(1000);
+      }
+
       const selectedElements: any[] = await page.evaluate('window.bestLocatorState?.selectedElements || []');
+
+      // NUEVO: Capturar page data antes de cerrar browser
+      const pageContext = {
+        url: await page.url(),
+        title: await page.title(),
+        pageType: 'webapp'
+      };
 
       if (!selectedElements.length) {
         console.log(chalk.yellow('\n⚠️  No elements captured in toggle mode'));
         await browser.close();
         return;
       }
-
-      const pageTitle = 'Toggle Session';
-      const pageUrl = resolvedUrl;
 
       console.log(chalk.green(`\n🎯 ${selectedElements.length} element(s) captured!`));
 
@@ -763,11 +857,7 @@ program
 
         let selectorResult;
         if (useAI && (generator as any).generateSelectorWithAI) {
-          const pageContext = {
-            url: pageUrl,
-            title: pageTitle,
-            pageType: 'webapp'
-          };
+          // Usar pageContext ya capturado
           try {
             // MODIFICADO: Se agrega finalFramework como tercer parámetro
             selectorResult = await (generator as any).generateSelectorWithAI(elementInfo, pageContext, finalFramework);
@@ -826,6 +916,7 @@ program
       console.log(chalk.yellow('🔍 Stack trace:'), error.stack); // ← AGREGAR ESTA LÍNEA
     }
   });
+
 
 program
   .command('hello')
