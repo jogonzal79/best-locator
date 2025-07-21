@@ -627,6 +627,9 @@ program
           const overlay = document.createElement('div');
           overlay.id = 'bl-toggle-overlay';
           overlay.innerHTML = `
+            <div id="bl-drag-handle" style="cursor: move; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 4px 4px 0 0; text-align: center; font-size: 9px; color: #ccc;">
+              ⚌ DRAG ME
+            </div>
             <div style="font-weight: bold; color: #ff6b6b;">🌐 NAVIGATION</div>
             <div style="font-size: 10px; margin-top: 4px;">
               CTRL+S: Capture ON<br>
@@ -650,11 +653,37 @@ program
             'z-index: 999999',
             'box-shadow: 0 4px 12px rgba(0,0,0,0.4)',
             'border: 2px solid #ff6b6b',
-            'pointer-events: none',
+            'user-select: none',
             'min-width: 140px'
           ].join(' !important; ') + ' !important');
           document.body.appendChild(overlay);
           console.log('✅ [TOGGLE] Overlay created');
+
+          // Funcionalidad de drag
+          let isDragging = false;
+          let dragOffset = { x: 0, y: 0 };
+
+          overlay.addEventListener('mousedown', (e) => {
+            if (e.target && (e.target as HTMLElement).id === 'bl-drag-handle') {
+              e.stopPropagation();
+              isDragging = true;
+              const rect = overlay.getBoundingClientRect();
+              dragOffset.x = e.clientX - rect.left;
+              dragOffset.y = e.clientY - rect.top;
+            }
+          });
+
+          document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+              overlay.style.left = (e.clientX - dragOffset.x) + 'px';
+              overlay.style.top = (e.clientY - dragOffset.y) + 'px';
+              overlay.style.right = 'auto';
+            }
+          });
+
+          document.addEventListener('mouseup', () => {
+            isDragging = false;
+          });
 
           document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key.toLowerCase() === 's') {
