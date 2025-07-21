@@ -65,13 +65,17 @@ export class SelectorGenerator {
     elementInfo: ElementInfo,
     context: PageContext
   ): SelectorResult {
-    // 1. PRIORIDAD: get_by_role para Playwright
-    if (elementInfo.attributes['role'] && elementInfo.textContent) {
+    // 1. MÁXIMA PRIORIDAD: Role semántico universal (igual que método tradicional)
+    const detectedRole = this.getElementRole(elementInfo);
+    if (detectedRole && elementInfo.textContent && elementInfo.textContent.trim()) {
+      const cleanText = elementInfo.textContent.trim();
+      
       return {
-        selector: `get_by_role("${elementInfo.attributes['role']}", name="${elementInfo.textContent.trim()}")`,
-        confidence: 90,
-        type: 'playwright-role',
-        framework_optimized: true
+        selector: `get_by_role("${detectedRole}", name="${cleanText}")`,
+        confidence: 100,
+        type: 'ai-universal-role',
+        framework_optimized: true,
+        reasoning: `AI with universal semantic role detection - industry best practice (${detectedRole})`
       };
     }
     // 2. get_by_text para elementos con texto único
@@ -144,12 +148,107 @@ export class SelectorGenerator {
     const generic = ['click', 'button', 'submit', 'ok', 'yes', 'no', 'cancel', 'close', 'save', 'edit'];
     return generic.includes(text.toLowerCase());
   }
+  /**
+   * Mapeo universal de elementos HTML a roles ARIA
+   */
+  private getElementRole(elementInfo: ElementInfo): string | null {
+   // console.log('🔥 [DEBUG] getElementRole - elementInfo:', JSON.stringify(elementInfo, null, 2));
+
+    const tag = elementInfo.tagName.toLowerCase();
+    const type = elementInfo.attributes['type']?.toLowerCase();
+    
+    // Mapeo completo según estándares ARIA
+    const roleMap: { [key: string]: string } = {
+      'button': 'button',
+      'a': 'link',
+      'h1': 'heading',
+      'h2': 'heading', 
+      'h3': 'heading',
+      'h4': 'heading',
+      'h5': 'heading',
+      'h6': 'heading',
+      'select': 'combobox',
+      'textarea': 'textbox'
+    };
+    
+    // Input types específicos
+    if (tag === 'input') {
+      switch (type) {
+        case 'text':
+        case 'email':
+        case 'password':
+        case 'search':
+        case 'url':
+          return 'textbox';
+        case 'checkbox':
+          return 'checkbox';
+        case 'radio':
+          return 'radio';
+        case 'submit':
+        case 'button':
+          return 'button';
+        default:
+          return 'textbox'; // fallback para inputs
+      }
+    }
+    // Verificar si tiene atributo role explícito (para divs con role="button", etc.)
+    if (elementInfo.attributes['role']) {
+      return elementInfo.attributes['role'];
+    }
+    // Detectar elementos dentro de contextos interactivos por clase
+    if (tag === 'span' && elementInfo.className) {
+      if (elementInfo.className.includes('button')) {
+        return 'button';
+      }
+      if (elementInfo.className.includes('link')) {
+        return 'link';
+      }
+    }
+
+    return roleMap[tag] || null;
+  }
+
 
   /**
    * Método tradicional de generación de selectores CSS y de texto
    */
   generateSelector(elementInfo: ElementInfo): SelectorResult {
     console.log('🔍 Generating traditional selector for:', elementInfo.tagName);
+
+
+    // 0. NUEVA MÁXIMA PRIORIDAD: Role semántico universal
+    const detectedRole = this.getElementRole(elementInfo);
+    if (detectedRole && elementInfo.textContent && elementInfo.textContent.trim()) {
+      const cleanText = elementInfo.textContent.trim();
+      
+      return {
+        selector: `get_by_role("${detectedRole}", name="${cleanText}")`,
+        confidence: 100,
+        type: 'universal-role-semantic',
+        reasoning: `Universal semantic role detection - industry best practice (${detectedRole})`
+      };
+    }
+
+    // 0.5. Role semántico SIN texto (botones de íconos, botones X, etc.)
+
+    if (detectedRole && (!elementInfo.textContent || !elementInfo.textContent.trim())) {
+     // console.log('🔥 [DEBUG] ✅ ENTERING NO-TEXT ROLE LOGIC');
+      return {
+        selector: `get_by_role("${detectedRole}", name="")`,
+        confidence: 95,
+        type: 'universal-role-no-text',
+        reasoning: `Universal semantic role for icon/visual element (${detectedRole})`
+      };
+    }
+
+    if (detectedRole && (!elementInfo.textContent || !elementInfo.textContent.trim())) {
+      return {
+        selector: `get_by_role("${detectedRole}", name="")`,
+        confidence: 95,
+        type: 'universal-role-no-text',
+        reasoning: `Universal semantic role for icon/visual element (${detectedRole})`
+      };
+    }
 
     // 1. MÁXIMA PRIORIDAD: data-test
     if (elementInfo.attributes['data-test']) {
