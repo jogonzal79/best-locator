@@ -2,9 +2,10 @@
 import { ConfigManager } from '../core/config-manager.js';
 import { logger } from '../app/logger.js';
 
-export function handleConfigCommand(): void {
+// <-- CORRECCIÓN: La función ahora es 'async'
+export async function handleConfigCommand(): Promise<void> {
   const configManager = new ConfigManager();
-  const config = configManager.getConfig();
+  const config = await configManager.getConfig(); // <-- CORRECCIÓN: Se añade 'await'
 
   logger.nl();
   logger.info('⚙️  Current Configuration:');
