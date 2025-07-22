@@ -1,18 +1,20 @@
 // src/commands/hello.ts
 import { ConfigManager } from '../core/config-manager.js';
 import { logger } from '../app/logger.js';
-// Asegúrate de que package.json está accesible o pasa la versión como argumento
-// Por simplicidad, aquí lo hardcodeamos o lo leemos.
-// const packageJson = require('../../package.json');
 
-export function handleHelloCommand(version: string): void {
+export async function handleHelloCommand(version: string): Promise<void> {
     const configManager = new ConfigManager();
+    // Esperamos a que la configuración se cargue para comprobar si el archivo existe
+    await configManager.getConfig(); 
+
     logger.success(`🎉 Best-Locator v${version} is working!`);
     logger.info('✨ Ready to generate awesome selectors!');
 
     if (configManager.hasConfigFile()) {
         logger.success('⚙️ Configuration file detected!');
     } else {
-        logger.warning('💡 Run "best-locator init" to create a config file');
+        // ================== INICIO DE LA CORRECCIÓN ==================
+        logger.warning('💡 Run "bestlocator init" to create a config file');
+        // =================== FIN DE LA CORRECCIÓN ====================
     }
 }
