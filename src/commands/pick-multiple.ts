@@ -15,7 +15,7 @@ async function generateSelector(generator: SelectorGenerator, elementInfo: Eleme
 
 export async function handlePickMultipleCommand(url: string, framework: string | undefined, language: string | undefined, options: CommandOptions): Promise<void> {
     const configManager = new ConfigManager();
-    const config = configManager.getConfig();
+    const config = await configManager.getConfig();
     const resolvedUrl = configManager.getUrl(url) || url;
     const browserManager = new BrowserManager(config);
 

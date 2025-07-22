@@ -34,7 +34,7 @@ async function generateSelector(
 // Nota: La firma es diferente a la de 'pick', ya que solo recibe 'alias' y 'options'.
 export async function handleGoCommand(alias: string, options: CommandOptions): Promise<void> {
   const configManager = new ConfigManager();
-  const config = configManager.getConfig();
+  const config = await configManager.getConfig();
   const resolvedUrl = configManager.getUrl(alias);
 
   if (!resolvedUrl) {
