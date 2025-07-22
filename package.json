@@ -2,7 +2,7 @@
   "name": "bestlocator",
   "version": "2.1.4",
   "type": "module",
-  "description": "Universal CSS selector generator for UI testing with AI-powered smart selection. Supports Playwright, Selenium, Cypress with local Ollama integration.",
+  "description": "Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.",
   "main": "dist/index.js",
   "bin": {
     "bestlocator": "dist/index.js"
@@ -27,10 +27,7 @@
     "selenium",
     "cypress",
     "ai",
-    "ollama",
-    "ui-testing",
-    "web-testing",
-    "selector-generator"
+    "ollama"
   ],
   "author": "Jonathan Gonzalez",
   "license": "MIT",
@@ -38,26 +35,12 @@
     "type": "git",
     "url": "git+https://github.com/jogonzal79/best-locator.git"
   },
-  "bugs": {
-    "url": "https://github.com/jogonzal79/best-locator/issues"
-  },
-  "homepage": "https://github.com/jogonzal79/best-locator#readme",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "dependencies": {
     "chalk": "^5.4.1",
     "clipboardy": "^4.0.0",
     "commander": "^14.0.0",
+    "playwright": ">=1.40.0",
     "zod": "^3.22.4"
-  },
-  "peerDependencies": {
-    "playwright": ">=1.40.0"
-  },
-  "peerDependenciesMeta": {
-    "playwright": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@types/node": "^24.0.13",
@@ -71,29 +54,5 @@
     "dist/**/*",
     "README.md",
     "LICENSE"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "build": {
-    "appId": "com.bestlocator.app",
-    "productName": "Best-Locator",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "files": [
-      "src/**/*",
-      "dist/**/*",
-      "package.json"
-    ],
-    "mac": {
-      "icon": "assets/icon.icns"
-    },
-    "win": {
-      "icon": "assets/icon.ico"
-    },
-    "linux": {
-      "icon": "assets/icon.png"
-    }
-  }
+  ]
 }
