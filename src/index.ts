@@ -22,8 +22,9 @@ import path from 'node:path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Leemos el package.json de forma robusta, relativa a la ubicación del paquete
+// La ruta correcta es '../package.json' para subir un nivel desde 'dist/'
 const packageJson = JSON.parse(
-  await readFile(path.join(__dirname, '../../package.json'), 'utf-8')
+  await readFile(path.join(__dirname, '../package.json'), 'utf-8')
 );
 // =================== FIN DE LA CORRECCIÓN ====================
 
