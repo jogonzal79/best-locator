@@ -1,6 +1,6 @@
 # Best-Locator
 
-> Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis
+Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.
 
 Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.
 
@@ -10,110 +10,114 @@ Generate professional-grade selectors for UI testing with the reliability develo
 # Install globally
 npm install -g bestlocator
 
-# Set up AI enhancement (optional)
-bestlocator ai-setup
+# Create a configuration file in your project
+bestlocator init
 
-# Start generating intelligent selectors
+# Start generating selectors in the most powerful mode
 bestlocator pick-toggle https://saucedemo.com --ai --explain
-
-# Generate single selector with AI
-bestlocator pick https://your-app.com --ai
-
-# Get help
-bestlocator --help
 ```
 
-## Why Best-Locator 2.0?
+## Why Best-Locator?
 
-**Traditional selector generators are broken.** They force you to capture elements immediately, can't handle login flows, and generate unreliable selectors.
+Traditional selector generators are broken. They force you to capture elements immediately, can't handle login flows, and often generate unreliable selectors.
 
-**Best-Locator 2.0 changes everything:**
+**Best-Locator changes everything:**
 
-- **AI-Enhanced Selection** - Powered by Ollama for intelligent selector generation
-- **Navigate Organically** - Browse like a normal user, login, navigate between pages
-- **Toggle Selector Mode** - Turn element capture ON/OFF with simple keyboard shortcuts
-- **Professional Selectors** - Prioritizes data-test, aria-label, and testing-specific attributes
-- **Multi-Page Capture** - Collect selectors from different pages in one session
-- **Framework Agnostic** - Works with Playwright, Selenium, Cypress, and more
-- **AI Explanations** - Understand why each selector was chosen
-- **Intelligent Fallback** - AI fails gracefully to traditional methods
+- **Hybrid Intelligence** - Combines rule-based stability with AI creativity
+- **Navigate Organically** - Browse like a normal user, log in, and navigate between pages
+- **Toggle Selector Mode** - Turn element capture ON/OFF with simple keyboard shortcuts (CTRL+S/CTRL+D)
+- **Professional Selectors** - Prioritizes data-test, data-testid, and other robust attributes first
+- **Multi-Page Capture** - Collect selectors from different pages in one single session
+- **Framework Agnostic** - Generates code for Playwright, Selenium, and Cypress
+- **AI Explanations** - Understand why a selector was chosen
+- **Intelligent Fallback** - Uses AI only when necessary, ensuring speed and reliability
 
 ## Installation
-
-### Global Installation (Recommended)
 
 ```bash
 npm install -g bestlocator
 ```
 
-### Verify Installation
+After installation, verify it's working correctly:
 
 ```bash
 bestlocator hello
-# Expected: Best-Locator v2.0.0 is working!
+# Expected: 🎉 Best-Locator v2.0.9 is working!
 ```
 
-### Set Up AI Enhancement (Optional)
+## Ollama Installation Guide (For AI Functionality)
+
+To use the AI features (`--ai`, `--explain`), you need to have Ollama installed and running on your computer.
+
+### 1. Install Ollama
+
+Choose the instructions for your operating system:
+
+#### macOS 🍎
+1. Go to the official download page: [ollama.com](https://ollama.com)
+2. Click the **Download for macOS** button
+3. Open the downloaded .zip file and move the Ollama app to your Applications folder
+4. Run the Ollama application. You will see a llama icon in your top menu bar
+
+#### Windows 🪟
+1. Go to the official download page: [ollama.com](https://ollama.com)
+2. Click the **Download for Windows (Preview)** button
+3. Run the downloaded .exe installer and follow the steps
+4. Once installed, Ollama will run in the background. You will see its icon in the system tray (near the clock)
+
+#### Linux 🐧
+1. Open your terminal
+2. Run the following command to download and install Ollama:
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+3. Ollama will be installed as a systemd service. It usually starts automatically. You can check its status with `systemctl status ollama`
+
+### 2. Download a Model
+
+Once Ollama is installed and running, you need to download a language model for Best-Locator to use.
+
+1. Open your terminal
+2. Run the following command to download the recommended model (llama3.1):
+   ```bash
+   ollama pull llama3.1
+   ```
+   *(This may take a few minutes, as the model is large)*
+
+### 3. Verify the Integration
+
+Finally, verify that Best-Locator can communicate with Ollama:
 
 ```bash
-# Configure AI with Ollama
-bestlocator ai-setup
-
-# Test AI functionality
 bestlocator ai-test
-# Expected: AI is working! Model: llama3.1:8b
+# Expected: ✅ AI is working correctly!
 ```
-
-**AI Requirements:**
-- Ollama installed and running
-- Model: llama3.1:8b (default) or any compatible model
-- 8GB+ RAM recommended for optimal performance
 
 ## Usage
 
-### Toggle Mode with AI (Recommended)
-
-The breakthrough feature that makes Best-Locator unique:
+### Toggle Mode (Recommended)
 
 ```bash
 bestlocator pick-toggle https://saucedemo.com --ai --explain
 ```
 
 **How it works:**
-1. **Navigate freely** - Login, browse, interact normally
-2. **Press CTRL+S** - Turn ON selector mode (green indicator)
-3. **Click elements** - AI analyzes and captures intelligent selectors
-4. **Press CTRL+D** - Turn OFF selector mode (red indicator)
-5. **Repeat as needed** - Navigate to other pages, toggle on/off
-6. **Press ESC** - Finish and get all selectors with AI explanations
+1. **Navigate freely** - A control panel will appear in the browser
+2. **Press CTRL+S** - Turn ON selector mode
+3. **Click elements** - Capture high-quality selectors
+4. **Press CTRL+D** - Turn OFF selector mode to navigate again
+5. **Press ESC** - Finish the session and get your selectors
 
-**Visual indicators:**
-- **Red outline**: Navigate freely (clicks work normally)
-- **Green outline**: AI selector mode ON (clicks capture elements with AI analysis)
-
-### Single Element Mode with AI
+### Single Element Mode
 
 ```bash
-bestlocator pick https://your-app.com --ai --explain
-```
-
-**AI-Enhanced Output:**
-```typescript
-// Generated Code:
-await page.locator('[data-test="username"]')
-
-// AI Analysis:
-Type: ai-enhanced
-Confidence: 92%
-Explanation: Login form username field with stable test attribute. 
-High reliability due to testing-specific data-test attribute.
-Risk factors: None detected
+bestlocator pick https://your-app.com --ai
 ```
 
 ### Multiple Elements Mode
 
 ```bash
-bestlocator pick-multiple https://your-app.com --ai
+bestlocator pick-multiple https://your-app.com
 ```
 
 ### Validate Existing Selectors
@@ -122,204 +126,68 @@ bestlocator pick-multiple https://your-app.com --ai
 bestlocator validate https://your-app.com '[data-test="username"]'
 ```
 
-## AI Features
-
-### AI-Enhanced Selector Generation
-
-Best-Locator 2.0 uses advanced AI to analyze page context and generate intelligent selectors:
-
-```bash
-# Basic AI usage
-bestlocator pick https://app.com --ai
-
-# AI with detailed explanations
-bestlocator pick https://app.com --ai --explain
-
-# Traditional fallback (no AI)
-bestlocator pick https://app.com
-```
-
-### AI Analysis Output
-
-**Traditional Selector:**
-```
-Type: data-test
-Confidence: 95%
-Selector: [data-test="username"]
-```
-
-**AI-Enhanced Selector:**
-```
-Type: ai-enhanced
-Confidence: 92%
-Selector: [data-test="username"]
-AI Explanation: Login form username field with stable test attribute. 
-High reliability due to testing-specific data-test attribute.
-Risk factors: None detected
-```
-
-### AI Setup and Configuration
-
-```bash
-# Initial AI setup
-bestlocator ai-setup
-# Guides you through Ollama installation and model setup
-
-# Test AI functionality
-bestlocator ai-test
-# Verifies AI is working correctly
-
-# Check AI status
-bestlocator config
-# Shows AI configuration status
-```
-
 ## Framework Support
 
 | Framework | JavaScript | TypeScript | Python | Java | C# |
-|-----------|------------|------------|--------|------|----|
-| **Playwright** | Yes | Yes | Yes | Yes | Yes |
-| **Selenium** | Yes | Yes | Yes | Yes | Yes |
-| **Cypress** | Yes | Yes | No | No | No |
+|-----------|------------|------------|--------|------|-----|
+| Playwright | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Selenium | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cypress | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 ```bash
-# Specify framework and language with AI
-bestlocator pick-toggle https://your-app.com playwright typescript --ai
-bestlocator pick https://your-app.com selenium python --ai
-bestlocator pick https://your-app.com cypress javascript --ai
+# Specify framework and language
+bestlocator pick https://your-app.com selenium python
 ```
 
 ## Intelligent Selector Priority
 
-Best-Locator 2.0 generates **AI-enhanced selectors** using advanced analysis:
+Best-Locator uses a hybrid strategy to guarantee the best selector every time.
 
-| Priority | Selector Type | Confidence | AI Enhancement | Example |
-|----------|---------------|------------|----------------|---------|
-| **1st** | `data-test` | 95% | Context analysis | `[data-test="username"]` |
-| **1st** | `data-testid` | 95% | Framework detection | `[data-testid="submit-btn"]` |
-| **2nd** | `data-cy` | 90% | Pattern recognition | `[data-cy="login-form"]` |
-| **3rd** | `aria-label` | 85% | Accessibility analysis | `[aria-label="Close dialog"]` |
-| **4th** | `role` | 80% | Semantic understanding | `[role="button"]` |
-| **5th** | `name` | 75% | Form field analysis | `[name="email"]` |
-| **6th** | `id` | 70% | Stability assessment | `#username` |
-| **7th** | `text` | 60% | Content analysis | `text="Sign In"` |
+| Priority | Selector Type | Confidence | Strategy | Example |
+|----------|---------------|------------|----------|---------|
+| 1st | data-test-*, data-cy | 100% | Rule-Based: Always chosen first | `[data-test="username"]` |
+| 2nd | Semantic Role + Text | 90% | Rule-Based: High accessibility | `getByRole("button", { name: "Sign In" })` |
+| 3rd | ID, Placeholder, etc. | 70-80% | Rule-Based: Good alternatives | `#main-content` |
+| 4th | Other Attributes | Varies | AI-Powered: Used when rules fail | `.product-title` |
 
 ## Configuration
 
-### Create Configuration File
+Run `bestlocator init` to create a `best-locator.config.js` file in your project.
 
-```bash
-bestlocator init
-```
-
-This creates `best-locator.config.json`:
-
-```json
-{
-  "defaultFramework": "playwright",
-  "defaultLanguage": "typescript",
+```javascript
+// best-locator.config.js
+module.exports = {
+  defaultFramework: 'playwright',
+  defaultLanguage: 'typescript',
   
-  "ai": {
-    "enabled": true,
-    "model": "llama3.1:8b",
-    "baseUrl": "http://localhost:11434",
-    "timeout": 30000,
-    "fallbackToTraditional": true
+  ai: {
+    enabled: true,
+    provider: 'ollama',
+    ollama: {
+      host: 'http://localhost:11434',
+      model: 'llama3.1',
+      // ... other settings
+    },
   },
   
-  "browser": {
-    "headless": false,
-    "viewport": {
-      "width": 1280,
-      "height": 720
-    }
-  },
-  
-  "timeouts": {
-    "pageLoad": 30000,
-    "elementSelection": 1800000,
-    "validation": 15000
-  },
-  
-  "projectAttributes": [
-    "data-testid",
-    "data-cy", 
-    "data-test",
-    "data-qa"
+  projectAttributes: [
+    'data-testid',
+    'data-cy', 
+    'data-test',
+    'data-qa'
   ],
   
-  "urls": {
-    "local": "http://localhost:3000",
-    "staging": "https://staging.myapp.com",
-    "prod": "https://myapp.com"
+  urls: {
+    local: 'http://localhost:3000',
+    staging: 'https://staging.myapp.com',
   }
-}
+};
 ```
 
 ### Using URL Aliases
 
 ```bash
-bestlocator pick-toggle local --ai     # Uses http://localhost:3000
-bestlocator pick staging --ai          # Uses staging URL
-```
-
-## Real-World Examples
-
-### Login Flow Testing with AI
-
-```bash
-# Navigate to login, authenticate, then capture dashboard elements
-bestlocator pick-toggle https://app.com --ai --explain
-# 1. Login normally
-# 2. Navigate to dashboard  
-# 3. Press CTRL+S to start AI-powered capturing
-# 4. Click elements - AI analyzes context and stability
-# 5. Press ESC to finish with explanations
-```
-
-**AI-Enhanced Output:**
-```typescript
-// Element 1: Username Field
-await page.locator('[data-test="username"]')
-// AI: Login form field with test attribute, 94% confidence
-// Risk factors: None detected
-
-// Element 2: Password Field  
-await page.locator('[data-test="password"]')
-// AI: Password input with semantic type, 93% confidence
-// Risk factors: None detected
-
-// Element 3: Submit Button
-await page.locator('[data-test="login-button"]')
-// AI: Form submission button with stable identifier, 95% confidence
-// Risk factors: None detected
-```
-
-### E-commerce Flow with AI Context
-
-```bash
-bestlocator pick-toggle https://shop.com --ai --explain
-# 1. Browse products (CTRL+D = selector mode OFF)
-# 2. CTRL+S = AI analyzes product page context
-# 3. Navigate to cart - AI maintains context across pages
-# 4. CTRL+S = AI captures cart-specific elements
-# 5. ESC = get all selectors with intelligent explanations
-```
-
-### Traditional vs AI-Enhanced
-
-**Traditional tools generate:**
-```javascript
-await page.locator('#user-name')              // Unreliable
-await page.locator('#password')               // Can change
-await page.locator('#login-button')           // Styling dependent
-```
-
-**Best-Locator AI generates:**
-```javascript
-await page.locator('[data-test="username"]')     // 94% AI confidence
-await page.locator('[data-test="password"]')     // Context-aware
-await page.locator('[data-test="login-button"]') // Risk-assessed
+bestlocator go local --ai # Uses http://localhost:3000 from your config
 ```
 
 ## Command Reference
@@ -327,238 +195,55 @@ await page.locator('[data-test="login-button"]') // Risk-assessed
 ### Core Commands
 
 ```bash
-# AI-Enhanced Selection
+# Interactive Modes
 bestlocator pick <url> [framework] [language] [--ai] [--explain]
-bestlocator pick-multiple <url> [framework] [language] [--ai]  
+bestlocator pick-multiple <url> [framework] [language] [--ai] [--explain]
 bestlocator pick-toggle <url> [framework] [language] [--ai] [--explain]
-
-# Validation
-bestlocator validate <url> <selector> [--timeout <ms>]
-
-# Configuration
-bestlocator init                          # Create config file
-bestlocator config                        # Show current config
-
-# AI Management
-bestlocator ai-setup                      # Configure AI
-bestlocator ai-test                       # Test AI functionality
+bestlocator go <alias> [--ai] [--explain]
 
 # Utilities
-bestlocator hello                         # Test installation
-bestlocator --version                     # Show version
-bestlocator --help                        # Show help
+bestlocator validate <url> <selector>
+bestlocator init
+bestlocator config
+bestlocator hello
+bestlocator --version
+bestlocator --help
+
+# AI Management
+bestlocator ai-test
 ```
 
 ### Command Flags
 
-- `--ai`: Enable AI-enhanced selector generation
-- `--explain`: Include AI explanations for selector choices
-- `--timeout <ms>`: Set custom timeout for validation
-
-### Examples with All Options
-
-```bash
-# Single element with AI and explanations
-bestlocator pick https://app.com playwright typescript --ai --explain
-
-# Multiple elements with AI
-bestlocator pick-multiple https://app.com selenium python --ai
-
-# Toggle mode with all features
-bestlocator pick-toggle https://app.com cypress javascript --ai --explain
-
-# Validation with custom timeout
-bestlocator validate https://app.com '[data-test="button"]' --timeout 30000
-```
+- `--ai`: Enables the hybrid AI strategy for selector generation
+- `--explain`: Provides an AI-generated explanation for the chosen selector
+- `--no-fallback`: (Advanced) Fails if the AI encounters an error instead of using a traditional selector
 
 ## Troubleshooting
 
 ### Browser Not Opening
+
+This usually means the Playwright browsers aren't installed.
+
 ```bash
-# Install Playwright browsers
 npx playwright install
 ```
 
-### AI Not Working
-
-**Check AI Status:**
-```bash
-bestlocator ai-test
-```
-
-**Common AI Issues:**
-- **Ollama not installed**: Install from https://ollama.ai
-- **Ollama not running**: Start with `ollama serve`
-- **Model not available**: Download with `ollama pull llama3.1:8b`
-- **Port conflicts**: Check if port 11434 is available
-
-**Manual AI Setup:**
-```bash
-# Install Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Start Ollama service
-ollama serve
-
-# Download AI model
-ollama pull llama3.1:8b
-
-# Test Best-Locator AI
-bestlocator ai-test
-```
-
 ### Command Not Found
+
+If `bestlocator` is not recognized after installation:
+
 ```bash
-# Verify global installation
-npm list -g bestlocator
-
-# Reinstall if needed
-npm uninstall -g bestlocator
-npm install -g bestlocator
+# Re-link the command
+npm link
 ```
-
-### Performance Issues
-
-**For Better AI Performance:**
-- Use machines with 8GB+ RAM
-- Close unnecessary applications
-- Use lighter AI models if needed:
-  ```bash
-  # In config file, change ai.model to:
-  "model": "llama3.1:8b"  # Default (recommended)
-  "model": "phi3:mini"    # Lighter option
-  ```
-
-### Session Expires Too Quickly
-
-Extend session time in your config:
-```json
-{
-  "timeouts": {
-    "elementSelection": 3600000  // 1 hour
-  }
-}
-```
-
-### Browser Opens Too Large
-
-Control browser size in config:
-```json
-{
-  "browser": {
-    "viewport": {
-      "width": 1024,
-      "height": 768
-    }
-  }
-}
-```
-
-## Use Cases
-
-### QA Engineers
-- Generate AI-verified selectors for manual testing
-- Get explanations for why selectors were chosen
-- Validate existing test selectors with AI insights
-- Create selectors for complex multi-page flows
-
-### Automation Engineers  
-- Build robust test suites with AI-enhanced selectors
-- Handle login flows and authenticated pages intelligently
-- Generate selectors optimized for multiple testing frameworks
-- Reduce test flakiness with AI stability analysis
-
-### Development Teams
-- Standardize intelligent selector generation across projects
-- Reduce test maintenance with AI-verified stable selectors
-- Speed up test creation with context-aware generation
-- Get instant feedback on selector reliability
-
-## Advanced Configuration
-
-### AI Model Options
-
-Best-Locator supports multiple AI models via Ollama:
-
-```json
-{
-  "ai": {
-    "model": "llama3.1:8b",     // Default (recommended)
-    "model": "phi3:mini",       // Lighter, faster
-    "model": "codellama:7b",    // Code-focused
-    "model": "mistral:7b"       // Alternative option
-  }
-}
-```
-
-### Custom AI Endpoints
-
-```json
-{
-  "ai": {
-    "baseUrl": "http://localhost:11434",  // Default Ollama
-    "baseUrl": "http://custom-ai:8080",   // Custom endpoint
-    "timeout": 30000,                     // Request timeout
-    "retries": 3                         // Retry attempts
-  }
-}
-```
-
-### Framework-Specific Configuration
-
-```json
-{
-  "frameworks": {
-    "playwright": {
-      "defaultLanguage": "typescript",
-      "preferredSelectors": ["data-testid", "data-test"]
-    },
-    "cypress": {
-      "defaultLanguage": "javascript", 
-      "preferredSelectors": ["data-cy", "data-test"]
-    }
-  }
-}
-```
-
-## Contributing
-
-We welcome contributions! Areas where you can help:
-
-- **AI Model Integration**: Add support for more AI models
-- **Framework Support**: Extend language and framework support  
-- **Selector Intelligence**: Improve AI reasoning capabilities
-- **Documentation**: Help improve guides and examples
-- **Testing**: Test on different websites and scenarios
-
-## Roadmap
-
-### Version 2.1 (Coming Soon)
-- Visual AI selector suggestions
-- Cross-browser compatibility analysis
-- Natural language selector generation
-- Team collaboration features
-
-### Version 2.2 (Future)
-- Cloud AI integration
-- Selector performance analytics  
-- Auto-updating selector maintenance
-- Enterprise features
-
-## License
-
-MIT License - see LICENSE file for details.
 
 ## Author
 
 **Jonathan Gonzalez**  
-Automation Testing Enthusiast
-[LinkedIn](https://www.linkedin.com/in/jonathan-g-33607648/)
+Automation Testing Enthusiast  
+[LinkedIn Profile](https://www.linkedin.com/in/jonathan-g-33607648/)
 
 ---
 
-**Made with love for the testing community**
-
-**Now powered by AI for the next generation of testing**
-
-[Documentation](https://github.com/jogonzal79/best-locator) • [Report Issues](https://github.com/jogonzal79/best-locator/issues) • [Discussions](https://github.com/jogonzal79/best-locator/discussions) • [AI Setup Guide](https://github.com/jogonzal79/best-locator/wiki/AI-Setup)
+*Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.*

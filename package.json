@@ -3,19 +3,19 @@
   "version": "2.0.9",
   "type": "module",
   "description": "Universal CSS selector generator for UI testing with AI-powered smart selection. Supports Playwright, Selenium, Cypress with local Ollama integration.",
-  "main": "dist/cli/index.js",
+  "main": "dist/index.js",
   "bin": {
-    "bestlocator": "./dist/cli/index.js"
+    "bestlocator": "dist/index.js"
   },
   "scripts": {
-    "dev": "node dist/cli/index.js",
+    "dev": "node dist/index.js",
     "gui": "electron src/gui/main.cjs",
     "gui-dev": "cross-env NODE_ENV=development electron src/gui/main.cjs",
-    "build": "tsc",
+    "build": "tsc && cpr src/injected-scripts dist/injected-scripts -o",
     "build-gui": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublishOnly": "npm run build",
-    "start": "node dist/cli/index.js",
+    "start": "node dist/index.js",
     "clean": "rimraf dist",
     "postinstall": "echo '🎉 Best-Locator installed! Run: bestlocator hello'"
   },
@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.13",
+    "cpr": "^3.0.1",
     "electron": "^32.0.0",
     "electron-builder": "^25.0.0",
     "ts-node": "^10.9.2",
