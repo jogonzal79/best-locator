@@ -4,6 +4,10 @@ import { BestLocatorConfig } from '../types/index.js';
 import { logger } from './logger.js';
 import fs from 'fs/promises';
 import path from 'path';
+// ================== INICIO DE LA CORRECCIÓN ==================
+// Importamos las herramientas necesarias para resolver la ruta del paquete
+import { fileURLToPath } from 'url';
+// =================== FIN DE LA CORRECCIÓN ====================
 
 export class BrowserManager {
   private browser: Browser | null = null;
@@ -36,8 +40,8 @@ export class BrowserManager {
 
     } catch (error: any) {
       logger.error('Failed to launch browser or navigate.', error);
-      await this.close(); // Intenta cerrar si algo falló
-      throw error; // Relanza el error para que el comando principal lo atrape
+      await this.close();
+      throw error;
     }
   }
 
@@ -53,24 +57,29 @@ export class BrowserManager {
       return {
           url: await this.page.url(),
           title: await this.page.title(),
-          pageType: 'webapp', // Lógica de detección podría ir aquí
+          pageType: 'webapp',
       };
   }
 
   /**
    * Ejecuta un script en el contexto de la página ya cargada.
-   * Lee el script desde la carpeta 'dist' compilada.
+   * AHORA busca el script relativo a la ubicación de instalación del paquete.
    */
   public async runScriptInPage(scriptName: string): Promise<void> {
     if (!this.page) {
         throw new Error('Page not available to run script.');
     }
     try {
-        // Construye la ruta al script DENTRO de la carpeta 'dist'
-        const scriptPath = path.join(process.cwd(), 'dist', 'injected-scripts', scriptName);
-        const scriptContent = await fs.readFile(scriptPath, 'utf-8');
+        // ================== INICIO DE LA CORRECCIÓN ==================
+        // Obtenemos la ruta del directorio del archivo actual (__dirname)
+        const __dirname = path.dirname(fileURLToPath(import.meta.url));
         
-        // Usa page.evaluate() para ejecutar el script en el contexto de la página ya cargada
+        // Construimos la ruta al script relativa a este archivo.
+        // Desde 'dist/app/' subimos un nivel a 'dist/' y luego entramos a 'injected-scripts/'
+        const scriptPath = path.join(__dirname, '..', 'injected-scripts', scriptName);
+        // =================== FIN DE LA CORRECCIÓN ====================
+        
+        const scriptContent = await fs.readFile(scriptPath, 'utf-8');
         await this.page.evaluate(scriptContent);
 
     } catch (error: any) {
@@ -80,6 +89,7 @@ export class BrowserManager {
   }
 
   public async showAwaitingOverlay(message: string, subMessage: string): Promise<void> {
+    // ... (este método no necesita cambios)
     if (!this.page) return;
     const overlayHtml = `
       <div style="font-size: 18px; margin-bottom: 10px;">${message}</div>
