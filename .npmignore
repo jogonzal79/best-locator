@@ -1,114 +1,34 @@
-# Código fuente TypeScript (solo incluir JS compilado)
-src/
-*.ts
-!*.d.ts
+# Exclude all source code
+/src/
+
+# Exclude configuration files for development
 tsconfig.json
-tsconfig.*.json
+jest.config.js
+.eslintrc.cjs
+.prettierrc
 
-# Desarrollo
-.vscode/
-.idea/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Exclude development scripts and configs
+/scripts/
+.gitignore
+.npmignore
 
-# Tests
-test/
-tests/
+# Exclude test files and directories
 __tests__/
-*.test.js
 *.test.ts
-*.spec.js
 *.spec.ts
 coverage/
 
-# Build tools y scripts
-scripts/
-.github/
-.git/
-.gitignore
-
-# Electron GUI (solo mantener CLI para NPM)
-src/gui/
-assets/
-dist-electron/
-
-# Archivos temporales
-*.tmp
-*.temp
+# Exclude OS and editor specific files
 .DS_Store
-Thumbs.db
-*.tgz
-*.tar.gz
+.vscode/
+.idea/
 
-# Node modules
-node_modules/
-
-# Documentación de desarrollo (mantener README.md)
-docs/
-CONTRIBUTING.md
-CHECKLIST.md
-
-# Archivos específicos de desarrollo
-.eslintrc*
-.prettierrc*
-jest.config.*
-rollup.config.*
-webpack.config.*
-
-# Best-Locator específicos que no deben ir en NPM
-best-locator.config.json.backup
-screenshots/
-recordings/
-temp-selectors/
-examples/local/
-
-# Playwright (muy pesado para NPM)
+# Exclude heavy Playwright assets
 playwright-report/
 test-results/
 .playwright/
 
-# AI/Ollama (usuarios instalan su propio Ollama)
-ollama-logs/
-ai-cache/
-models/
-
-# Development configs específicos
-.editorconfig
-.eslintrc*
-.prettierrc*
-
-# CI/CD files
-.travis.yml
-.circleci/
-azure-pipelines.yml
-
-# Git específico
-.gitattributes
-
-# Archivos de debugging que agregaste
-*debug*
-*[DEBUG]*
-
-# TypeScript source maps
-*.map
-
-# Archivos de configuración local
-best-locator.config.json
-
-# Git específicos
-.gitignore
-.gitattributes
-
-# Logs de debugging de tu desarrollo
-*.debug.log
-
-# Best-Locator development específicos
-debugging/
-debug-outputs/
+# Exclude Electron build assets
+/dist-electron/
+/assets/
+electron-builder.json

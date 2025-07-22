@@ -1,89 +1,74 @@
 // src/core/framework-formatter.ts
-
-interface SelectorResult {
-  selector: string;
-  confidence: number;
-  type: string;
-}
+import { logger } from '../app/logger.js';
 
 export class FrameworkFormatter {
   /**
-   * Formats a raw selector string into framework-specific code snippets.
+   * Formats a raw CSS selector into a framework-specific and language-specific code snippet.
    */
   format(selector: string, framework: string, language: string): string {
-    // AGREGAR verificación al inicio:
     if (!selector) {
-      
-      return 'INVALID_SELECTOR';
+      logger.warning('Formatter received an empty selector.');
+      return '// No selector generated';
     }
 
-    
+    // Normalizamos las entradas para que no importen mayúsculas/minúsculas
+    const lowerFramework = framework.toLowerCase();
+    // Asumimos un lenguaje por defecto si no se especifica
+    const lowerLanguage = language ? language.toLowerCase() : 'typescript';
 
-    // Si el selector es get_by_*, convertir a sintaxis nativa de Playwright
-    if (selector.startsWith('get_by_')) {
-      if (framework === 'playwright') {
-        const converted = this.convertToPlaywrightNative(selector);
-        if (language === 'typescript' || language === 'javascript') {
-          return `await page.${converted}`;
-        } else if (language === 'python') {
-          return `page.${converted}`;
+    switch (lowerFramework) {
+      case 'playwright':
+        switch (lowerLanguage) {
+          case 'python':
+            return `page.locator("${selector}")`;
+          case 'java':
+            return `page.locator("${selector}")`;
+          case 'c#':
+            return `Page.Locator("${selector}")`;
+          case 'typescript':
+          case 'javascript':
+          default:
+            return `await page.locator('${selector}')`;
         }
-      }
-    }
 
-    // Si el selector ya viene en formato especial (cy.*), manejarlo
-    if (selector.startsWith('cy.')) {
-      // Ya está formateado, solo envolver según lenguaje
-      if (language === 'typescript' || language === 'javascript') {
-        return selector;
-      }
-      return selector;
-    }
-
-    // Para selectores CSS tradicionales
-    if (framework === 'playwright') {
-      if (language === 'typescript' || language === 'javascript') {
-        return `await page.locator('${selector}')`;
-      } else if (language === 'python') {
-        return `page.locator("${selector}")`;
-      }
-    } else if (framework === 'cypress') {
-      if (language === 'typescript' || language === 'javascript') {
+      case 'cypress':
+        // Cypress es principalmente para JavaScript/TypeScript
+        if (lowerLanguage !== 'typescript' && lowerLanguage !== 'javascript') {
+            logger.warning(`Cypress does not support '${language}'. Providing JavaScript snippet.`);
+        }
         return `cy.get('${selector}')`;
-      } else {
-        return `cy.get('${selector}')`;
-      }
-    } else if (framework === 'selenium') {
-      if (language === 'java') {
-        return `driver.findElement(By.cssSelector("${selector}"))`;
-      } else if (language === 'python') {
-        return `driver.find_element(By.CSS_SELECTOR, "${selector}")`;
-      }
-    }
 
-    // Fallback seguro
-    return `await page.locator('${selector}')`;
+      case 'selenium':
+        switch (lowerLanguage) {
+          case 'python':
+            return `driver.find_element(By.CSS_SELECTOR, "${selector}")`;
+          case 'java':
+            return `driver.findElement(By.cssSelector("${selector}"))`;
+          case 'c#':
+            return `driver.FindElement(By.CssSelector("${selector}"))`;
+          case 'javascript':
+          case 'typescript':
+            return `await driver.findElement(By.css('${selector}'))`;
+          default:
+            logger.warning(`Language '${language}' not recognized for Selenium. Providing Python snippet as a default.`);
+            return `driver.find_element(By.CSS_SELECTOR, "${selector}")`;
+        }
+      
+      default:
+        logger.warning(`Framework '${framework}' not recognized. Providing a generic snippet.`);
+        return `'${selector}' // CSS Selector for unrecognized framework: ${framework}`;
+    }
   }
 
   /**
-   * Convierte selectores get_by_* a sintaxis nativa de Playwright.
+   * Este método ya no es necesario si el generador siempre produce CSS estándar,
+   * pero lo mantenemos por si se reutiliza en el futuro.
    */
   private convertToPlaywrightNative(selector: string): string {
-    // get_by_role("button", name="texto") → getByRole("button", { name: "texto" })
-    if (selector.startsWith('get_by_role(')) {
-      const match = selector.match(/get_by_role\("([^\"]+)",\s*name="([^\"]+)"\)/);
-      if (match) {
-        const [, role, name] = match;
-        return `getByRole("${role}", { name: "${name}" })`;
-      }
+    if (selector.startsWith('getByRole')) {
+      return selector;
     }
-
-    // get_by_text("texto") → getByText("texto")
-    if (selector.startsWith('get_by_text(')) {
-      return selector.replace('get_by_text', 'getByText');
-    }
-
-    // Fallback
+    // ... otras conversiones si fueran necesarias
     return selector;
   }
 }
