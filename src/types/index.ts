@@ -1,8 +1,9 @@
 // src/types/index.ts
 
+// Importamos la interfaz directamente desde su archivo de origen.
 import { BestLocatorConfig as Config } from '../core/config-manager.js';
 
-// Exportamos la configuración principal para usarla en todo el proyecto
+// Re-exportamos el tipo para que el resto de la aplicación lo use desde aquí.
 export type BestLocatorConfig = Config;
 
 /** Información básica de un elemento HTML seleccionado por el usuario. */

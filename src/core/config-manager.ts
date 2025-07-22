@@ -79,7 +79,7 @@ export class ConfigManager {
             logger.success(`✅ Config loaded from: ${this.configPath}`);
             this.config = this.mergeConfig(DEFAULT_CONFIG, userConfig);
         } catch (error) {
-            logger.error(`⚠️ Error loading config file: ${this.configPath}`, error);
+            logger.error(`⚠️ Error loading config file: ${this.configPath}`, error as any);
             logger.warning(`Using default configuration`);
             this.config = DEFAULT_CONFIG;
         }

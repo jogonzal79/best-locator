@@ -6,8 +6,11 @@ import { logger } from '../app/logger.js';
 
 export async function handleValidateCommand(url: string, selector: string): Promise<void> {
     const configManager = new ConfigManager();
-    const config = configManager.getConfig();
+    const config = await configManager.getConfig();
+    // ================== INICIO DE LA CORRECCIÓN ==================
+    // Usamos 'url' en lugar del 'alias' que no existe.
     const resolvedUrl = configManager.getUrl(url) || url;
+    // =================== FIN DE LA CORRECCIÓN ====================
 
     const browserManager = new BrowserManager(config);
 
@@ -22,7 +25,6 @@ export async function handleValidateCommand(url: string, selector: string): Prom
         const result = await validator.validate(page, selector);
         const duration = Date.now() - startTime;
 
-        // Usamos el método que ya tenías para mostrar resultados
         validator.displayResult(result, selector);
         
         logger.nl();
