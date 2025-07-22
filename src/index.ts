@@ -12,20 +12,30 @@ import { handleGoCommand } from './commands/go.js';
 import { handleAiTestCommand } from './commands/ai-test.js';
 import chalk from 'chalk';
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const packageJson = require('../../package.json');
+// ================== INICIO DE LA CORRECCIÓN ==================
+// Importamos las herramientas de Node.js para leer archivos y manejar rutas
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+// Obtenemos la ruta del directorio del archivo actual (__dirname)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Leemos el package.json de forma robusta, relativa a la ubicación del paquete
+const packageJson = JSON.parse(
+  await readFile(path.join(__dirname, '../../package.json'), 'utf-8')
+);
+// =================== FIN DE LA CORRECCIÓN ====================
 
 const program = new Command();
 
-// ================== INICIO DE LA CORRECCIÓN ==================
 program
-  .name('bestlocator') // <--- Se quita el guion
+  .name('bestlocator')
   .description('🎯 Universal selector generator for UI testing')
   .version(packageJson.version);
-// =================== FIN DE LA CORRECCIÓN ====================
 
-// ... (El resto de las definiciones de comandos se mantienen igual)
+// ... (El resto del archivo se mantiene exactamente igual)
+
 program
   .command('pick <url> [framework] [language]')
   .description('Pick an element from a webpage and generate a selector')
@@ -83,8 +93,6 @@ program
   .description('Test that Best-Locator is working correctly')
   .action(() => handleHelloCommand(packageJson.version));
 
-
-// ================== INICIO DE LA CORRECCIÓN 2 ==================
 if (process.argv.length <= 2) {
   console.log(chalk.green('🧪 Best-Locator - Quick Start'));
   console.log(chalk.white('\nExamples:'));
@@ -93,6 +101,5 @@ if (process.argv.length <= 2) {
   console.log(chalk.white('\n🌐 Documentation: https://github.com/jogonzal79/best-locator'));
   process.exit(0);
 }
-// =================== FIN DE LA CORRECCIÓN 2 ====================
 
 program.parse(process.argv);
