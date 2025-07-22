@@ -6,7 +6,7 @@ import { logger } from '../app/logger.js';
 export async function handleAiTestCommand(): Promise<void> {
   try {
     const configManager = new ConfigManager();
-    const config = configManager.getConfig();
+    const config = await configManager.getConfig(); // <-- CORRECCIÓN: Se añade 'await'
 
     if (!config.ai?.enabled) {
       logger.warning('⚠️  AI is disabled in the configuration file.');
@@ -15,14 +15,12 @@ export async function handleAiTestCommand(): Promise<void> {
     }
 
     logger.info('🧪 Testing AI connection...');
-    const aiEngine = new AIEngine(config);
+    const aiEngine = new AIEngine(config); // Ahora 'config' es el objeto correcto
     const isAvailable = await aiEngine.isAvailable();
 
     if (isAvailable) {
       logger.success('✅ AI is working correctly!');
-      // @ts-ignore - Assuming ollama config exists if ai is enabled
       logger.info(`🤖 Model: ${config.ai.ollama.model}`);
-      // @ts-ignore
       logger.info(`🔗 Host: ${config.ai.ollama.host}`);
 
       logger.nl();
@@ -46,7 +44,6 @@ export async function handleAiTestCommand(): Promise<void> {
     } else {
       logger.error('❌ AI connection failed.');
       logger.warning('💡 Make sure Ollama is running: ollama serve');
-      // @ts-ignore
       logger.warning(`💡 And the model is installed: ollama pull ${config.ai.ollama.model}`);
     }
   } catch (error: any) {
