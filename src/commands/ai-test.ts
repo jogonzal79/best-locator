@@ -6,7 +6,7 @@ import { logger } from '../app/logger.js';
 export async function handleAiTestCommand(): Promise<void> {
   try {
     const configManager = new ConfigManager();
-    const config = await configManager.getConfig(); // <-- CORRECCIÓN: Se añade 'await'
+    const config = await configManager.getConfig();
 
     if (!config.ai?.enabled) {
       logger.warning('⚠️  AI is disabled in the configuration file.');
@@ -15,9 +15,10 @@ export async function handleAiTestCommand(): Promise<void> {
     }
 
     logger.info('🧪 Testing AI connection...');
-    const aiEngine = new AIEngine(config); // Ahora 'config' es el objeto correcto
+    const aiEngine = new AIEngine(config);
     const isAvailable = await aiEngine.isAvailable();
 
+    // ================== INICIO DE LA CORRECCIÓN ==================
     if (isAvailable) {
       logger.success('✅ AI is working correctly!');
       logger.info(`🤖 Model: ${config.ai.ollama.model}`);
@@ -35,6 +36,7 @@ export async function handleAiTestCommand(): Promise<void> {
       const testContext = { url: 'test', title: 'Test Page', pageType: 'test' };
 
       try {
+        // Usamos el método 'generate' unificado
         const testResult = await aiEngine.generateSelector(testElement, testContext);
         logger.success('✅ Selector generation test passed!');
         logger.log(`   Generated: ${testResult.selector}`);
@@ -42,10 +44,15 @@ export async function handleAiTestCommand(): Promise<void> {
         logger.error('Selector generation test failed:', genError);
       }
     } else {
+      // Esta es la lógica que se ejecutará cuando Ollama no esté disponible
       logger.error('❌ AI connection failed.');
-      logger.warning('💡 Make sure Ollama is running: ollama serve');
-      logger.warning(`💡 And the model is installed: ollama pull ${config.ai.ollama.model}`);
+      logger.warning('💡 Make sure Ollama is installed and running.');
+      logger.warning('   - On macOS/Windows, check if the Ollama application is open.');
+      logger.warning('   - On Linux, run: systemctl status ollama');
+      logger.warning(`💡 Ensure the model is installed: ollama pull ${config.ai.ollama.model}`);
     }
+    // =================== FIN DE LA CORRECCIÓN ====================
+
   } catch (error: any) {
     logger.error('An error occurred during the AI test:', error);
   }
