@@ -1,85 +1,53 @@
 import { z } from 'zod';
 import { IAIProvider } from './iai-provider.js';
+import { ElementInfo } from '../../types/index.js';
 import { PromptTemplates } from '../prompt-templates.js';
-import { ElementInfo, PageContext } from '../../types/index.js';
 
-// 1. Regex para extraer el bloque
 const ANSWER_REGEX = /<ANSWER>([\s\S]*?)<\/ANSWER>/;
 
-// 2. Esquema de validación con Zod
-const LocatorSchema = z.object({
-  selector: z.string().min(1),
-  api: z.string().min(1),
-  code: z.string().min(1),
-  strategy: z.enum(['test-id', 'role', 'placeholder', 'id', 'class', 'fallback']),
-  unique: z.boolean()
+const LocatorStrategySchema = z.object({
+  strategy: z.enum(['test-id', 'role', 'text', 'placeholder', 'id', 'css']),
+  value: z.string().min(1),
 });
 
-export type ValidatedLocator = z.infer<typeof LocatorSchema>;
+export type ValidatedStrategy = z.infer<typeof LocatorStrategySchema>;
 
-// 3. Reglas de negocio extra
-function findViolations(parsed: ValidatedLocator): string[] {
-  const v: string[] = [];
-  const sel = parsed.selector;
-
-  if (/:contains\(/i.test(sel)) v.push('Uses :contains()');
-  if (/style=/.test(sel)) v.push('Uses inline styles');
-  if (/(hover|active|disabled|selected|focus)/i.test(sel)) v.push('Uses stateful class');
-  if ((sel.match(/>/g) || []).length > 2 || (sel.match(/ /g) || []).length > 2) v.push('Too many combinators');
-  if (/css-[0-9a-z]{5,}/i.test(sel)) v.push('Looks like auto-generated class/hash');
-  
-  return v;
-}
-
-// 4. Loop de orquestación
-export async function getBestLocator(
+export async function getBestLocatorStrategy(
     provider: IAIProvider,
-    element: ElementInfo,
-    context: PageContext,
-    framework: any,
-    language: any
-): Promise<ValidatedLocator> {
+    element: ElementInfo
+): Promise<ValidatedStrategy> {
   
   const templates = new PromptTemplates();
   let attempt = 0;
   let lastOutput = '';
-
-  // Preparamos la función que construye el prompt de reparación
-  const repairPromptBuilder = (badOutput: string, violations: string[]) => {
-      return templates.getRepairPrompt(badOutput, violations, framework, language);
-  };
-  
-  // El prompt inicial
-  let prompt = templates.getUniversalLocatorPrompt(element, context, framework, language);
+  let prompt = templates.getUniversalLocatorPrompt(element);
 
   while (attempt < 3) {
     attempt++;
-    const raw = await provider.generateText(prompt); // Asumimos que el provider tiene un método `generateText`
+    const raw = await provider.generateText(prompt);
     lastOutput = raw;
     const match = ANSWER_REGEX.exec(raw);
+    
     if (!match || !match[1]) {
-        prompt = repairPromptBuilder(raw, ['No <ANSWER> block found']);
-        continue;
+      prompt = templates.getRepairPrompt(raw, ['No <ANSWER> block found']);
+      continue;
     }
 
     try {
-      const json = JSON.parse(match[1]);
-      const parsed = LocatorSchema.parse(json);
-      const violations = findViolations(parsed);
-      
-      if (violations.length === 0) {
-        return parsed; // Éxito
+      let content = match[1].trim();
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch && jsonMatch[1]) {
+        content = jsonMatch[1];
       }
-      
-      // Si hay violaciones, preparamos el reintento
-      prompt = repairPromptBuilder(raw, violations);
 
+      const json = JSON.parse(content);
+      const parsed = LocatorStrategySchema.parse(json);
+      return parsed; // Success
     } catch (e: any) {
-      // Si el JSON es inválido o no cumple el esquema, preparamos el reintento
       const errorMessage = e instanceof z.ZodError ? 'Schema mismatch' : 'Invalid JSON';
-      prompt = repairPromptBuilder(raw, [errorMessage, e.message]);
+      prompt = templates.getRepairPrompt(raw, [errorMessage, e.message]);
     }
   }
 
-  throw new Error(`Unable to produce a valid locator after 3 tries. Last output:\n${lastOutput}`);
+  throw new Error(`Unable to produce a valid locator strategy after 3 tries. Last output:\n${lastOutput}`);
 }

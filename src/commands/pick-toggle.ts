@@ -4,12 +4,7 @@ import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { BrowserManager } from '../app/browser-manager.js';
 import { logger } from '../app/logger.js';
 import { CommandOptions, ElementInfo, PageContext, SelectorResult, BestLocatorConfig } from '../types/index.js';
-
-async function generateSelector(generator: SelectorGenerator, elementInfo: ElementInfo, pageContext: PageContext, options: CommandOptions, config: BestLocatorConfig): Promise<SelectorResult> {
-    const useAI = options.ai && config.ai?.enabled;
-    if (useAI) { return await generator.generateSelectorWithAI(elementInfo, pageContext); }
-    return generator.generateSelector(elementInfo);
-}
+import { AriaCalculator } from '../core/ai/aria-calculator.js';
 
 export async function handlePickToggleCommand(url: string, framework: string | undefined, language: string | undefined, options: CommandOptions): Promise<void> {
     const configManager = new ConfigManager();
@@ -32,8 +27,12 @@ export async function handlePickToggleCommand(url: string, framework: string | u
             return;
         }
 
-        // Limpiamos el atributo 'style' de cada elemento antes de procesarlos
-        selectedElements.forEach(el => delete el.attributes.style);
+        const ariaCalculator = new AriaCalculator();
+        selectedElements.forEach(el => {
+            el.computedRole = ariaCalculator.computeRole(el);
+            el.accessibleName = ariaCalculator.computeAccessibleName(el);
+            delete el.attributes.style;
+        });
 
         logger.success(`\n🎯 ${selectedElements.length} element(s) captured!`);
         
@@ -47,23 +46,28 @@ export async function handlePickToggleCommand(url: string, framework: string | u
         const finalFramework = framework || config.defaultFramework;
         const finalLanguage = language || config.defaultLanguage;
         
-        const results: { order: number | undefined; selector: string; code: string }[] = [];
+        const results: { order: number | undefined; code: string }[] = [];
         let clipboardText = '';
 
         for (const elementInfo of selectedElements) {
             logger.nl();
             logger.info(`🔄 Analyzing element ${elementInfo.order || 0}/${selectedElements.length}...`);
-            const selectorResult = await generateSelector(generator, elementInfo, pageContext, options, config);
-            const formattedCode = formatter.format(selectorResult.selector, finalFramework, finalLanguage);
-
-            results.push({ order: elementInfo.order, selector: selectorResult.selector, code: formattedCode });
+            
+            let selectorResult: SelectorResult;
+            if (options.ai && config.ai.enabled) {
+                selectorResult = await generator.generateSelectorWithAI(elementInfo, pageContext);
+            } else {
+                selectorResult = generator.generateSelector(elementInfo);
+            }
+            
+            const formattedCode = formatter.format(selectorResult, finalFramework, finalLanguage);
+            
+            results.push({ order: elementInfo.order, code: formattedCode });
             clipboardText += `${formattedCode}\n`;
 
+            const displaySelector = selectorResult.selector.startsWith('text=') ? selectorResult.selector.substring(5) : selectorResult.selector;
             logger.info('   🎯 Selector:');
-            logger.selector(`      ${selectorResult.selector}`);
-            if (config.output.includeConfidence && selectorResult.confidence) {
-                logger.log(`      Confidence: ${selectorResult.confidence}%`);
-            }
+            logger.selector(`      ${displaySelector}`);
         }
 
         logger.nl();

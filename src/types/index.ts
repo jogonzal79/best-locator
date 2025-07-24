@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 export interface BestLocatorConfig {
   defaultFramework: 'playwright' | 'cypress' | 'selenium' | 'testcafe';
   defaultLanguage: 'typescript' | 'javascript' | 'python' | 'java' | 'c#';
@@ -45,6 +47,10 @@ export interface ElementInfo {
   textContent: string;
   attributes: { [key: string]: string };
   order?: number;
+  
+  // --- PROPIEDADES AÑADIDAS ---
+  computedRole?: string | null;
+  accessibleName?: string | null;
 }
 
 export interface PageContext {
@@ -57,4 +63,5 @@ export interface AIEnhancedResult {
   confidence: number;
   type: string;
   aiEnhanced: boolean;
+  code?: string; // Asegúrate de que este también lo tenga si lo usas
 }

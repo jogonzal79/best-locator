@@ -4,80 +4,50 @@ type Framework = 'playwright' | 'selenium' | 'cypress';
 type Language  = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp';
 
 export class PromptTemplates {
-  // ---------- Utils ----------
+  // ---------- Utils (sin cambios) ----------
   private safeText(text?: string, max = 120): string {
     if (!text) return '';
     return text.trim().replace(/\s+/g, ' ').slice(0, max);
   }
   private pretty(obj: any) { return JSON.stringify(obj, null, 2); }
 
-  // ---------- PROMPT PRINCIPAL GPT-4o ----------
-  getUniversalLocatorPrompt(
-    element: ElementInfo,
-    context: PageContext,
-    framework: Framework,
-    language: Language
-  ): string {
+  // ---------- PROMPT UNIVERSAL (GPT-4o) - VERSIÓN FINAL CON ESTRATEGIA SIMPLE ----------
+  getUniversalLocatorPrompt(element: ElementInfo): string {
     const attrs = this.pretty(element.attributes);
-    const visible = this.safeText(element.textContent);
+    const text = this.safeText(element.textContent);
 
-    return `You are an expert UI test engineer. Act as a pure function.
+    return `You are an expert test automation engineer. Your goal is to analyze an HTML element and return the best locating strategy as a JSON object.
 
-GOAL
-Return ONLY one locator call formatted for the requested framework & language.
+PRIORITY (from highest to lowest):
+1. Test ID: Use the value of 'data-testid', 'data-test', or 'data-cy'.
+2. ARIA Role & Name: Use the element's computed role and accessible name.
+3. Text Content: Use the element's unique visible text.
+4. Placeholder: For input elements.
+5. Unique ID.
+6. Stable CSS as a last resort.
 
-FRAMEWORK/LANGUAGE SUPPORT
-- Playwright: javascript, typescript, python, java, csharp
-- Selenium:   javascript, typescript, python, java, csharp
-- Cypress:    javascript, typescript
-
-OUTPUT CONTRACT
-Return ONLY a JSON object wrapped in <ANSWER>...</ANSWER>. Nothing else.
-Schema:
+OUTPUT CONTRACT:
+Return ONLY a JSON object inside <ANSWER> tags with this schema:
+\`\`\`json
 {
-  "selector": "pure CSS or role/name/placeholder/id used",
-  "api": "get_by_role|get_by_test_id|get_by_placeholder|locator|By.cssSelector|By.id|cy.get|etc.",
-  "code": "final single line of code for the chosen framework/language",
-  "strategy": "test-id|role|placeholder|id|class|fallback",
-  "unique": true
+  "strategy": "MUST BE one of: 'test-id' | 'role' | 'text' | 'placeholder' | 'id' | 'css'",
+  "value": "The value for the strategy (e.g., 'username' for a data-testid, 'button|Login' for a role, 'USDC' for text)"
 }
+\`\`\`
+Example for an input with data-testid="username": { "strategy": "test-id", "value": "username" }
+Example for a button with text 'Login': { "strategy": "role", "value": "button|Login" }
+For 'role' strategy, combine role and name with a pipe '|'.
 
-PRIORITY (highest → lowest):
-1) data-testid / data-test / data-cy
-2) role + accessible name (visible text)
-3) placeholder (only for inputs/textarea)
-4) meaningful id
-5) short, stable class
-6) fallback: tag + [attr=value] or tag:nth-of-type(n)  (≤2 combinators total)
-
-ABSOLUTE RULES
-- No non-standard pseudo-classes (e.g., :contains()).
-- No inline styles.
-- No state/stateful classes (hover, active, disabled, selected, focus, etc.).
-- No auto-generated hashes (css-xyz123, _ngcontent, .jet-button__state-hover, etc.).
-- No brittle chains (>2 combinators).
-- Selector must be unique in the current document/root.
-
-INTERNAL CHECK (do NOT output)
-1. Did you use the highest available priority?
-2. Is it unique?
-3. Does it meet all ABSOLUTE RULES?
-4. Is the API syntax correct for ${framework}/${language}?
-
-ELEMENT
-tag: ${element.tagName}
-attributes:
-${attrs}
-visibleText: "${visible}"
-
-REQUEST
-framework: ${framework}
-language: ${language}
+ELEMENT INFO:
+- Tag: ${element.tagName}
+- Computed Role: ${element.computedRole || 'none'}
+- Accessible Name: ${element.accessibleName || text}
+- Attributes: ${attrs}
 
 <ANSWER>`;
   }
 
-  // ---------- PROMPT EXPLICACIÓN (opcional) ----------
+  // ---------- PROMPT EXPLICACIÓN (opcional, sin cambios) ----------
   getExplanationPrompt(selector: string, element: ElementInfo): string {
     return `Explain briefly why "${selector}" is robust for a ${element.tagName}.
 
@@ -88,26 +58,31 @@ Return ONLY JSON:
 }`;
   }
 
-  // ---------- PROMPT LOCAL (OLLAMA) ----------
+  // ---------- PROMPT LOCAL (OLLAMA) - ACTUALIZADO A LA ESTRATEGIA SIMPLE ----------
   getLocalSelectorPrompt(element: ElementInfo): string {
     const attrs = JSON.stringify(element.attributes);
-    return `Return ONLY one standard CSS selector. Nothing else.
+    return `Return ONLY a JSON object with the best CSS selector strategy.
 
-Order: data-* test id > id > role+name > placeholder > stable class > fallback(tag[attr] or tag:nth-of-type).  
+Schema:
+{
+  "strategy": "css",
+  "value": "the CSS selector"
+}
+
+Order: data-* test id > id > stable class > fallback(tag[attr]).
 No :contains(), no inline styles, no long chains (>2 combinators).
 
 INPUT: tag=${element.tagName} attrs=${attrs}
 <ANSWER>`;
   }
 
-  // ---------- PROMPT DE REPARACIÓN (AUTO-RETRY) ----------
+  // ---------- PROMPT DE REPARACIÓN (AUTO-RETRY) - ACTUALIZADO A LA ESTRATEGIA SIMPLE ----------
   getRepairPrompt(
     badOutput: string,
-    violations: string[],
-    framework: Framework,
-    language: Language
+    violations: string[]
   ): string {
-    return `The previous output violated rules.
+    // El framework y el lenguaje ya no son necesarios aquí
+    return `The previous output violated the rules.
 
 BAD OUTPUT:
 ${badOutput}
@@ -116,10 +91,12 @@ VIOLATIONS:
 - ${violations.join('\n- ')}
 
 FIX IT:
-Return a NEW valid JSON (same schema as before) wrapped in <ANSWER>...</ANSWER> that obeys all rules, for:
-framework: ${framework}
-language: ${language}
-
-<ANSWER>`;
+Return a NEW, valid JSON object wrapped in <ANSWER>...</ANSWER> that obeys the required schema:
+\`\`\`json
+{
+  "strategy": "MUST BE one of: 'test-id' | 'role' | 'text' | 'placeholder' | 'id' | 'css'",
+  "value": "The value for the strategy"
+}
+\`\`\``;
   }
 }

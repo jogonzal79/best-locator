@@ -1,6 +1,6 @@
 import { BestLocatorConfig, ElementInfo, PageContext, SelectorResult } from '../types/index.js';
 import { createAIProvider } from './ai/ai-provider-factory.js';
-import { getBestLocator } from './ai/ai-orchestrator.js';
+import { getBestLocatorStrategy } from './ai/ai-orchestrator.js';
 import { logger } from '../app/logger.js';
 import { IAIProvider } from './ai/iai-provider.js';
 
@@ -15,27 +15,28 @@ export class AIEngine {
 
   async generateSelector(element: ElementInfo, context: PageContext): Promise<SelectorResult> {
     if (!this.provider) {
-      throw new Error("AI provider is not available.");
+      throw new Error("AI provider is not available or is disabled.");
     }
-    const framework = this.config.defaultFramework;
-    const language = this.config.defaultLanguage;
-    logger.info(`✨ Asking ${this.config.ai.provider} for a smart locator...`);
+    
+    logger.info(`✨ Asking ${this.config.ai.provider} for a smart locator strategy...`);
+    
     try {
-      const validatedLocator = await getBestLocator(this.provider, element, context, framework, language);
+      const strategyResult = await getBestLocatorStrategy(this.provider, element);
+      
       return {
-        selector: validatedLocator.selector,
-        code: validatedLocator.code, // Ahora 'code' es una propiedad válida
-        reasoning: `Strategy: ${validatedLocator.strategy}`,
+        selector: strategyResult.value,
+        type: strategyResult.strategy,
         confidence: 99,
-        type: 'ai-enhanced'
+        reasoning: `AI Strategy: ${strategyResult.strategy}`,
+        aiEnhanced: true,
       };
+
     } catch (error: any) {
       logger.error(`AI orchestration failed: ${error.message}`);
       throw error;
     }
   }
 
-  // --- MÉTODOS REINTRODUCIDOS ---
   async explainSelector(selector: string, element: ElementInfo): Promise<string> {
     if (this.provider?.explainSelector) {
       return this.provider.explainSelector(selector, element);
