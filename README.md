@@ -1,175 +1,234 @@
 # Best-Locator
 
-Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.
+**Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.**
 
 Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.
 
-## Quick Start
+[![npm version](https://badge.fury.io/js/bestlocator.svg)](https://badge.fury.io/js/bestlocator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# Install globally
+# 1. Install the tool globally
 npm install -g bestlocator
 
-# Create a configuration file in your project
+# 2. Install the necessary browsers
+npx playwright install
+
+# 3. Navigate to your project and create a config file
+cd your-project/
 bestlocator init
 
-# Start generating selectors in the most powerful mode
+# 4. Start generating selectors in the most powerful mode
+# (Note: --ai requires prior setup, see guide below)
 bestlocator pick-toggle https://saucedemo.com --ai --explain
 ```
 
-## Why Best-Locator?
+---
+
+## ✨ Why Best-Locator?
 
 Traditional selector generators are broken. They force you to capture elements immediately, can't handle login flows, and often generate unreliable selectors.
 
 **Best-Locator changes everything:**
 
-- **Hybrid Intelligence** - Combines rule-based stability with AI creativity
-- **Navigate Organically** - Browse like a normal user, log in, and navigate between pages
-- **Toggle Selector Mode** - Turn element capture ON/OFF with simple keyboard shortcuts (CTRL+S/CTRL+D)
-- **Professional Selectors** - Prioritizes data-test, data-testid, and other robust attributes first
-- **Multi-Page Capture** - Collect selectors from different pages in one single session
-- **Framework Agnostic** - Generates code for Playwright, Selenium, and Cypress
-- **AI Explanations** - Understand why a selector was chosen
-- **Intelligent Fallback** - Uses AI only when necessary, ensuring speed and reliability
+- 🧠 **Hybrid Intelligence**: Combines rule-based stability with AI creativity
+- 🌐 **Organic Navigation**: Browse like a normal user, log in, and move between pages
+- ⚡ **Toggle Capture Mode**: Turn element capture ON/OFF with keyboard shortcuts (`CTRL+S` / `CTRL+D`)
+- 🎯 **Professional Selectors**: Prioritizes `data-test`, `data-testid`, and other robust attributes first
+- 📄 **Multi-Page Capture**: Collect selectors from different pages in a single session
+- 🔧 **Framework Agnostic**: Generates code for Playwright, Selenium, and Cypress
+- 💡 **AI Explanations**: Understand why a selector was chosen
+- 🚀 **Intelligent Fallback**: Uses AI only when necessary, ensuring speed and reliability
 
-## Installation
+---
 
+## 📋 Prerequisites
+
+Before installing, make sure you have:
+
+- **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
+- **npm** (installed automatically with Node.js)
+
+Check your Node.js version:
+```bash
+node -v
+```
+
+---
+
+## 🛠 Installation & Setup
+
+### Step 1: Install Best-Locator
 ```bash
 npm install -g bestlocator
 ```
 
-After installation, verify it's working correctly:
-
+### Step 2: Install Browsers
+Best-Locator uses Playwright under the hood to control the browser:
 ```bash
-bestlocator hello
-# Expected: 🎉 Best-Locator v2.0.9 is working!
+npx playwright install
 ```
 
-## Ollama Installation Guide (For AI Functionality)
+### Step 3: Verify Installation
+```bash
+bestlocator hello
+```
+You should see a welcome message. You're all set! 🎉
 
-To use the AI features (`--ai`, `--explain`), you need to have Ollama installed and running on your computer.
+---
 
-### 1. Install Ollama
+## 🤖 AI Configuration
 
-Choose the instructions for your operating system:
+Best-Locator's most powerful features are unlocked with AI. Choose between two providers:
 
-#### macOS 🍎
-1. Go to the official download page: [ollama.com](https://ollama.com)
-2. Click the **Download for macOS** button
-3. Open the downloaded .zip file and move the Ollama app to your Applications folder
-4. Run the Ollama application. You will see a llama icon in your top menu bar
+- **Ollama**: Free, private, and runs on your own machine
+- **OpenAI**: Paid (very inexpensive), cloud-based, and extremely powerful
 
-#### Windows 🪟
-1. Go to the official download page: [ollama.com](https://ollama.com)
-2. Click the **Download for Windows (Preview)** button
-3. Run the downloaded .exe installer and follow the steps
-4. Once installed, Ollama will run in the background. You will see its icon in the system tray (near the clock)
+### Option 1: Ollama (Free, Local)
 
-#### Linux 🐧
-1. Open your terminal
-2. Run the following command to download and install Ollama:
-   ```bash
-   curl -fsSL https://ollama.com/install.sh | sh
-   ```
-3. Ollama will be installed as a systemd service. It usually starts automatically. You can check its status with `systemctl status ollama`
+#### 1. Install Ollama
 
-### 2. Download a Model
+**macOS & Windows:**
+- Go to [ollama.com](https://ollama.com)
+- Download, install, and run the application
+- You'll see a llama icon in your menu bar (macOS) or system tray (Windows)
 
-Once Ollama is installed and running, you need to download a language model for Best-Locator to use.
+**Linux:**
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
 
-1. Open your terminal
-2. Run the following command to download the recommended model (llama3.1):
-   ```bash
-   ollama pull llama3.1
-   ```
-   *(This may take a few minutes, as the model is large)*
+#### 2. Download a Model
+```bash
+ollama pull llama3.1
+```
 
-### 3. Verify the Integration
-
-Finally, verify that Best-Locator can communicate with Ollama:
-
+#### 3. Verify Integration
 ```bash
 bestlocator ai-test
 # Expected: ✅ AI is working correctly!
 ```
 
-## Usage
+### Option 2: OpenAI (Paid, Cloud-Based)
+
+#### 1. Get an OpenAI API Key
+1. Go to [OpenAI API Keys](https://platform.openai.com/account/api-keys)
+2. Click **Create new secret key**
+3. For maximum security, select **Permissions: Restricted**
+4. Grant these permissions:
+   - **Models**: Read
+   - **Model capabilities**: Write
+5. Copy the generated API key (`sk-...`) and save it securely
+
+#### 2. Set the API Key
+**Never write your API key directly in the config file.** Use an environment variable:
+
+```bash
+# Windows (CMD)
+set OPENAI_API_KEY=sk-your-key-here
+
+# Windows (PowerShell)
+$env:OPENAI_API_KEY='sk-your-key-here'
+
+# macOS / Linux
+export OPENAI_API_KEY='sk-your-key-here'
+```
+
+#### 3. Configure Best-Locator
+Edit your `best-locator.config.js` file:
+
+```javascript
+// best-locator.config.js
+ai: {
+  enabled: true,
+  provider: 'openai', // Switch to openai
+  openai: {
+    model: 'gpt-4o', // Or 'gpt-3.5-turbo'
+    // The apiKey is read automatically from the environment variable
+  }
+}
+```
+
+#### 4. Verify Integration
+```bash
+bestlocator ai-test
+# Expected: ✅ Connection to openai is successful!
+```
+
+---
+
+## 🎮 Usage
 
 ### Toggle Mode (Recommended)
+The most powerful mode, allowing you to navigate freely:
 
 ```bash
 bestlocator pick-toggle https://saucedemo.com --ai --explain
 ```
 
 **How it works:**
-1. **Navigate freely** - A control panel will appear in the browser
-2. **Press CTRL+S** - Turn ON selector mode
-3. **Click elements** - Capture high-quality selectors
-4. **Press CTRL+D** - Turn OFF selector mode to navigate again
-5. **Press ESC** - Finish the session and get your selectors
+1. **Navigate freely**: A control panel will appear in the browser
+2. **Press `CTRL+S`**: Turn ON capture mode
+3. **Click elements**: Capture high-quality selectors
+4. **Press `CTRL+D`**: Turn OFF capture mode to navigate again
+5. **Press `ESC`**: Finish the session and get your results
 
-### Single Element Mode
+### Other Modes
 
 ```bash
+# Pick a single element
 bestlocator pick https://your-app.com --ai
-```
 
-### Multiple Elements Mode
-
-```bash
+# Pick multiple elements in sequence
 bestlocator pick-multiple https://your-app.com
-```
 
-### Validate Existing Selectors
-
-```bash
+# Validate an existing selector
 bestlocator validate https://your-app.com '[data-test="username"]'
 ```
 
-## Framework Support
+---
 
-| Framework | JavaScript | TypeScript | Python | Java | C# |
-|-----------|------------|------------|--------|------|-----|
-| Playwright | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Selenium | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cypress | ✅ | ✅ | ❌ | ❌ | ❌ |
+## 🔧 Framework Support
 
-```bash
-# Specify framework and language
-bestlocator pick https://your-app.com selenium python
-```
+| Framework  | JavaScript | TypeScript | Python | Java | C# |
+|------------|:----------:|:----------:|:------:|:----:|:--:|
+| Playwright |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
+| Selenium   |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
+| Cypress    |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
 
-## Intelligent Selector Priority
+---
 
-Best-Locator uses a hybrid strategy to guarantee the best selector every time.
+## ⚙️ Configuration File
 
-| Priority | Selector Type | Confidence | Strategy | Example |
-|----------|---------------|------------|----------|---------|
-| 1st | data-test-*, data-cy | 100% | Rule-Based: Always chosen first | `[data-test="username"]` |
-| 2nd | Semantic Role + Text | 90% | Rule-Based: High accessibility | `getByRole("button", { name: "Sign In" })` |
-| 3rd | ID, Placeholder, etc. | 70-80% | Rule-Based: Good alternatives | `#main-content` |
-| 4th | Other Attributes | Varies | AI-Powered: Used when rules fail | `.product-title` |
-
-## Configuration
-
-Run `bestlocator init` to create a `best-locator.config.js` file in your project.
+Run `bestlocator init` in your project's root directory to create a `best-locator.config.js` file:
 
 ```javascript
 // best-locator.config.js
-module.exports = {
+export default {
   defaultFramework: 'playwright',
   defaultLanguage: 'typescript',
   
+  // AI Configuration with Provider model
   ai: {
     enabled: true,
-    provider: 'ollama',
+    // Switch between 'ollama' or 'openai'
+    provider: 'ollama', 
+    
     ollama: {
       host: 'http://localhost:11434',
       model: 'llama3.1',
-      // ... other settings
     },
+    openai: {
+      // API key is best set as an environment variable (OPENAI_API_KEY)
+      model: 'gpt-4o',
+    }
   },
   
+  // Custom data-* attributes for your project
   projectAttributes: [
     'data-testid',
     'data-cy', 
@@ -177,6 +236,7 @@ module.exports = {
     'data-qa'
   ],
   
+  // URL shortcuts for the 'go' command
   urls: {
     local: 'http://localhost:3000',
     staging: 'https://staging.myapp.com',
@@ -185,21 +245,24 @@ module.exports = {
 ```
 
 ### Using URL Aliases
+Once configured, you can use shortcuts for your most-used URLs:
 
 ```bash
 bestlocator go local --ai # Uses http://localhost:3000 from your config
 ```
 
-## Command Reference
+---
+
+## 📖 Command Reference
 
 ### Core Commands
 
 ```bash
 # Interactive Modes
-bestlocator pick <url> [framework] [language] [--ai] [--explain]
-bestlocator pick-multiple <url> [framework] [language] [--ai] [--explain]
-bestlocator pick-toggle <url> [framework] [language] [--ai] [--explain]
-bestlocator go <alias> [--ai] [--explain]
+bestlocator pick <url>
+bestlocator pick-multiple <url>
+bestlocator pick-toggle <url>
+bestlocator go <alias>
 
 # Utilities
 bestlocator validate <url> <selector>
@@ -217,26 +280,33 @@ bestlocator ai-test
 
 - `--ai`: Enables the hybrid AI strategy for selector generation
 - `--explain`: Provides an AI-generated explanation for the chosen selector
-- `--no-fallback`: (Advanced) Fails if the AI encounters an error instead of using a traditional selector
 
-## Troubleshooting
+---
+
+## 🔍 Troubleshooting
 
 ### Browser Not Opening
-
-This usually means the Playwright browsers aren't installed.
+This usually means the Playwright browsers aren't installed:
 
 ```bash
 npx playwright install
 ```
 
-### Command Not Found
+### AI Not Working
+1. **For Ollama**: Make sure Ollama is running and the model is downloaded
+2. **For OpenAI**: Verify your API key is set as an environment variable
+3. **Test the connection**:
+   ```bash
+   bestlocator ai-test
+   ```
 
-If `bestlocator` is not recognized after installation:
+---
 
-```bash
-# Re-link the command
-npm link
-```
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## Author
 

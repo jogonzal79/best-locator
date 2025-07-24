@@ -1,112 +1,102 @@
-// prompt-templates.ts
-import { ElementInfo, PageContext } from './ai-engine.js';
+import { ElementInfo, PageContext } from '../types/index.js';
+
+type Framework = 'playwright' | 'selenium' | 'cypress';
+type Language  = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp';
 
 export class PromptTemplates {
-  getSelectorPrompt(element: ElementInfo, context: PageContext): string {
+  // ---------- Utils (sin cambios) ----------
+  private safeText(text?: string, max = 120): string {
+    if (!text) return '';
+    return text.trim().replace(/\s+/g, ' ').slice(0, max);
+  }
+  private pretty(obj: any) { return JSON.stringify(obj, null, 2); }
+
+  // ---------- PROMPT UNIVERSAL (GPT-4o) - VERSIÓN FINAL CON ESTRATEGIA SIMPLE ----------
+  getUniversalLocatorPrompt(element: ElementInfo): string {
+    const attrs = this.pretty(element.attributes);
+    const text = this.safeText(element.textContent);
+
+    return `You are an expert test automation engineer. Your goal is to analyze an HTML element and return the best locating strategy as a JSON object.
+
+PRIORITY (from highest to lowest):
+1. Test ID: Use the value of 'data-testid', 'data-test', or 'data-cy'.
+2. ARIA Role & Name: Use the element's computed role and accessible name.
+3. Text Content: Use the element's unique visible text.
+4. Placeholder: For input elements.
+5. Unique ID.
+6. Stable CSS as a last resort.
+
+OUTPUT CONTRACT:
+Return ONLY a JSON object inside <ANSWER> tags with this schema:
+\`\`\`json
+{
+  "strategy": "MUST BE one of: 'test-id' | 'role' | 'text' | 'placeholder' | 'id' | 'css'",
+  "value": "The value for the strategy (e.g., 'username' for a data-testid, 'button|Login' for a role, 'USDC' for text)"
+}
+\`\`\`
+Example for an input with data-testid="username": { "strategy": "test-id", "value": "username" }
+Example for a button with text 'Login': { "strategy": "role", "value": "button|Login" }
+For 'role' strategy, combine role and name with a pipe '|'.
+
+ELEMENT INFO:
+- Tag: ${element.tagName}
+- Computed Role: ${element.computedRole || 'none'}
+- Accessible Name: ${element.accessibleName || text}
+- Attributes: ${attrs}
+
+<ANSWER>`;
+  }
+
+  // ---------- PROMPT EXPLICACIÓN (opcional, sin cambios) ----------
+  getExplanationPrompt(selector: string, element: ElementInfo): string {
+    return `Explain briefly why "${selector}" is robust for a ${element.tagName}.
+
+Return ONLY JSON:
+{
+  "reason": "1-2 concise sentences",
+  "priority_used": "test-id|role|placeholder|id|class|fallback"
+}`;
+  }
+
+  // ---------- PROMPT LOCAL (OLLAMA) - ACTUALIZADO A LA ESTRATEGIA SIMPLE ----------
+  getLocalSelectorPrompt(element: ElementInfo): string {
     const attrs = JSON.stringify(element.attributes);
-    
-    return `You are a function that returns ONLY a CSS selector.
+    return `Return ONLY a JSON object with the best CSS selector strategy.
 
-Examples:
-INPUT: tag=input attrs={"data-test":"username"} → <ANSWER>[data-test=\"username\"]</ANSWER>
-INPUT: tag=div attrs={"class":"login_logo"} → <ANSWER>.login_logo</ANSWER>
+Schema:
+{
+  "strategy": "css",
+  "value": "the CSS selector"
+}
 
-Now generate:
+Order: data-* test id > id > stable class > fallback(tag[attr]).
+No :contains(), no inline styles, no long chains (>2 combinators).
+
 INPUT: tag=${element.tagName} attrs=${attrs}
 <ANSWER>`;
   }
 
-  getAnalysisPrompt(element: ElementInfo, context: PageContext): string {
-    return `Analyze ${element.tagName}. Return: good selector`;
-  }
+  // ---------- PROMPT DE REPARACIÓN (AUTO-RETRY) - ACTUALIZADO A LA ESTRATEGIA SIMPLE ----------
+  getRepairPrompt(
+    badOutput: string,
+    violations: string[]
+  ): string {
+    // El framework y el lenguaje ya no son necesarios aquí
+    return `The previous output violated the rules.
 
-  getExplanationPrompt(selector: string, element: ElementInfo): string {
-    return `Why is "${selector}" good for ${element.tagName}?`;
-  }
+BAD OUTPUT:
+${badOutput}
 
-  getPageAnalysisPrompt(context: PageContext): string {
-    return `Analyze this webpage for test automation:
+VIOLATIONS:
+- ${violations.join('\n- ')}
 
-URL: ${context.url}
-TITLE: ${context.title}
-
-Detect page type (login, checkout, dashboard, etc.) and return JSON:
+FIX IT:
+Return a NEW, valid JSON object wrapped in <ANSWER>...</ANSWER> that obeys the required schema:
+\`\`\`json
 {
-  "pageType": "login_page",
-  "testingStrategy": "focus on form validation",
-  "keyElements": ["username", "password", "submit"],
-  "confidence": 0.9
-}`;
-  }
+  "strategy": "MUST BE one of: 'test-id' | 'role' | 'text' | 'placeholder' | 'id' | 'css'",
+  "value": "The value for the strategy"
 }
-
-// ollama-client.ts
-export interface OllamaClientConfig {
-  model: string;
-  // puedes agregar otras propiedades de configuración aquí si es necesario
-}
-
-export class OllamaClient {
-  private config: OllamaClientConfig;
-
-  constructor(config: OllamaClientConfig) {
-    this.config = config;
+\`\`\``;
   }
-
-  private createRequestBody(prompt: string) {
-    return {
-      model: this.config.model,
-      prompt: prompt,
-      temperature: 0,
-      stream: false,
-      options: {
-        num_predict: 32,
-        stop: ["</ANSWER>"]
-      }
-    };
-  }
-
-  // ... método que envía la solicitud utilizando createRequestBody() ...
-}
-
-// ai-engine.ts
-// import { ElementInfo } from './ai-engine.js';
-
-interface AIEnhancedResult {
-  selector: string;
-  confidence: number;
-  type: string;
-  aiEnhanced: boolean;
-}
-
-export class AIEngine {
-  // ... otras partes del archivo ...
-
-  private getFallbackResult(element: ElementInfo): AIEnhancedResult {
-    // implementación existente...
-    return { selector: '', confidence: 0, type: 'fallback', aiEnhanced: false };
-  }
-
-  private parseSelectorResponse(response: any, element: ElementInfo): AIEnhancedResult {
-    const responseText = response.response || '';
-    
-    // Extraer selector entre marcadores
-    const match = responseText.match(/<ANSWER>\s*([^<\r\n]+)\s*$/);
-    if (match) {
-      const selector = match[1].trim();
-      console.log('🎯 AI extracted selector:', selector);
-      
-      return {
-        selector: selector,
-        confidence: 95,
-        type: 'ai-enhanced',
-        aiEnhanced: true
-      };
-    }
-    
-    // Si falla, fallback
-    return this.getFallbackResult(element);
-  }
-
-  // ... resto de métodos ...
 }

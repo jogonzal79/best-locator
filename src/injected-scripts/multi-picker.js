@@ -1,7 +1,22 @@
-// src/injected-scripts/multi-picker.js
 (() => {
+  if (window.bestLocatorMultiPicker) return;
+
   window.multipleSelectionDone = false;
   window.selectedElementsInfo = [];
+
+  // --- El Overlay de Resaltado ---
+  let overlay = document.createElement('div');
+  overlay.id = 'bestlocator-overlay-multi';
+  Object.assign(overlay.style, {
+    position: 'absolute',
+    zIndex: '2147483647',
+    pointerEvents: 'none',
+    border: '2px solid red',
+    boxSizing: 'border-box',
+    display: 'none',
+    transition: 'border-color 0.2s ease'
+  });
+  document.body.appendChild(overlay);
 
   const gatherInfo = (element) => {
     if (!element) return null;
@@ -15,51 +30,55 @@
       className: element.className || '',
       textContent: (element.textContent || '').trim().substring(0, 80),
       attributes: attrs,
-      depth: (() => {
-        let d = 0; let e = element;
-        while (e && e.parentElement) { d++; e = e.parentElement; }
-        return d;
-      })(),
-      position: (() => {
-        if (!element.parentElement) return 0;
-        return Array.from(element.parentElement.children).indexOf(element);
-      })(),
       order: (window.selectedElementsInfo?.length || 0) + 1
     };
   };
-
+  
   const highlightElement = (event) => {
-    document.querySelectorAll('.bestlocator-highlight').forEach(el => {
-      el.style.outline = '';
-      el.classList.remove('bestlocator-highlight');
-    });
     const target = event.target;
-    if (target) {
-      target.style.outline = '2px solid red';
-      target.classList.add('bestlocator-highlight');
+    if (target && target.id !== 'bestlocator-overlay-multi') {
+      const rect = target.getBoundingClientRect();
+      Object.assign(overlay.style, {
+        borderColor: 'red',
+        top: `${window.scrollY + rect.top}px`,
+        left: `${window.scrollX + rect.left}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        display: 'block'
+      });
     }
   };
 
   const clickHandler = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    
     const target = event.target;
     const info = gatherInfo(target);
     if (info) {
       window.selectedElementsInfo.push(info);
 
-      target.style.outline = '3px solid #4CAF50';
-      target.classList.add('bestlocator-highlight');
+      // Feedback visual con el overlay
+      overlay.style.borderColor = '#4CAF50';
+      setTimeout(() => {
+        overlay.style.borderColor = 'red';
+      }, 800);
+
       const notification = document.createElement('div');
       notification.textContent = `Element ${info.order} captured!`;
-      notification.style.cssText = `position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 10px 15px; border-radius: 5px; z-index: 999999; font-size: 14px;`;
+      Object.assign(notification.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        background: '#4CAF50',
+        color: 'white',
+        padding: '10px 15px',
+        borderRadius: '5px',
+        zIndex: '2147483647',
+        fontSize: '14px'
+      });
       document.body.appendChild(notification);
-
-      setTimeout(() => {
-        notification.remove();
-        target.style.outline = '';
-        target.classList.remove('bestlocator-highlight');
-      }, 1500);
+      setTimeout(() => notification.remove(), 1500);
     }
   };
 
@@ -74,13 +93,12 @@
     document.removeEventListener('click', clickHandler, true);
     document.removeEventListener('keydown', keyHandler, true);
     document.removeEventListener('mouseover', highlightElement, true);
-    document.querySelectorAll('.bestlocator-highlight').forEach(el => {
-      el.style.outline = '';
-      el.classList.remove('bestlocator-highlight');
-    });
+    overlay.remove();
+    window.bestLocatorMultiPicker = null;
   };
 
   document.addEventListener('click', clickHandler, true);
   document.addEventListener('keydown', keyHandler, true);
   document.addEventListener('mouseover', highlightElement, true);
+  window.bestLocatorMultiPicker = { cleanup };
 })();
