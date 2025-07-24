@@ -1,7 +1,21 @@
-// src/injected-scripts/single-picker.js
 (() => {
+  if (window.bestLocatorSinglePicker) return;
+
   window.elementSelected = false;
   window.selectedElementInfo = null;
+
+  // --- El Overlay de Resaltado ---
+  let overlay = document.createElement('div');
+  overlay.id = 'bestlocator-overlay';
+  Object.assign(overlay.style, {
+    position: 'absolute',
+    zIndex: '2147483647',
+    pointerEvents: 'none',
+    border: '2px solid red',
+    boxSizing: 'border-box',
+    display: 'none'
+  });
+  document.body.appendChild(overlay);
 
   const gatherInfo = (element) => {
     if (!element) return null;
@@ -15,35 +29,31 @@
       className: element.className || '',
       textContent: (element.textContent || '').trim(),
       attributes: attrs,
-      depth: (() => {
-        let d = 0; let e = element;
-        while (e && e.parentElement) { d++; e = e.parentElement; }
-        return d;
-      })(),
-      position: (() => {
-        if (!element.parentElement) return 0;
-        return Array.from(element.parentElement.children).indexOf(element);
-      })(),
     };
   };
 
   const highlightElement = (event) => {
-    document.querySelectorAll('.bestlocator-highlight').forEach(el => {
-      el.style.outline = '';
-      el.classList.remove('bestlocator-highlight');
-    });
     const target = event.target;
-    if (target) {
-      target.style.outline = '2px solid red';
-      target.classList.add('bestlocator-highlight');
+    if (target && target.id !== 'bestlocator-overlay') {
+      const rect = target.getBoundingClientRect();
+      Object.assign(overlay.style, {
+        top: `${window.scrollY + rect.top}px`,
+        left: `${window.scrollX + rect.left}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+        display: 'block'
+      });
     }
   };
 
   const clickHandler = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    
+    overlay.style.display = 'none';
     window.selectedElementInfo = gatherInfo(event.target);
     window.elementSelected = true;
+    
     cleanup();
   };
 
@@ -59,13 +69,12 @@
     document.removeEventListener('click', clickHandler, true);
     document.removeEventListener('keydown', escapeHandler, true);
     document.removeEventListener('mouseover', highlightElement, true);
-    document.querySelectorAll('.bestlocator-highlight').forEach(el => {
-      el.style.outline = '';
-      el.classList.remove('bestlocator-highlight');
-    });
+    overlay.remove();
+    window.bestLocatorSinglePicker = null;
   };
 
   document.addEventListener('click', clickHandler, true);
   document.addEventListener('keydown', escapeHandler, true);
   document.addEventListener('mouseover', highlightElement, true);
+  window.bestLocatorSinglePicker = { cleanup };
 })();

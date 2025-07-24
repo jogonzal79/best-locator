@@ -1,112 +1,125 @@
-// prompt-templates.ts
-import { ElementInfo, PageContext } from './ai-engine.js';
+import { ElementInfo, PageContext } from '../types/index.js';
+
+type Framework = 'playwright' | 'selenium' | 'cypress';
+type Language  = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp';
 
 export class PromptTemplates {
-  getSelectorPrompt(element: ElementInfo, context: PageContext): string {
+  // ---------- Utils ----------
+  private safeText(text?: string, max = 120): string {
+    if (!text) return '';
+    return text.trim().replace(/\s+/g, ' ').slice(0, max);
+  }
+  private pretty(obj: any) { return JSON.stringify(obj, null, 2); }
+
+  // ---------- PROMPT PRINCIPAL GPT-4o ----------
+  getUniversalLocatorPrompt(
+    element: ElementInfo,
+    context: PageContext,
+    framework: Framework,
+    language: Language
+  ): string {
+    const attrs = this.pretty(element.attributes);
+    const visible = this.safeText(element.textContent);
+
+    return `You are an expert UI test engineer. Act as a pure function.
+
+GOAL
+Return ONLY one locator call formatted for the requested framework & language.
+
+FRAMEWORK/LANGUAGE SUPPORT
+- Playwright: javascript, typescript, python, java, csharp
+- Selenium:   javascript, typescript, python, java, csharp
+- Cypress:    javascript, typescript
+
+OUTPUT CONTRACT
+Return ONLY a JSON object wrapped in <ANSWER>...</ANSWER>. Nothing else.
+Schema:
+{
+  "selector": "pure CSS or role/name/placeholder/id used",
+  "api": "get_by_role|get_by_test_id|get_by_placeholder|locator|By.cssSelector|By.id|cy.get|etc.",
+  "code": "final single line of code for the chosen framework/language",
+  "strategy": "test-id|role|placeholder|id|class|fallback",
+  "unique": true
+}
+
+PRIORITY (highest → lowest):
+1) data-testid / data-test / data-cy
+2) role + accessible name (visible text)
+3) placeholder (only for inputs/textarea)
+4) meaningful id
+5) short, stable class
+6) fallback: tag + [attr=value] or tag:nth-of-type(n)  (≤2 combinators total)
+
+ABSOLUTE RULES
+- No non-standard pseudo-classes (e.g., :contains()).
+- No inline styles.
+- No state/stateful classes (hover, active, disabled, selected, focus, etc.).
+- No auto-generated hashes (css-xyz123, _ngcontent, .jet-button__state-hover, etc.).
+- No brittle chains (>2 combinators).
+- Selector must be unique in the current document/root.
+
+INTERNAL CHECK (do NOT output)
+1. Did you use the highest available priority?
+2. Is it unique?
+3. Does it meet all ABSOLUTE RULES?
+4. Is the API syntax correct for ${framework}/${language}?
+
+ELEMENT
+tag: ${element.tagName}
+attributes:
+${attrs}
+visibleText: "${visible}"
+
+REQUEST
+framework: ${framework}
+language: ${language}
+
+<ANSWER>`;
+  }
+
+  // ---------- PROMPT EXPLICACIÓN (opcional) ----------
+  getExplanationPrompt(selector: string, element: ElementInfo): string {
+    return `Explain briefly why "${selector}" is robust for a ${element.tagName}.
+
+Return ONLY JSON:
+{
+  "reason": "1-2 concise sentences",
+  "priority_used": "test-id|role|placeholder|id|class|fallback"
+}`;
+  }
+
+  // ---------- PROMPT LOCAL (OLLAMA) ----------
+  getLocalSelectorPrompt(element: ElementInfo): string {
     const attrs = JSON.stringify(element.attributes);
-    
-    return `You are a function that returns ONLY a CSS selector.
+    return `Return ONLY one standard CSS selector. Nothing else.
 
-Examples:
-INPUT: tag=input attrs={"data-test":"username"} → <ANSWER>[data-test=\"username\"]</ANSWER>
-INPUT: tag=div attrs={"class":"login_logo"} → <ANSWER>.login_logo</ANSWER>
+Order: data-* test id > id > role+name > placeholder > stable class > fallback(tag[attr] or tag:nth-of-type).  
+No :contains(), no inline styles, no long chains (>2 combinators).
 
-Now generate:
 INPUT: tag=${element.tagName} attrs=${attrs}
 <ANSWER>`;
   }
 
-  getAnalysisPrompt(element: ElementInfo, context: PageContext): string {
-    return `Analyze ${element.tagName}. Return: good selector`;
+  // ---------- PROMPT DE REPARACIÓN (AUTO-RETRY) ----------
+  getRepairPrompt(
+    badOutput: string,
+    violations: string[],
+    framework: Framework,
+    language: Language
+  ): string {
+    return `The previous output violated rules.
+
+BAD OUTPUT:
+${badOutput}
+
+VIOLATIONS:
+- ${violations.join('\n- ')}
+
+FIX IT:
+Return a NEW valid JSON (same schema as before) wrapped in <ANSWER>...</ANSWER> that obeys all rules, for:
+framework: ${framework}
+language: ${language}
+
+<ANSWER>`;
   }
-
-  getExplanationPrompt(selector: string, element: ElementInfo): string {
-    return `Why is "${selector}" good for ${element.tagName}?`;
-  }
-
-  getPageAnalysisPrompt(context: PageContext): string {
-    return `Analyze this webpage for test automation:
-
-URL: ${context.url}
-TITLE: ${context.title}
-
-Detect page type (login, checkout, dashboard, etc.) and return JSON:
-{
-  "pageType": "login_page",
-  "testingStrategy": "focus on form validation",
-  "keyElements": ["username", "password", "submit"],
-  "confidence": 0.9
-}`;
-  }
-}
-
-// ollama-client.ts
-export interface OllamaClientConfig {
-  model: string;
-  // puedes agregar otras propiedades de configuración aquí si es necesario
-}
-
-export class OllamaClient {
-  private config: OllamaClientConfig;
-
-  constructor(config: OllamaClientConfig) {
-    this.config = config;
-  }
-
-  private createRequestBody(prompt: string) {
-    return {
-      model: this.config.model,
-      prompt: prompt,
-      temperature: 0,
-      stream: false,
-      options: {
-        num_predict: 32,
-        stop: ["</ANSWER>"]
-      }
-    };
-  }
-
-  // ... método que envía la solicitud utilizando createRequestBody() ...
-}
-
-// ai-engine.ts
-// import { ElementInfo } from './ai-engine.js';
-
-interface AIEnhancedResult {
-  selector: string;
-  confidence: number;
-  type: string;
-  aiEnhanced: boolean;
-}
-
-export class AIEngine {
-  // ... otras partes del archivo ...
-
-  private getFallbackResult(element: ElementInfo): AIEnhancedResult {
-    // implementación existente...
-    return { selector: '', confidence: 0, type: 'fallback', aiEnhanced: false };
-  }
-
-  private parseSelectorResponse(response: any, element: ElementInfo): AIEnhancedResult {
-    const responseText = response.response || '';
-    
-    // Extraer selector entre marcadores
-    const match = responseText.match(/<ANSWER>\s*([^<\r\n]+)\s*$/);
-    if (match) {
-      const selector = match[1].trim();
-      console.log('🎯 AI extracted selector:', selector);
-      
-      return {
-        selector: selector,
-        confidence: 95,
-        type: 'ai-enhanced',
-        aiEnhanced: true
-      };
-    }
-    
-    // Si falla, fallback
-    return this.getFallbackResult(element);
-  }
-
-  // ... resto de métodos ...
 }

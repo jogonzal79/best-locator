@@ -1,19 +1,17 @@
-// src/commands/pick.ts
 import { ConfigManager } from '../core/config-manager.js';
 import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { BrowserManager } from '../app/browser-manager.js';
 import { logger } from '../app/logger.js';
 import { CommandOptions, ElementInfo, PageContext, SelectorResult, BestLocatorConfig } from '../types/index.js';
-import { AIEngine } from '../core/ai-engine.js'; // <-- Importar AIEngine
+import { AIEngine } from '../core/ai-engine.js';
 
-// (La función auxiliar 'generateSelector' se mantiene igual)
 async function generateSelector(generator: SelectorGenerator, elementInfo: ElementInfo, pageContext: PageContext, options: CommandOptions, config: BestLocatorConfig): Promise<SelectorResult> {
     const useAI = options.ai && config.ai?.enabled;
     if (useAI) {
         try {
             logger.info('🧠 Running AI analysis...');
-            return await generator.generateSelectorWithAI(elementInfo, pageContext, config.defaultFramework);
+            return await generator.generateSelectorWithAI(elementInfo, pageContext);
         } catch (err) {
             logger.warning('⚠️ AI failed, falling back to traditional method.');
         }
@@ -33,8 +31,15 @@ export async function handlePickCommand(url: string, framework: string | undefin
         logger.nl();
         logger.info('🖱️ Click any element on the page to generate a selector.');
         logger.log('   Press ESC to cancel.');
+        
         await page.waitForFunction('window.elementSelected === true', null, { timeout: config.timeouts.elementSelection });
+        
         const elementInfo: ElementInfo | null = await page.evaluate('window.selectedElementInfo');
+        
+        if (elementInfo) {
+          // Limpiamos el atributo 'style' para que la IA no se confunda con el resaltado
+          delete elementInfo.attributes.style;
+        }
 
         if (!elementInfo) {
             logger.warning('\n🚪 Selection cancelled by user.');
@@ -55,11 +60,11 @@ export async function handlePickCommand(url: string, framework: string | undefin
         logger.nl();
         logger.info('🎯 Best Selector:');
         logger.selector(selectorResult.selector);
+
         if (config.output.includeConfidence && selectorResult.confidence) {
             logger.log(`   Confidence: ${selectorResult.confidence}%`);
         }
 
-        // ================== INICIO DE LA CORRECCIÓN: EXPLAIN ==================
         if (options.ai && options.explain && config.ai.enabled) {
             logger.info('🧠 Generating AI explanation...');
             const aiEngine = new AIEngine(config);
@@ -68,7 +73,6 @@ export async function handlePickCommand(url: string, framework: string | undefin
             logger.info('💡 AI Explanation:');
             logger.log(`   ${explanation}`);
         }
-        // =================== FIN DE LA CORRECCIÓN: EXPLAIN ====================
 
         logger.nl();
         logger.info('🧩 Code Snippet:');
@@ -86,7 +90,11 @@ export async function handlePickCommand(url: string, framework: string | undefin
         }
 
     } catch (error: any) {
-        // ... (manejo de errores)
+        if (error.name === 'TimeoutError') {
+            logger.warning('\n🚪 Selection timed out.');
+        } else {
+            logger.error('An error occurred during the pick command:', error);
+        }
     } finally {
         await browserManager.close();
     }

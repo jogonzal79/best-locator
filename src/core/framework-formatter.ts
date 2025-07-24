@@ -1,74 +1,76 @@
-// src/core/framework-formatter.ts
 import { logger } from '../app/logger.js';
 
 export class FrameworkFormatter {
-  /**
-   * Formats a raw CSS selector into a framework-specific and language-specific code snippet.
-   */
   format(selector: string, framework: string, language: string): string {
     if (!selector) {
-      logger.warning('Formatter received an empty selector.');
       return '// No selector generated';
     }
 
-    // Normalizamos las entradas para que no importen mayúsculas/minúsculas
     const lowerFramework = framework.toLowerCase();
-    // Asumimos un lenguaje por defecto si no se especifica
     const lowerLanguage = language ? language.toLowerCase() : 'typescript';
+    
+    if (selector.startsWith('text=')) {
+        // CORRECCIÓN: Limpiamos las comillas que el generador manual añade
+        let textContent = selector.substring(5);
+        if (textContent.startsWith('"') && textContent.endsWith('"')) {
+            textContent = textContent.slice(1, -1);
+        }
+        
+        switch (lowerFramework) {
+            case 'playwright':
+                return this.formatPlaywrightText(textContent, lowerLanguage);
+            case 'cypress':
+                return `cy.contains('${textContent.replace(/'/g, "\\'")}')`;
+            case 'selenium':
+                return this.formatSeleniumText(textContent, lowerLanguage);
+            default:
+                return `// Text selector not standard: ${selector}`;
+        }
+    }
 
+    // Lógica para selectores CSS
     switch (lowerFramework) {
       case 'playwright':
-        switch (lowerLanguage) {
-          case 'python':
-            return `page.locator("${selector}")`;
-          case 'java':
-            return `page.locator("${selector}")`;
-          case 'c#':
-            return `Page.Locator("${selector}")`;
-          case 'typescript':
-          case 'javascript':
-          default:
-            return `await page.locator('${selector}')`;
-        }
-
+        return this.formatPlaywrightCss(selector, lowerLanguage);
       case 'cypress':
-        // Cypress es principalmente para JavaScript/TypeScript
-        if (lowerLanguage !== 'typescript' && lowerLanguage !== 'javascript') {
-            logger.warning(`Cypress does not support '${language}'. Providing JavaScript snippet.`);
-        }
-        return `cy.get('${selector}')`;
-
+        return `cy.get('${selector.replace(/'/g, "\\'")}')`;
       case 'selenium':
-        switch (lowerLanguage) {
-          case 'python':
-            return `driver.find_element(By.CSS_SELECTOR, "${selector}")`;
-          case 'java':
-            return `driver.findElement(By.cssSelector("${selector}"))`;
-          case 'c#':
-            return `driver.FindElement(By.CssSelector("${selector}"))`;
-          case 'javascript':
-          case 'typescript':
-            return `await driver.findElement(By.css('${selector}'))`;
-          default:
-            logger.warning(`Language '${language}' not recognized for Selenium. Providing Python snippet as a default.`);
-            return `driver.find_element(By.CSS_SELECTOR, "${selector}")`;
-        }
-      
+        return this.formatSeleniumCss(selector, lowerLanguage);
       default:
-        logger.warning(`Framework '${framework}' not recognized. Providing a generic snippet.`);
-        return `'${selector}' // CSS Selector for unrecognized framework: ${framework}`;
+        return `'${selector}'`;
     }
   }
 
-  /**
-   * Este método ya no es necesario si el generador siempre produce CSS estándar,
-   * pero lo mantenemos por si se reutiliza en el futuro.
-   */
-  private convertToPlaywrightNative(selector: string): string {
-    if (selector.startsWith('getByRole')) {
-      return selector;
-    }
-    // ... otras conversiones si fueran necesarias
-    return selector;
+  private formatPlaywrightText(text: string, lang: string): string {
+    const cleanText = text.replace(/"/g, '\\"');
+    if (lang === 'python') return `page.get_by_text("${cleanText}")`;
+    if (lang === 'java') return `page.getByText("${cleanText}")`;
+    if (lang === 'csharp') return `Page.GetByText("${cleanText}")`;
+    return `await page.getByText('${cleanText.replace(/'/g, "\\'")}')`;
+  }
+  
+  private formatSeleniumText(text: string, lang: string): string {
+    const cleanText = text.replace(/"/g, '\\"');
+    const xpath = `//*[text()="${cleanText}"]`;
+    if (lang === 'python') return `driver.find_element(By.XPATH, "${xpath}")`;
+    if (lang === 'java') return `driver.findElement(By.xpath("${xpath}"))`;
+    if (lang === 'csharp') return `driver.FindElement(By.XPath("${xpath}"))`;
+    return `await driver.findElement(By.xpath('${xpath.replace(/'/g, "\\'")}'))`;
+  }
+  
+  private formatPlaywrightCss(selector: string, lang: string): string {
+    const cleanSelector = selector.replace(/'/g, "\\'");
+    if (lang === 'python') return `page.locator('${cleanSelector}')`;
+    if (lang === 'java') return `page.locator("${cleanSelector.replace(/"/g, '\\"')}")`;
+    if (lang === 'csharp') return `Page.Locator("${cleanSelector.replace(/"/g, '\\"')}")`;
+    return `await page.locator('${cleanSelector}')`;
+  }
+
+  private formatSeleniumCss(selector: string, lang: string): string {
+    const cleanSelector = selector.replace(/"/g, '\\"');
+    if (lang === 'python') return `driver.find_element(By.CSS_SELECTOR, "${cleanSelector}")`;
+    if (lang === 'java') return `driver.findElement(By.cssSelector("${cleanSelector}"))`;
+    if (lang === 'csharp') return `driver.FindElement(By.CssSelector("${cleanSelector}"))`;
+    return `await driver.findElement(By.css('${cleanSelector.replace(/'/g, "\\'")}'))`;
   }
 }
