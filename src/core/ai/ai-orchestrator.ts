@@ -6,7 +6,7 @@ import { PromptTemplates } from '../prompt-templates.js';
 const ANSWER_REGEX = /<ANSWER>([\s\S]*?)<\/ANSWER>/;
 
 const LocatorStrategySchema = z.object({
-  strategy: z.enum(['test-id', 'role', 'text', 'placeholder', 'id', 'css']),
+  strategy: z.enum(['test-id', 'role', 'text', 'placeholder', 'id', 'css', 'link-href']),
   value: z.string().min(1),
 });
 
@@ -16,7 +16,7 @@ export async function getBestLocatorStrategy(
     provider: IAIProvider,
     element: ElementInfo
 ): Promise<ValidatedStrategy> {
-  
+
   const templates = new PromptTemplates();
   let attempt = 0;
   let lastOutput = '';
@@ -27,7 +27,7 @@ export async function getBestLocatorStrategy(
     const raw = await provider.generateText(prompt);
     lastOutput = raw;
     const match = ANSWER_REGEX.exec(raw);
-    
+
     if (!match || !match[1]) {
       prompt = templates.getRepairPrompt(raw, ['No <ANSWER> block found']);
       continue;
@@ -39,10 +39,9 @@ export async function getBestLocatorStrategy(
       if (jsonMatch && jsonMatch[1]) {
         content = jsonMatch[1];
       }
-
       const json = JSON.parse(content);
       const parsed = LocatorStrategySchema.parse(json);
-      return parsed; // Success
+      return parsed;
     } catch (e: any) {
       const errorMessage = e instanceof z.ZodError ? 'Schema mismatch' : 'Invalid JSON';
       prompt = templates.getRepairPrompt(raw, [errorMessage, e.message]);
