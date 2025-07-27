@@ -11,11 +11,9 @@ interface OllamaConfig {
 
 export class OllamaProvider implements IAIProvider {
   private config: OllamaConfig;
-  private templates: PromptTemplates;
 
   constructor(config: OllamaConfig) {
     this.config = config;
-    this.templates = new PromptTemplates();
   }
 
   async generateText(prompt: string): Promise<string> {
@@ -24,7 +22,7 @@ export class OllamaProvider implements IAIProvider {
   }
 
   async explainSelector(selector: string, element: ElementInfo): Promise<string> {
-    const prompt = this.templates.getExplanationPrompt(selector, element);
+    const prompt = new PromptTemplates().getExplanationPrompt(selector, element);
     return this.generateText(prompt);
   }
 
@@ -41,6 +39,7 @@ export class OllamaProvider implements IAIProvider {
   }
 
   private async makeApiCall(prompt: string): Promise<any> {
+    // ... (la lógica de la llamada fetch a Ollama)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
     try {
@@ -56,10 +55,7 @@ export class OllamaProvider implements IAIProvider {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Ollama API error: ${res.status} - ${errorText}`);
-      }
+      if (!res.ok) throw new Error(`Ollama API error: ${res.status}`);
       return await res.json();
     } catch (error: any) {
       clearTimeout(timeoutId);

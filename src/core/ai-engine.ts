@@ -1,3 +1,4 @@
+// src/core/ai-engine.ts
 import { BestLocatorConfig, ElementInfo, PageContext, SelectorResult } from '../types/index.js';
 import { createAIProvider } from './ai/ai-provider-factory.js';
 import { getBestLocatorStrategy } from './ai/ai-orchestrator.js';

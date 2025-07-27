@@ -11,13 +11,11 @@ interface OpenAIConfig {
 
 export class OpenAIProvider implements IAIProvider {
   private config: OpenAIConfig;
-  private templates: PromptTemplates;
   private apiUrl = "https://api.openai.com/v1/chat/completions";
 
   constructor(config: OpenAIConfig) {
     if (!config.apiKey) throw new Error("OpenAI API key is missing.");
     this.config = config;
-    this.templates = new PromptTemplates();
   }
 
   async generateText(prompt: string): Promise<string> {
@@ -26,7 +24,7 @@ export class OpenAIProvider implements IAIProvider {
   }
 
   async explainSelector(selector: string, element: ElementInfo): Promise<string> {
-    const prompt = this.templates.getExplanationPrompt(selector, element);
+    const prompt = new PromptTemplates().getExplanationPrompt(selector, element);
     return this.generateText(prompt);
   }
 

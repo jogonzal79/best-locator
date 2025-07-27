@@ -1,43 +1,14 @@
-// src/types/index.ts
+import { AIConfig } from '../core/ai-config.js';
 
 export interface BestLocatorConfig {
   defaultFramework: 'playwright' | 'cypress' | 'selenium' | 'testcafe';
-  defaultLanguage: 'typescript' | 'javascript' | 'python' | 'java' | 'c#';
-  timeouts: {
-    pageLoad: number;
-    elementSelection: number;
-    validation: number;
-  };
+  defaultLanguage: 'typescript' | 'javascript' | 'python' | 'java' | 'csharp';
+  timeouts: { pageLoad: number; elementSelection: number; validation: number; };
   projectAttributes: string[];
-  browser: {
-    headless: boolean;
-    viewport: {
-      width: number;
-      height: number;
-    };
-    userAgent?: string;
-  };
-  output: {
-    includeConfidence: boolean;
-    includeXPath: boolean;
-  };
+  browser: { headless: boolean; viewport: { width: number; height: number; }; userAgent?: string; };
+  output: { includeConfidence: boolean; includeXPath: boolean; };
   urls: Record<string, string>;
-  ai: any;
-}
-
-export interface CommandOptions {
-  ai?: boolean;
-  explain?: boolean;
-  noFallback?: boolean;
-}
-
-export interface SelectorResult {
-  selector: string;
-  confidence: number;
-  type: string;
-  reasoning: string;
-  aiEnhanced?: boolean;
-  code?: string;
+  ai: AIConfig['ai'];
 }
 
 export interface ElementInfo {
@@ -47,8 +18,6 @@ export interface ElementInfo {
   textContent: string;
   attributes: { [key: string]: string };
   order?: number;
-  
-  // --- PROPIEDADES AÑADIDAS ---
   computedRole?: string | null;
   accessibleName?: string | null;
 }
@@ -58,10 +27,17 @@ export interface PageContext {
   title: string;
 }
 
-export interface AIEnhancedResult {
+export interface SelectorResult {
   selector: string;
   confidence: number;
   type: string;
-  aiEnhanced: boolean;
-  code?: string; // Asegúrate de que este también lo tenga si lo usas
+  aiEnhanced?: boolean;
+  reasoning?: string;
+  code?: string;
+}
+
+export interface CommandOptions {
+  ai?: boolean;
+  explain?: boolean;
+  noFallback?: boolean;
 }

@@ -31,12 +31,12 @@ export class SelectorGenerator {
   }
 
   public generateSelector(elementInfo: ElementInfo): SelectorResult {
+    const { attributes, tagName, textContent, id, className } = elementInfo;
+
     const priorityResult = this.getPrioritySelector(elementInfo);
     if (priorityResult) {
       return priorityResult;
     }
-
-    const { attributes, tagName, textContent, id, className } = elementInfo;
 
     if (attributes['aria-label']) {
       return this.result(`${tagName}[aria-label="${attributes['aria-label']}"]`, 90, 'css', `Uses 'aria-label'.`);
@@ -44,11 +44,12 @@ export class SelectorGenerator {
     if (attributes['role']) {
       return this.result(`${tagName}[role="${attributes['role']}"]`, 85, 'css', `Uses ARIA role.`);
     }
+
     if (attributes['name']) {
       return this.result(`${tagName}[name="${attributes['name']}"]`, 80, 'css', `Uses form element name.`);
     }
     if (id && !/^\d+$/.test(id)) {
-      return this.result(`#${id}`, 75, 'id', `Uses a unique ID.`);
+      return this.result(id, 75, 'id', `Uses a unique ID.`);
     }
 
     const isTextless = !textContent || textContent.trim().length === 0;
