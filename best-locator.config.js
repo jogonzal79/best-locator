@@ -4,19 +4,16 @@
 export default {
   /**
    * Framework de prueba por defecto.
-   * Opciones: 'playwright', 'cypress', 'selenium'
    */
   defaultFramework: 'playwright',
 
   /**
    * Lenguaje de programación por defecto.
-   * Opciones: 'typescript', 'javascript', 'python', 'java', 'c#'
    */
   defaultLanguage: 'typescript',
 
   /**
    * Atributos HTML que tu proyecto utiliza para identificar elementos de prueba.
-   * Se buscarán en este orden de prioridad.
    */
   projectAttributes: [
     'data-testid',
@@ -27,7 +24,6 @@ export default {
 
   /**
    * Atajos para URLs que usas frecuentemente.
-   * Puedes usarlos con el comando `bestlocator go <alias>`.
    */
   urls: {
     local: 'http://localhost:3000',
@@ -65,53 +61,46 @@ export default {
   },
 
   // ======================================================
-  // SECCIÓN DE INTELIGENCIA ARTIFICIAL (NUEVA ESTRUCTURA)
+  // SECCIÓN DE APPIUM (CORREGIDA)
+  // ======================================================
+  appium: {
+    enabled: true,
+    capabilities: {
+      android: {
+        platformName: 'Android',
+        'appium:automationName': 'UiAutomator2',
+        // Pega el número de serie de tu teléfono aquí
+        'appium:udid': 'Power51280021852',
+        // IMPORTANTE: Asegúrate de que esta versión coincida con la de tu teléfono real
+        'appium:platformVersion': '11', // O la versión que tenga tu teléfono
+        'appium:newCommandTimeout': 600, // Tiempo en segundos (10 minutos)
+        'appium:appActivity': 'com.duckduckgo.app.browser.BrowserActivity'
+      }
+    }
+  },
+
+  // ======================================================
+  // SECCIÓN DE INTELIGENCIA ARTIFICIAL
   // ======================================================
   ai: {
-    /**
-     * Activa o desactiva globalmente las funciones de IA.
-     */
     enabled: true,
-
-    /**
-     * Elige el proveedor de IA que quieres usar.
-     * Opciones: 'ollama', 'openai'
-     */
     provider: 'openai',
-
-    /**
-     * Configuración para Ollama (uso local).
-     */
     ollama: {
       host: 'http://localhost:11434',
       model: 'llama3.1:8b',
       timeout: 60000,
       temperature: 0.3
     },
-
-    /**
-     * Configuración para OpenAI (uso con API Key).
-     */
     openai: {
-      // Se recomienda usar una variable de entorno: OPENAI_API_KEY
       apiKey: process.env.OPENAI_API_KEY || '', 
       model: 'gpt-4o',
       timeout: 20000,
       temperature: 0.1,
     },
-
-    /**
-     * Configuración de características de IA.
-     */
     features: {
       smartSelector: true,
       explainDecisions: true,
     },
-
-    /**
-     * Define qué hacer si la IA falla.
-     * 'traditional' usará el método de fallback. 'fail' detendrá la ejecución.
-     */
     fallback: {
       onError: 'traditional'
     }

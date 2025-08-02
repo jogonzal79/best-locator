@@ -1,3 +1,5 @@
+// Archivo: src/core/framework-formatter.ts
+
 import { SelectorResult } from '../types/index.js';
 
 type Language = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp';
@@ -11,7 +13,6 @@ export class FrameworkFormatter {
     const lang = language.toLowerCase() as Language;
     const lowerFramework = framework.toLowerCase();
 
-    // Usamos el 'type' del SelectorResult para decidir la estrategia de formato
     switch (type) {
       case 'test-id':
         return this.formatTestId(selector, lowerFramework, lang);
@@ -25,20 +26,17 @@ export class FrameworkFormatter {
       case 'id':
         return this.formatCss(`#${selector}`, lowerFramework, lang);
       default:
-        // para 'css', 'class', 'link-href-keyword', 'tag-only', etc.
         return this.formatCss(selector, lowerFramework, lang);
     }
   }
 
-  // --- Funciones de Ayuda para Formateo ---
+  // --- Funciones de Ayuda para Formateo Web ---
 
   private escapeQuotes(str: string | undefined, lang: Language): string {
     if (!str) return '';
-    // Para Python, Java, y C# es más seguro usar comillas dobles y escapar las internas
     if (lang === 'python' || lang === 'java' || lang === 'csharp') {
         return str.replace(/"/g, '\\"');
     }
-    // Para JS/TS, es más común usar comillas simples y escapar las internas
     return str.replace(/'/g, "\\'");
   }
 
@@ -50,8 +48,6 @@ export class FrameworkFormatter {
         if (lang === 'csharp') return `Page.GetByTestId("${cleanValue}")`;
         return `await page.getByTestId('${value.replace(/'/g, "\\'")}')`;
     }
-    // Para Selenium y Cypress, usamos un selector de atributo estándar
-    // Asumimos que el atributo es [data-testid="..."] como un estándar común
     return this.formatCss(`[data-testid="${value}"]`, framework, lang);
   }
 
@@ -67,7 +63,6 @@ export class FrameworkFormatter {
         if (lang === 'csharp') return `page.GetByRole(AriaRole.${role.charAt(0).toUpperCase() + role.slice(1)}${nameParamCs})`;
         return `await page.getByRole('${role}'${nameParamTs})`;
     }
-    // Para otros frameworks, un selector de atributo de rol es el mejor fallback
     return this.formatCss(`[role="${role}"]`, framework, lang);
   }
 
@@ -119,5 +114,89 @@ export class FrameworkFormatter {
         return `await driver.findElement(By.css('${selector.replace(/'/g, "\\'")}'))`;
     }
     return `'${selector}'`;
+  }
+
+  // --- NUEVOS MÉTODOS PARA FORMATEO MÓVIL ---
+
+  public formatMobile(
+    selectorResult: SelectorResult,
+    platform: 'ios' | 'android',
+    language: string
+  ): string {
+    const { selector, type } = selectorResult;
+    const lang = language.toLowerCase() as Language;
+
+    if (!selector) return '// No mobile selector generated';
+
+    switch (type) {
+      case 'accessibility-id':
+        return this.formatAccessibilityId(selector, lang);
+      case 'resource-id':
+        return this.formatResourceId(selector, lang);
+      case 'text':
+        return this.formatMobileText(selector, lang);
+      case 'ios-predicate':
+        return this.formatIOSPredicate(selector, lang);
+      case 'uiautomator':
+        return this.formatUiAutomator(selector, lang);
+      case 'xpath':
+        return this.formatMobileXPath(selector, lang);
+      default:
+        return this.formatMobileGeneric(selector, lang);
+    }
+  }
+
+  private formatAccessibilityId(value: string, lang: Language): string {
+    const cleanValue = this.escapeQuotes(value, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.ACCESSIBILITY_ID, "${cleanValue}")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.accessibilityId("${cleanValue}"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.AccessibilityId("${cleanValue}"))`;
+    // Default to JS/TS WebDriverIO syntax
+    return `await driver.findElement('accessibility id', '${value.replace(/'/g, "\\'")}')`;
+  }
+
+  private formatResourceId(value: string, lang: Language): string {
+    const cleanValue = this.escapeQuotes(value, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.ID, "${cleanValue}")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.id("${cleanValue}"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.Id("${cleanValue}"))`;
+    return `await driver.findElement('id', '${value.replace(/'/g, "\\'")}')`;
+  }
+
+  private formatMobileText(text: string, lang: Language): string {
+    const cleanText = this.escapeQuotes(text, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.XPATH, "//*[@text='${cleanText}']")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.xpath("//*[@text='${cleanText}']"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.XPath("//*[@text='${cleanText}']"))`;
+    return `await driver.findElement('xpath', "//*[@text=\\"${text.replace(/"/g, '\\"')}\\"]")`;
+  }
+
+  private formatIOSPredicate(predicate: string, lang: Language): string {
+    const cleanPredicate = this.escapeQuotes(predicate, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.IOS_PREDICATE, "${cleanPredicate}")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.iosNsPredicateString("${cleanPredicate}"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.IosNsPredicate("${cleanPredicate}"))`;
+    return `await driver.findElement('-ios predicate string', '${predicate.replace(/'/g, "\\'")}')`;
+  }
+
+  private formatUiAutomator(selector: string, lang: Language): string {
+    const cleanSelector = this.escapeQuotes(selector, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.ANDROID_UIAUTOMATOR, "${cleanSelector}")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.androidUIAutomator("${cleanSelector}"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.AndroidUIAutomator("${cleanSelector}"))`;
+    return `await driver.findElement('android uiautomator', '${selector.replace(/'/g, "\\'")}')`;
+  }
+
+  private formatMobileXPath(xpath: string, lang: Language): string {
+    const cleanXPath = this.escapeQuotes(xpath, lang);
+    if (lang === 'python') return `driver.find_element(AppiumBy.XPATH, "${cleanXPath}")`;
+    if (lang === 'java') return `driver.findElement(AppiumBy.xpath("${cleanXPath}"))`;
+    if (lang === 'csharp') return `driver.FindElement(MobileBy.XPath("${cleanXPath}"))`;
+    return `await driver.findElement('xpath', '${xpath.replace(/'/g, "\\'")}')`;
+  }
+
+  private formatMobileGeneric(selector: string, lang: Language): string {
+    // As a fallback, assume it's an XPath
+    return this.formatMobileXPath(selector, lang);
   }
 }

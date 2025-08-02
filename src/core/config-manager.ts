@@ -1,34 +1,33 @@
 // src/core/config-manager.ts
 import fs from 'fs';
 import path from 'path';
-import { AIConfig, DEFAULT_AI_CONFIG } from './ai-config.js';
-import { logger } from '../app/logger.js'; // <-- CORRECCIÓN: Se añade la importación del logger
+import { logger } from '../app/logger.js';
+import { BestLocatorConfig, AppiumConfig } from '../types/index.js';
 
-// La interfaz principal se define aquí, como la fuente original de la verdad.
-export interface BestLocatorConfig {
-  defaultFramework: 'playwright' | 'cypress' | 'selenium' | 'testcafe';
-  defaultLanguage: 'typescript' | 'javascript' | 'python';
-  timeouts: {
-    pageLoad: number;
-    elementSelection: number;
-    validation: number;
-  };
-  projectAttributes: string[];
-  browser: {
-    headless: boolean;
-    viewport: {
-      width: number;
-      height: number;
-    };
-    userAgent?: string;
-  };
-  output: {
-    includeConfidence: boolean;
-    includeXPath: boolean;
-  };
-  urls: Record<string, string>;
-  ai: AIConfig['ai'];
-}
+// Se define una configuración por defecto específica para Appium.
+const DEFAULT_APPIUM_CONFIG: AppiumConfig = {
+  enabled: false,
+  serverUrl: 'http://localhost:4723',
+  capabilities: {
+    ios: {
+      platformName: 'iOS',
+      'appium:platformVersion': '17.0',
+      'appium:deviceName': 'iPhone 15',
+      'appium:automationName': 'XCUITest'
+    },
+    android: {
+      platformName: 'Android',
+      'appium:platformVersion': '14.0',
+      'appium:deviceName': 'Pixel_7_API_34',
+      'appium:automationName': 'UiAutomator2'
+    }
+  },
+  defaultPlatform: 'ios',
+  inspector: {
+    enabled: true,
+    port: 8100
+  }
+};
 
 const DEFAULT_CONFIG: BestLocatorConfig = {
   defaultFramework: 'playwright',
@@ -51,7 +50,33 @@ const DEFAULT_CONFIG: BestLocatorConfig = {
     includeXPath: false,
   },
   urls: {},
-  ai: DEFAULT_AI_CONFIG
+  // CORRECCIÓN FINAL: Se ajusta la estructura de 'features' y 'fallback' según los tipos exactos.
+  ai: { 
+    enabled: true, 
+    provider: 'ollama', 
+    ollama: { 
+      host: 'http://localhost:11434', 
+      model: 'llama3.1',
+      temperature: 0.7,
+      timeout: 120000
+    },
+    openai: {
+        apiKey: '',
+        model: 'gpt-4-turbo',
+        temperature: 0.7,
+        timeout: 120000
+    },
+    // --> ESTRUCTURA CORREGIDA
+    features: {
+        smartSelector: true,
+        explainDecisions: false
+    },
+    // --> ESTRUCTURA CORREGIDA
+    fallback: {
+        onError: 'traditional'
+    }
+  },
+  appium: DEFAULT_APPIUM_CONFIG
 };
 
 export class ConfigManager {
@@ -124,7 +149,30 @@ export class ConfigManager {
       },
       output: { ...defaultConfig.output, ...userConfig.output },
       urls: { ...defaultConfig.urls, ...userConfig.urls },
-      ai: { ...defaultConfig.ai, ...userConfig.ai }
+      ai: {
+        ...defaultConfig.ai,
+        ...userConfig.ai,
+        ollama: {
+          ...defaultConfig.ai.ollama,
+          ...userConfig.ai?.ollama,
+        },
+        openai: {
+            ...defaultConfig.ai.openai,
+            ...userConfig.ai?.openai,
+        }
+      },
+      appium: {
+        ...defaultConfig.appium,
+        ...userConfig.appium,
+        capabilities: {
+          ...defaultConfig.appium.capabilities,
+          ...userConfig.appium?.capabilities,
+        },
+        inspector: {
+          ...defaultConfig.appium.inspector,
+          ...userConfig.appium?.inspector,
+        }
+      }
     };
   }
   

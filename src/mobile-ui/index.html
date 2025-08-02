@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best-Locator Mobile Inspector</title>
+    <link rel="stylesheet" href="inspector.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Best-Locator Mobile Inspector</h1>
+            <div class="controls">
+                <button id="refresh-btn" class="btn primary">Refresh</button>
+                <button id="clear-btn" class="btn secondary">Clear Selection</button>
+                <span id="counter">Selected: 0</span>
+            </div>
+        </header>
+        <div class="main-content">
+            <div class="screenshot-panel">
+                <h3>App Screenshot</h3>
+                <div class="screenshot-container">
+                    <img id="screenshot" src="" alt="App Screenshot" />
+                    <div id="elements-overlay"></div>
+                </div>
+            </div>
+            <div class="info-panel">
+                <div class="guide-panel">
+                    <h4>📝 How to Use the Interactive Inspector</h4>
+                    <ol>
+                        <li>Navigate to the desired screen on your device.</li>
+                        <li>Click <strong>Refresh</strong> to update the screenshot.</li>
+                        <li>Select one or more elements in the screenshot.</li>
+                        <li>Click <strong>Generate Selectors</strong>.</li>
+                        <li>Check your terminal to see the generated code.</li>
+                    </ol>
+                </div>
+                <h3>Selected Elements</h3>
+                <div id="selected-list"></div>
+                <div class="actions">
+                    <button id="generate-btn" class="btn success">Generate Selectors</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="inspector.js"></script>
+</body>
+</html>

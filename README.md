@@ -1,6 +1,6 @@
 # Best-Locator
 
-**Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.**
+**Universal AI-powered selector generator for Web and Mobile (iOS & Android) UI testing with organic navigation and intelligent analysis.**
 
 Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.
 
@@ -11,6 +11,7 @@ Generate professional-grade selectors for UI testing with the reliability develo
 
 ## 🚀 Quick Start
 
+### For Web
 ```bash
 # 1. Install the tool globally
 npm install -g bestlocator
@@ -27,6 +28,22 @@ bestlocator init
 bestlocator pick-toggle https://saucedemo.com --ai --explain
 ```
 
+### For Mobile (iOS & Android)
+```bash
+# 1. Install Appium and its drivers
+npm install -g appium
+appium driver install uiautomator2 && appium driver install xcuitest
+
+# 2. Start the Appium server in a separate terminal
+appium
+
+# 3. In another terminal, start inspecting your app
+# For Android:
+bestlocator mobile-inspector <path-to-your.apk> android
+# For iOS:
+bestlocator mobile-inspector <path-to-your.app> ios
+```
+
 ---
 
 ## ✨ Why Best-Locator?
@@ -36,11 +53,12 @@ Traditional selector generators are broken. They force you to capture elements i
 **Best-Locator changes everything:**
 
 - 🧠 **Hybrid Intelligence**: Combines rule-based stability with AI creativity
+- 📱 **Cross-Platform Mobile Support**: Inspect native apps on iOS and Android with a unified visual inspector
 - 🌐 **Organic Navigation**: Browse like a normal user, log in, and move between pages
-- ⚡ **Toggle Capture Mode**: Turn element capture ON/OFF with keyboard shortcuts (`CTRL+S` / `CTRL+D`)
-- 🎯 **Professional Selectors**: Prioritizes `data-test`, `data-testid`, and other robust attributes first
+- ⚡ **Toggle Capture Mode**: Turn element capture ON/OFF with keyboard shortcuts for web (`CTRL+S` / `CTRL+D`)
+- 🎯 **Professional Selectors**: Prioritizes robust attributes like `data-testid`, `resource-id`, and `accessibility-id`
 - 📄 **Multi-Page Capture**: Collect selectors from different pages in a single session
-- 🔧 **Framework Agnostic**: Generates code for Playwright, Selenium, and Cypress
+- 🔧 **Framework Agnostic**: Generates code for Playwright, Selenium, Cypress, and Appium
 - 💡 **AI Explanations**: Understand why a selector was chosen
 - 🚀 **Intelligent Fallback**: Uses AI only when necessary, ensuring speed and reliability
 
@@ -48,6 +66,7 @@ Traditional selector generators are broken. They force you to capture elements i
 
 ## 📋 Prerequisites
 
+### For Web Testing
 Before installing, make sure you have:
 
 - **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
@@ -58,6 +77,13 @@ Check your Node.js version:
 node -v
 ```
 
+### For Mobile Testing
+All of the above, plus:
+
+- **Appium 2.x**: The automation server
+- **Android Studio**: For the Android SDK (ANDROID_HOME) and emulators
+- **Xcode (on macOS)**: For iOS simulators and building .app files
+
 ---
 
 ## 🛠 Installation & Setup
@@ -67,13 +93,23 @@ node -v
 npm install -g bestlocator
 ```
 
-### Step 2: Install Browsers
-Best-Locator uses Playwright under the hood to control the browser:
+### Step 2: Install Web Browsers
+Best-Locator uses Playwright under the hood for web testing:
 ```bash
 npx playwright install
 ```
 
-### Step 3: Verify Installation
+### Step 3: Setup for Mobile Testing (Appium)
+```bash
+# Install Appium Server
+npm install -g appium
+
+# Install drivers for Android and iOS
+appium driver install uiautomator2
+appium driver install xcuitest
+```
+
+### Step 4: Verify Installation
 ```bash
 bestlocator hello
 ```
@@ -163,8 +199,8 @@ bestlocator ai-test
 
 ## 🎮 Usage
 
-### Toggle Mode (Recommended)
-The most powerful mode, allowing you to navigate freely:
+### Web - Toggle Mode (Recommended)
+The most powerful mode, allowing you to navigate freely on websites:
 
 ```bash
 bestlocator pick-toggle https://saucedemo.com --ai --explain
@@ -177,14 +213,36 @@ bestlocator pick-toggle https://saucedemo.com --ai --explain
 4. **Press `CTRL+D`**: Turn OFF capture mode to navigate again
 5. **Press `ESC`**: Finish the session and get your results
 
-### Other Modes
+### Mobile - Inspector Mode (Recommended)
+The equivalent powerful mode for mobile, allowing organic navigation:
 
 ```bash
-# Pick a single element
+# For Android
+bestlocator mobile-inspector <path-to-app.apk> android
+
+# For iOS
+bestlocator mobile-inspector <path-to-app.app> ios
+```
+
+**How it works:**
+1. **Navigate freely** on your device/emulator
+2. **Click Refresh** in the web inspector (http://localhost:8100) to update the view
+3. **Select elements** and click Generate Selectors to get the code in your terminal
+
+### Other Commands
+
+```bash
+# Pick a single web element
 bestlocator pick https://your-app.com --ai
 
-# Pick multiple elements in sequence
+# Pick multiple web elements in sequence
 bestlocator pick-multiple https://your-app.com
+
+# Pick a single mobile element (Android)
+bestlocator pick-mobile <path-to-app.apk> android
+
+# Pick a single mobile element (iOS)  
+bestlocator pick-mobile <path-to-app.app> ios
 
 # Validate an existing selector
 bestlocator validate https://your-app.com '[data-test="username"]'
@@ -194,11 +252,19 @@ bestlocator validate https://your-app.com '[data-test="username"]'
 
 ## 🔧 Framework Support
 
+### Web Frameworks
+
 | Framework  | JavaScript | TypeScript | Python | Java | C# |
 |------------|:----------:|:----------:|:------:|:----:|:--:|
 | Playwright |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
 | Selenium   |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
 | Cypress    |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
+
+### Mobile Frameworks (Appium)
+
+| Framework | JavaScript | TypeScript | Python | Java | C# |
+|-----------|:----------:|:----------:|:------:|:----:|:--:|
+| Appium    |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
 
 ---
 
@@ -228,13 +294,28 @@ export default {
     }
   },
   
-  // Custom data-* attributes for your project
+  // Custom data-* attributes for your web project
   projectAttributes: [
     'data-testid',
     'data-cy', 
     'data-test',
     'data-qa'
   ],
+
+  // NEW: Appium Configuration for Mobile
+  appium: {
+    enabled: true,
+    defaultPlatform: 'android',
+    capabilities: {
+      android: {
+        'appium:platformVersion': '12.0', // Set to match your device/emulator
+      },
+      ios: {
+        'appium:platformVersion': '16.0',
+        'appium:deviceName': 'iPhone 14',
+      }
+    }
+  },
   
   // URL shortcuts for the 'go' command
   urls: {
@@ -258,11 +339,15 @@ bestlocator go local --ai # Uses http://localhost:3000 from your config
 ### Core Commands
 
 ```bash
-# Interactive Modes
+# Interactive Modes - Web
 bestlocator pick <url>
 bestlocator pick-multiple <url>
 bestlocator pick-toggle <url>
 bestlocator go <alias>
+
+# Interactive Modes - Mobile
+bestlocator mobile-inspector <path-to-app> <platform>
+bestlocator pick-mobile <path-to-app> <platform>
 
 # Utilities
 bestlocator validate <url> <selector>
@@ -285,12 +370,23 @@ bestlocator ai-test
 
 ## 🔍 Troubleshooting
 
-### Browser Not Opening
+### Browser Not Opening (Web)
 This usually means the Playwright browsers aren't installed:
 
 ```bash
 npx playwright install
 ```
+
+### Appium Not Working (Mobile)
+- **Connection Refused**: Make sure the Appium server is running (`appium`)
+- **Driver not found**: Install the required driver (`appium driver install uiautomator2`)
+- **ANDROID_HOME not set**: Ensure the ANDROID_HOME environment variable is configured correctly
+- **App Crashes or Fails to Start**: This can be due to compatibility issues
+
+**Recommended:** Using a physical device is often more stable than an emulator, as it avoids CPU architecture issues (x86_64 vs ARM).
+
+- If using an emulator, ensure your .apk is compatible with the x86_64 architecture
+- For high-security apps (banks, password managers), these may block screenshot capture, preventing the inspector from working
 
 ### AI Not Working
 1. **For Ollama**: Make sure Ollama is running and the model is downloaded

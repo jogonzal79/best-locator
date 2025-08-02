@@ -11,22 +11,17 @@ import { handleConfigCommand } from './commands/config.js';
 import { handleGoCommand } from './commands/go.js';
 import { handleAiTestCommand } from './commands/ai-test.js';
 import chalk from 'chalk';
-
-// ================== INICIO DE LA CORRECCIÓN ==================
-// Importamos las herramientas de Node.js para leer archivos y manejar rutas
+import { handlePickMobileCommand } from './commands/pick-mobile.js';
+import { handlePickMobileMultipleCommand } from './commands/pick-mobile-multiple.js';
+import { handleMobileInspectorCommand } from './commands/mobile-inspector.js';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-// Obtenemos la ruta del directorio del archivo actual (__dirname)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Leemos el package.json de forma robusta, relativa a la ubicación del paquete
-// La ruta correcta es '../package.json' para subir un nivel desde 'dist/'
 const packageJson = JSON.parse(
   await readFile(path.join(__dirname, '../package.json'), 'utf-8')
 );
-// =================== FIN DE LA CORRECCIÓN ====================
 
 const program = new Command();
 
@@ -35,8 +30,7 @@ program
   .description('🎯 Universal selector generator for UI testing')
   .version(packageJson.version);
 
-// ... (El resto del archivo se mantiene exactamente igual)
-
+// --- Comandos Web Existentes ---
 program
   .command('pick <url> [framework] [language]')
   .description('Pick an element from a webpage and generate a selector')
@@ -66,6 +60,29 @@ program
   .description('Validate a selector on a given URL')
   .action(handleValidateCommand);
 
+// --- NUEVOS COMANDOS PARA APPIUM ---
+program
+  .command('pick-mobile <app-path> [platform] [language]')
+  .description('Pick an element from a mobile app (iOS/Android)')
+  .option('--platform <platform>', 'Mobile platform (ios or android)')
+  .option('--ai', 'Enable AI-powered selector generation')
+  .option('--explain', 'Explain AI decisions')
+  .action(handlePickMobileCommand);
+
+program
+  .command('pick-mobile-multiple <app-path> [platform] [language]')
+  .description('Pick multiple elements from a mobile app')
+  .option('--platform <platform>', 'Mobile platform (ios or android)')
+  .option('--ai', 'Enable AI-powered selector generation')
+  .action(handlePickMobileMultipleCommand);
+
+program
+  .command('mobile-inspector <app-path> [platform]')
+  .description('Start interactive mobile app inspector')
+  .option('--platform <platform>', 'Mobile platform (ios or android)')
+  .action(handleMobileInspectorCommand);
+
+// --- Comandos de Utilidad Existentes ---
 program
   .command('config')
   .description('Show current configuration')
@@ -98,7 +115,7 @@ if (process.argv.length <= 2) {
   console.log(chalk.green('🧪 Best-Locator - Quick Start'));
   console.log(chalk.white('\nExamples:'));
   console.log(chalk.white('  bestlocator pick https://saucedemo.com'));
-  console.log(chalk.white('  bestlocator pick-multiple https://saucedemo.com'));
+  console.log(chalk.white('  bestlocator pick-mobile ./path/to/my.app ios'));
   console.log(chalk.white('\n🌐 Documentation: https://github.com/jogonzal79/best-locator'));
   process.exit(0);
 }
