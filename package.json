@@ -1,6 +1,6 @@
 {
   "name": "bestlocator",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "type": "module",
   "description": "Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.",
   "main": "dist/index.js",
@@ -18,7 +18,6 @@
     "start": "node dist/index.js",
     "clean": "rimraf dist",
     "postinstall": "echo '🎉 Best-Locator installed! Run: bestlocator hello'"
-    
   },
   "keywords": [
     "testing",
