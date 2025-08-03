@@ -91,20 +91,26 @@ export class ConfigManager {
   public async loadConfig(): Promise<BestLocatorConfig> {
     if (this.configPath) {
         try {
-            let userConfig: Partial<BestLocatorConfig>;
+            // --- INICIO DE LA CORRECCIÓN DE SEGURIDAD ---
 
+            // Ya no soportaremos .js para evitar la ejecución de código.
             if (this.configPath.endsWith('.js')) {
-                const module = await import(`file://${path.resolve(this.configPath)}`);
-                userConfig = module.default || module;
-            } else {
-                const configData = fs.readFileSync(this.configPath, 'utf8');
-                userConfig = JSON.parse(configData);
+                logger.warning(`Warning: .js config files are deprecated for security reasons. Please use JSON.`);
+                // Opcional: podrías lanzar un error aquí para ser más estricto.
             }
+
+            const configData = fs.readFileSync(this.configPath, 'utf8');
+            
+            // Usamos un parseador seguro para JSON.
+            // Esto previene la ejecución de cualquier código.
+            const userConfig = JSON.parse(configData);
+
+            // --- FIN DE LA CORRECCIÓN DE SEGURIDAD ---
 
             logger.success(`✅ Config loaded from: ${this.configPath}`);
             this.config = this.mergeConfig(DEFAULT_CONFIG, userConfig);
         } catch (error) {
-            logger.error(`⚠️ Error loading config file: ${this.configPath}`, error as any);
+            logger.error(`⚠️ Error loading or parsing config file: ${this.configPath}`, error as any);
             logger.warning(`Using default configuration`);
             this.config = DEFAULT_CONFIG;
         }

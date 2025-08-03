@@ -14,8 +14,18 @@ export class OpenAIProvider implements IAIProvider {
   private apiUrl = "https://api.openai.com/v1/chat/completions";
 
   constructor(config: OpenAIConfig) {
-    if (!config.apiKey) throw new Error("OpenAI API key is missing.");
-    this.config = config;
+    // --- INICIO DE LA MEJORA DE SEGURIDAD ---
+    const apiKey = config.apiKey || process.env.OPENAI_API_KEY;
+
+    if (!apiKey || apiKey.length < 10) {
+      throw new Error("OpenAI API key is missing or too short.");
+    }
+    if (!apiKey.startsWith('sk-')) {
+        throw new Error("Invalid OpenAI API key format. It should start with 'sk-'.");
+    }
+    // --- FIN DE LA MEJORA DE SEGURIDAD ---
+
+    this.config = { ...config, apiKey };
   }
 
   async generateText(prompt: string): Promise<string> {
