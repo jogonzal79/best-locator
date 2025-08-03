@@ -13,11 +13,12 @@
     "gui-dev": "cross-env NODE_ENV=development electron src/gui/main.cjs",
     "build": "tsc && cpr src/injected-scripts dist/injected-scripts -o && cpr src/mobile-ui dist/mobile-ui -o",
     "build-gui": "electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "clean": "rimraf dist",
     "postinstall": "echo '🎉 Best-Locator installed! Run: bestlocator hello'"
+    
   },
   "keywords": [
     "testing",
@@ -49,10 +50,13 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.13",
     "cpr": "^3.0.1",
     "electron": "^32.0.0",
     "electron-builder": "^25.0.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },

@@ -80,6 +80,10 @@ export class FrameworkFormatter {
     if (framework === 'selenium') {
         const xpath = `//*[text()="${cleanText}"]`;
         if (lang === 'python') return `driver.find_element(By.XPATH, "${xpath}")`;
+        // --- INICIO DE LA CORRECCIÓN ---
+        if (lang === 'java') return `driver.findElement(By.xpath("${xpath.replace(/"/g, '\\"')}"))`;
+        if (lang === 'csharp') return `driver.FindElement(By.XPath("${xpath.replace(/"/g, '\\"')}"))`;
+        // --- FIN DE LA CORRECCIÓN ---
         return `await driver.findElement(By.xpath('${xpath.replace(/'/g, "\\'")}'))`;
     }
     return `'${text}'`;
