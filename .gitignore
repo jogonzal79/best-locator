@@ -39,3 +39,7 @@ tmp/
 # Electron build output (if not already covered)
 /build/
 /out/
+
+# Jest
+/jest.cache
+jest.config.js
