@@ -1,4 +1,5 @@
-// src/core/selector-generator.ts
+// src/core/selector-generator.ts - CORRECCIÓN PARA ELEMENTOS RESTAURADOS
+
 import { AIEngine } from './ai-engine.js';
 import { BestLocatorConfig, SelectorResult, ElementInfo, PageContext } from '../types/index.js';
 import { logger } from '../app/logger.js';
@@ -31,9 +32,11 @@ export class SelectorGenerator {
   }
 
   public generateSelector(elementInfo: ElementInfo): SelectorResult {
-    const { attributes, tagName, textContent, id, className } = elementInfo;
+    // 🛡️ SANITIZAR DATOS DE ENTRADA (elementos restaurados pueden tener tipos incorrectos)
+    const sanitizedElement = this.sanitizeElementInfo(elementInfo);
+    const { attributes, tagName, textContent, id, className } = sanitizedElement;
 
-    const priorityResult = this.getPrioritySelector(elementInfo);
+    const priorityResult = this.getPrioritySelector(sanitizedElement);
     if (priorityResult) {
       return priorityResult;
     }
@@ -72,7 +75,8 @@ export class SelectorGenerator {
       return this.result(attributes['placeholder'], 65, 'placeholder', `Uses placeholder text.`);
     }
 
-    if (className) {
+    // 🛡️ MANEJO SEGURO DE className
+    if (className && typeof className === 'string' && className.trim()) {
         const stableClasses = className.split(' ').filter(c => c && c.length > 3 && !/hover|active|disabled|focus|selected|--|__|jet/i.test(c));
         if (stableClasses.length > 0) {
             const bestClass = stableClasses.sort((a, b) => b.length - a.length)[0];
@@ -81,6 +85,22 @@ export class SelectorGenerator {
     }
     
     return this.result(tagName, 10, 'css', 'Fallback to tag name.');
+  }
+
+  /**
+   * 🛡️ SANITIZAR ElementInfo para elementos restaurados desde sessionStorage
+   */
+  private sanitizeElementInfo(elementInfo: ElementInfo): ElementInfo {
+    return {
+      tagName: String(elementInfo.tagName || 'div').toLowerCase(),
+      id: String(elementInfo.id || ''),
+      className: typeof elementInfo.className === 'string' ? elementInfo.className : '',
+      textContent: String(elementInfo.textContent || ''),
+      attributes: elementInfo.attributes && typeof elementInfo.attributes === 'object' ? elementInfo.attributes : {},
+      order: elementInfo.order,
+      computedRole: elementInfo.computedRole,
+      accessibleName: elementInfo.accessibleName,
+    };
   }
 
   private result(selector: string, confidence: number, type: string, reasoning: string): SelectorResult {

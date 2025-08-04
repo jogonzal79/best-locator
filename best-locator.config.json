@@ -26,7 +26,7 @@
   },
   "timeouts": {
     "pageLoad": 30000,
-    "elementSelection": 60000,
+    "elementSelection": 3600000,
     "validation": 15000
   },
   "appium": {
