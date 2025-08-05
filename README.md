@@ -14,11 +14,6 @@ Generate professional-grade selectors for UI testing with the reliability develo
 ![GitHub Stars](https://img.shields.io/github/stars/jogonzal79/best-locator?style=for-the-badge&logo=github&logoColor=white&label=Stars&color=feca57)
 ![License](https://img.shields.io/npm/l/bestlocator?style=for-the-badge&logoColor=white&label=License&color=54a0ff)
 
-**🚀 2,600+ downloads in just 20 days!**
-
-[![npm version](https://badge.fury.io/js/bestlocator.svg)](https://badge.fury.io/js/bestlocator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 </div>
 
 ---
