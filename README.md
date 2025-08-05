@@ -4,8 +4,22 @@
 
 Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.
 
+<div align="center">
+
+![NPM Total Downloads](https://img.shields.io/npm/dt/bestlocator?style=for-the-badge&logo=npm&logoColor=white&label=Total%20Downloads&color=ff6b6b)
+![NPM Weekly Downloads](https://img.shields.io/npm/dw/bestlocator?style=for-the-badge&logo=npm&logoColor=white&label=Weekly&color=4ecdc4)
+![NPM Monthly Downloads](https://img.shields.io/npm/dm/bestlocator?style=for-the-badge&logo=npm&logoColor=white&label=Monthly&color=45b7d1)
+![NPM Version](https://img.shields.io/npm/v/bestlocator?style=for-the-badge&logo=npm&logoColor=white&label=Version&color=96ceb4)
+
+![GitHub Stars](https://img.shields.io/github/stars/jogonzal79/best-locator?style=for-the-badge&logo=github&logoColor=white&label=Stars&color=feca57)
+![License](https://img.shields.io/npm/l/bestlocator?style=for-the-badge&logoColor=white&label=License&color=54a0ff)
+
+**🚀 2,600+ downloads in just 20 days!**
+
 [![npm version](https://badge.fury.io/js/bestlocator.svg)](https://badge.fury.io/js/bestlocator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
 
 ---
 
