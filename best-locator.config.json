@@ -37,8 +37,7 @@
         "appium:automationName": "UiAutomator2",
         "appium:udid": "Power51280021852",
         "appium:platformVersion": "11",
-        "appium:newCommandTimeout": 600,
-        "appium:appActivity": "com.duckduckgo.app.browser.BrowserActivity"
+        "appium:newCommandTimeout": 600        
       }
     }
   },
