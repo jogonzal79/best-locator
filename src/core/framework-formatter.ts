@@ -25,6 +25,8 @@ export class FrameworkFormatter {
         return this.formatPlaceholder(selector, lowerFramework, lang);
       case 'id':
         return this.formatCss(`#${selector}`, lowerFramework, lang);
+      case 'link-href':
+        return this.formatCss(`a[href*="${selector}"]`, lowerFramework, lang);
       default:
         return this.formatCss(selector, lowerFramework, lang);
     }
@@ -52,19 +54,47 @@ export class FrameworkFormatter {
   }
 
   private formatRole(role: string, name: string, framework: string, lang: Language): string {
-    if (framework === 'playwright') {
-        const nameParamPy = name ? `, name="${this.escapeQuotes(name, lang)}"`: '';
-        const nameParamTs = name ? `, { name: '${this.escapeQuotes(name, lang)}' }`: '';
-        const nameParamJava = name ? `, new Page.GetByRoleOptions().setName("${this.escapeQuotes(name, lang)}")`: '';
-        const nameParamCs = name ? `, new() { Name = "${this.escapeQuotes(name, lang)}" }`: '';
+  if (role.includes('[name=')) {
+    const match = role.match(/^(\w+)\[name=['"]([^'"]+)['"]\]$/);
+    if (match) { role = match[1]; name = match[2]; }
+  }  
+  if (framework === 'playwright') {
+    // 🆕 MEJORADO: Mejor manejo de nombres con caracteres especiales
+    const escapedName = name ? name.replace(/"/g, '\\"').replace(/'/g, "\\'") : '';
+    
+    const nameParamPy = escapedName ? `, name="${escapedName}"` : '';
+    const nameParamTs = escapedName ? `, { name: '${escapedName}' }` : '';
+    const nameParamJava = escapedName ? `, new Page.GetByRoleOptions().setName("${escapedName}")` : '';
+    const nameParamCs = escapedName ? `, new() { Name = "${escapedName}" }` : '';
 
-        if (lang === 'python') return `page.get_by_role("${role}"${nameParamPy})`;
-        if (lang === 'java') return `page.getByRole(AriaRole.${role.toUpperCase()}${nameParamJava})`;
-        if (lang === 'csharp') return `page.GetByRole(AriaRole.${role.charAt(0).toUpperCase() + role.slice(1)}${nameParamCs})`;
-        return `await page.getByRole('${role}'${nameParamTs})`;
-    }
-    return this.formatCss(`[role="${role}"]`, framework, lang);
+    if (lang === 'python') return `page.get_by_role("${role}"${nameParamPy})`;
+    if (lang === 'java') return `page.getByRole(AriaRole.${role.toUpperCase()}${nameParamJava})`;
+    if (lang === 'csharp') return `page.GetByRole(AriaRole.${role.charAt(0).toUpperCase() + role.slice(1)}${nameParamCs})`;
+    return `await page.getByRole('${role}'${nameParamTs})`;
   }
+  
+  if (framework === 'cypress') {
+    // 🆕 NUEVO: Soporte para Cypress con roles
+    if (name) {
+      return `cy.get('[role="${role}"]').contains('${name.replace(/'/g, "\\'")}')`;
+    }
+    return `cy.get('[role="${role}"]')`;
+  }
+  
+  if (framework === 'selenium') {
+    // 🆕 NUEVO: Soporte para Selenium con roles
+    const selector = name ? `[role="${role}"][aria-label="${name}"]` : `[role="${role}"]`;
+    const cleanSelector = this.escapeQuotes(selector, lang);
+    
+    if (lang === 'python') return `driver.find_element(By.CSS_SELECTOR, "${cleanSelector}")`;
+    if (lang === 'java') return `driver.findElement(By.cssSelector("${cleanSelector}"))`;
+    if (lang === 'csharp') return `driver.FindElement(By.CssSelector("${cleanSelector}"))`;
+    return `await driver.findElement(By.css('${selector.replace(/'/g, "\\'")}'))`;
+  }
+  
+  // Fallback genérico
+  return this.formatCss(`[role="${role}"]`, framework, lang);
+}
 
   private formatText(text: string, framework: string, lang: Language): string {
     const cleanText = this.escapeQuotes(text, lang);

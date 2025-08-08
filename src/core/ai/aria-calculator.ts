@@ -46,6 +46,7 @@ export class AriaCalculator {
     if (tagName === 'a' && !element.attributes.href) {
       return null; // Un <a> sin href no tiene rol de link
     }
+    
     if (tagName === 'img' && !element.attributes.alt) {
       return 'presentation'; // Un <img> sin alt es decorativo
     }
