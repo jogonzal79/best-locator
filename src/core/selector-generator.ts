@@ -211,7 +211,7 @@ export class SelectorGenerator {
     if (!href) return null;
 
     // Keywords significativos en href
-    const keywords = ['login', 'signup', 'register', 'dashboard', 'profile', 'settings', 'logout', 'help', 'contact', 'about', 'discord', 'twitter', 'facebook', 'linkedin', 'github', 'youtube', 'instagram', 'telegram', 'reddit', 'medium'];
+    const keywords = ['discord', 'github', 'linkedin', 'twitter', 'facebook', 'youtube', 'instagram', 'telegram', 'reddit', 'medium', 'login', 'signup', 'register', 'dashboard', 'profile', 'settings', 'logout', 'help', 'contact', 'about'];
     
     for (const keyword of keywords) {
       if (href.toLowerCase().includes(keyword)) {
