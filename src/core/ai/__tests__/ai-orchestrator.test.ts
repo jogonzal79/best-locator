@@ -15,14 +15,12 @@ const baseElement: ElementInfo = {
   accessibleName: 'Login',
 };
 
-// --- INICIO DE LA CORRECCIÓN FINAL ---
 // Esta es la forma canónica de crear un mock de una interfaz completa.
 const mockProvider = {
   generateText: jest.fn(),
   isAvailable: jest.fn(),
   explainSelector: jest.fn(),
 } as jest.Mocked<IAIProvider>;
-// --- FIN DE LA CORRECCIÓN FINAL ---
 
 describe('AI Orchestrator', () => {
   beforeEach(() => {
@@ -55,8 +53,99 @@ describe('AI Orchestrator', () => {
 
     await expect(getBestLocatorStrategy(mockProvider, baseElement))
       .rejects
-      .toThrow('Unable to produce a valid locator strategy after 3 tries.');
+      // ✅ CORREGIDO: Cambiar "tries" por "attempts" según el nuevo mensaje
+      .toThrow('Unable to produce a valid locator strategy after 3 attempts.');
       
     expect(mockProvider.generateText).toHaveBeenCalledTimes(3);
+  });
+
+  // ✅ NUEVO TEST: Verificar que el AI maneja role correctamente
+  it('should correctly parse role strategy with pipe format', async () => {
+    const aiResponse = `
+      <ANSWER>
+      {
+        "strategy": "role",
+        "value": "button|Login"
+      }
+      </ANSWER>
+    `;
+    mockProvider.generateText.mockResolvedValue(aiResponse);
+
+    const result = await getBestLocatorStrategy(mockProvider, baseElement);
+
+    expect(result.strategy).toBe('role');
+    expect(result.value).toBe('button|Login');
+    expect(mockProvider.generateText).toHaveBeenCalledTimes(1);
+  });
+
+  // ✅ NUEVO TEST: Verificar manejo de link-href strategy
+  it('should correctly parse link-href strategy', async () => {
+    const aiResponse = `
+      <ANSWER>
+      {
+        "strategy": "link-href",
+        "value": "github"
+      }
+      </ANSWER>
+    `;
+    mockProvider.generateText.mockResolvedValue(aiResponse);
+
+    const result = await getBestLocatorStrategy(mockProvider, baseElement);
+
+    expect(result.strategy).toBe('link-href');
+    expect(result.value).toBe('github');
+    expect(mockProvider.generateText).toHaveBeenCalledTimes(1);
+  });
+
+  // ✅ NUEVO TEST: Verificar que rechaza URLs completas en link-href
+  it('should reject full URLs in link-href strategy and retry', async () => {
+    const badResponse = `
+      <ANSWER>
+      {
+        "strategy": "link-href",
+        "value": "https://github.com/user/repo"
+      }
+      </ANSWER>
+    `;
+    const goodResponse = `
+      <ANSWER>
+      {
+        "strategy": "link-href",
+        "value": "github"
+      }
+      </ANSWER>
+    `;
+    
+    // Primera llamada retorna URL completa (malo), segunda llamada retorna keyword (bueno)
+    mockProvider.generateText
+      .mockResolvedValueOnce(badResponse)
+      .mockResolvedValueOnce(goodResponse);
+
+    const result = await getBestLocatorStrategy(mockProvider, baseElement);
+
+    expect(result.strategy).toBe('link-href');
+    expect(result.value).toBe('github');
+    expect(mockProvider.generateText).toHaveBeenCalledTimes(2);
+  });
+
+  // ✅ NUEVO TEST: Verificar parsing con reasoning opcional
+  it('should correctly parse response with reasoning field', async () => {
+    const aiResponse = `
+      <ANSWER>
+      {
+        "strategy": "text",
+        "value": "Create Account",
+        "reasoning": "Unique descriptive text unlikely to change"
+      }
+      </ANSWER>
+    `;
+    mockProvider.generateText.mockResolvedValue(aiResponse);
+
+    const result = await getBestLocatorStrategy(mockProvider, baseElement);
+
+    expect(result.strategy).toBe('text');
+    expect(result.value).toBe('Create Account');
+    expect(result.reasoning).toBe('Unique descriptive text unlikely to change');
+    expect(mockProvider.generateText).toHaveBeenCalledTimes(1);
   });
 });
