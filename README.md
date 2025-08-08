@@ -1,8 +1,6 @@
 # Best-Locator
 
-**Universal AI-powered selector generator for Web and Mobile (iOS & Android) UI testing with organic navigation and intelligent analysis.**
-
-Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.
+**The first AI-powered selector generator with professional Toggle Mode for seamless cross-platform testing. Navigate organically, capture selectively, test intelligently.**
 
 <div align="center">
 
@@ -32,9 +30,8 @@ npx playwright install
 cd your-project/
 bestlocator init
 
-# 4. Start generating selectors in the most powerful mode
-# (Note: --ai requires prior setup, see guide below)
-bestlocator pick-toggle https://saucedemo.com --ai --explain
+# 4. Start the most powerful mode with professional controls
+bestlocator pick-toggle https://your-app.com --ai --explain
 ```
 
 ### For Mobile (iOS & Android)
@@ -57,19 +54,85 @@ bestlocator mobile-inspector <path-to-your.app> ios
 
 ## ✨ Why Best-Locator?
 
-Traditional selector generators are broken. They force you to capture elements immediately, can't handle login flows, and often generate unreliable selectors.
+Existing selector tools are limited. They require re-capturing on every page, can't handle complex user flows, and lack intelligent selector generation.
 
-**Best-Locator changes everything:**
+**Best-Locator is different:**
 
-- 🧠 **Hybrid Intelligence**: Combines rule-based stability with AI creativity
-- 📱 **Cross-Platform Mobile Support**: Inspect native apps on iOS and Android with a unified visual inspector
-- 🌐 **Organic Navigation**: Browse like a normal user, log in, and move between pages
-- ⚡ **Toggle Capture Mode**: Turn element capture ON/OFF with keyboard shortcuts for web (`CTRL+S` / `CTRL+D`)
-- 🎯 **Professional Selectors**: Prioritizes robust attributes like `data-testid`, `resource-id`, and `accessibility-id`
-- 📄 **Multi-Page Capture**: Collect selectors from different pages in a single session
-- 🔧 **Framework Agnostic**: Generates code for Playwright, Selenium, Cypress, and Appium
-- 💡 **AI Explanations**: Understand why a selector was chosen
-- 🚀 **Intelligent Fallback**: Uses AI only when necessary, ensuring speed and reliability
+### 🎛️ **Professional Toggle Mode** (Unique in Market)
+- **Visual Control Panel**: Intuitive buttons + keyboard shortcuts for seamless workflow
+- **Organic Navigation**: Browse naturally through login flows and complex user journeys
+- **Session Persistence**: Capture elements across multiple pages in one unified session  
+- **Real-time State Management**: Always know if you're navigating or capturing
+- **Cross-Frame Support**: Works flawlessly with iframes and shadow DOM
+
+### 🧠 **AI-Enhanced Intelligence** (First of Its Kind)
+- **Hybrid AI Strategy**: Combines GPT-4/Ollama with rule-based reliability
+- **Smart Selector Analysis**: AI explains why each selector was chosen
+- **Fallback Intelligence**: Uses AI only when needed for optimal speed
+- **Learning Capability**: Improves suggestions based on your testing patterns
+
+### 📱 **Unified Cross-Platform** (No Context Switching)
+- **Same Workflow**: Identical process for Web and Mobile testing
+- **Visual Mobile Inspector**: Interactive screenshot-based element selection
+- **Native App Support**: iOS and Android with unified selector generation
+- **Consistent Output**: Same code format regardless of platform
+
+### 🚀 **Framework Intelligence** (Professional Output)
+- **5 Programming Languages**: TypeScript, JavaScript, Python, Java, C#
+- **3 Testing Frameworks**: Playwright, Selenium, Cypress + Appium for mobile
+- **Optimized Code Generation**: Framework-specific best practices applied
+- **Copy-Paste Ready**: Generated code works immediately in your tests
+
+### 🔧 **Professional Reliability** 
+- **Smart Attribute Prioritization**: `data-testid`, `aria-label`, semantic selectors first
+- **Stable CSS Detection**: Filters out utility classes like Tailwind automatically
+- **Link Intelligence**: Detects and uses href keywords (github, login, etc.)
+- **Confidence Scoring**: Know how reliable each selector is before using it
+
+---
+
+## 🖼️ **Professional Toggle Mode in Action**
+
+### Visual Control Panel
+The professional control panel gives you complete control over your testing session:
+
+**How it works:**
+1. 🌐 **Navigate Freely**: Browse through your app naturally (login, multi-step flows)
+2. 🎯 **Visual Controls**: Click "CAPTURE" button or press CTRL+S to start selecting
+3. 👆 **Smart Selection**: Click elements with real-time visual feedback and count
+4. 🌐 **Seamless Navigation**: Click "NAV" button or press CTRL+D to continue browsing  
+5. 🏁 **Complete Session**: Click "FINISH" or press ESC to get all selectors
+
+**Key Features:**
+- **Drag & Drop Panel**: Position the control panel wherever you need it
+- **Session Counter**: See how many elements you've captured in real-time
+- **URL Context**: Always know which page you're currently testing
+- **Visual State**: Clear indication of CAPTURE vs NAVIGATION mode
+- **Keyboard + Mouse**: Use whatever input method feels natural
+
+---
+
+## 🆚 **How We Compare**
+
+| Feature | Best-Locator | SelectorGadget | ChroPath | SelectorsHub |
+|---------|:------------:|:--------------:|:--------:|:------------:|
+| **AI-Powered Generation** | ✅ | ❌ | ❌ | ❌ |
+| **Professional Toggle Mode** | ✅ | ❌ | ❌ | ❌ |
+| **Cross-Page Sessions** | ✅ | ❌ | ❌ | ❌ |
+| **Visual Control Panel** | ✅ | Basic | Basic | Basic |
+| **Mobile App Support** | ✅ | ❌ | ❌ | ❌ |
+| **Multi-Framework Output** | ✅ | CSS Only | Limited | Limited |
+| **Complex User Flows** | ✅ | ❌ | ❌ | ❌ |
+| **Session Persistence** | ✅ | ❌ | ❌ | ❌ |
+| **Target Audience** | **Professional** | Hobbyist | Developer | Developer |
+
+---
+
+**Professional Benefits:**
+- 🎯 Handle login flows and multi-step processes naturally
+- 🧠 AI-powered reliability scoring prevents brittle selectors  
+- 🔄 Consistent cross-platform testing approach
+- 📊 Scale testing workflows across development teams
 
 ---
 
@@ -208,22 +271,22 @@ bestlocator ai-test
 
 ## 🎮 Usage
 
-### Web - Toggle Mode (Recommended)
-The most powerful mode, allowing you to navigate freely on websites:
+### Web - Professional Toggle Mode (Recommended)
+The most powerful mode with visual controls and session persistence:
 
 ```bash
-bestlocator pick-toggle https://saucedemo.com --ai --explain
+bestlocator pick-toggle https://your-app.com --ai --explain
 ```
 
-**How it works:**
-1. **Navigate freely**: A control panel will appear in the browser
-2. **Press `CTRL+S`**: Turn ON capture mode
-3. **Click elements**: Capture high-quality selectors
-4. **Press `CTRL+D`**: Turn OFF capture mode to navigate again
-5. **Press `ESC`**: Finish the session and get your results
+**Professional Workflow:**
+1. **Navigate freely**: Visual control panel appears in browser
+2. **Smart Controls**: Click "CAPTURE" button or press `CTRL+S` to start
+3. **Visual Feedback**: Click elements with real-time selection count
+4. **Seamless Flow**: Click "NAV" button or press `CTRL+D` to continue browsing  
+5. **Complete Session**: Click "FINISH" or press `ESC` to get all results
 
-### Mobile - Inspector Mode (Recommended)
-The equivalent powerful mode for mobile, allowing organic navigation:
+### Mobile - Interactive Inspector (Recommended)
+Professional mobile testing with visual screenshot interface:
 
 ```bash
 # For Android
@@ -233,27 +296,28 @@ bestlocator mobile-inspector <path-to-app.apk> android
 bestlocator mobile-inspector <path-to-app.app> ios
 ```
 
-**How it works:**
-1. **Navigate freely** on your device/emulator
-2. **Click Refresh** in the web inspector (http://localhost:8100) to update the view
-3. **Select elements** and click Generate Selectors to get the code in your terminal
+**Professional Mobile Workflow:**
+1. **Navigate naturally** on your device/emulator
+2. **Visual Inspector** opens at http://localhost:8100 with live screenshots
+3. **Interactive Selection** - click elements directly on the screenshot
+4. **Generate Code** - get production-ready selectors instantly
 
 ### Other Commands
 
 ```bash
-# Pick a single web element
+# Single element selection (Web)
 bestlocator pick https://your-app.com --ai
 
-# Pick multiple web elements in sequence
+# Multiple elements in sequence (Web)  
 bestlocator pick-multiple https://your-app.com
 
-# Pick a single mobile element (Android)
+# Single element selection (Mobile)
 bestlocator pick-mobile <path-to-app.apk> android
 
-# Pick a single mobile element (iOS)  
+# Single element selection (iOS)  
 bestlocator pick-mobile <path-to-app.app> ios
 
-# Validate an existing selector
+# Validate existing selectors
 bestlocator validate https://your-app.com '[data-test="username"]'
 ```
 
@@ -311,7 +375,7 @@ export default {
     'data-qa'
   ],
 
-  // NEW: Appium Configuration for Mobile
+  // Appium Configuration for Mobile
   appium: {
     enabled: true,
     defaultPlatform: 'android',
@@ -351,11 +415,11 @@ bestlocator go local --ai # Uses http://localhost:3000 from your config
 # Interactive Modes - Web
 bestlocator pick <url>
 bestlocator pick-multiple <url>
-bestlocator pick-toggle <url>
+bestlocator pick-toggle <url>    # 🌟 Professional Toggle Mode
 bestlocator go <alias>
 
 # Interactive Modes - Mobile
-bestlocator mobile-inspector <path-to-app> <platform>
+bestlocator mobile-inspector <path-to-app> <platform>    # 🌟 Visual Inspector
 bestlocator pick-mobile <path-to-app> <platform>
 
 # Utilities
@@ -421,4 +485,4 @@ Automation Testing Enthusiast
 
 ---
 
-*Generate professional-grade selectors for UI testing with the reliability developers trust, the flexibility testers need, and the intelligence of AI.*
+*The first AI-powered selector generator with professional Toggle Mode for seamless cross-platform testing. Navigate organically, capture selectively, test intelligently.*
