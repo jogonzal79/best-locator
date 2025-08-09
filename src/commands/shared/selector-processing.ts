@@ -6,6 +6,7 @@ import { FrameworkFormatter } from '../../core/framework-formatter.js';
 import { AriaCalculator } from '../../core/ai/aria-calculator.js';
 import { AIEngine } from '../../core/ai-engine.js';
 import { logger } from '../../app/logger.js';
+import type { Language, WebFramework } from '../../core/formatters/types.js'; // <-- NUEVO
 
 export async function processAndOutput(
   elements: ElementInfo[],
@@ -48,7 +49,12 @@ export async function processAndOutput(
         selectorResult = generator.generateSelector(elementInfo);
     }
 
-    const formattedCode = formatter.format(selectorResult, finalFramework, finalLanguage);
+    const formattedCode = formatter.format(
+      selectorResult,
+      finalFramework as WebFramework,   // <-- CAST
+      finalLanguage as Language         // <-- CAST
+    );
+
     results.push({ order: elementInfo.order, code: formattedCode });
     clipboardText += `${formattedCode}\n`;
 
