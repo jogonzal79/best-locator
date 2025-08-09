@@ -6,6 +6,7 @@ import { MobileSelectorGenerator } from '../../core/mobile-selector-generator.js
 import { FrameworkFormatter } from '../../core/framework-formatter.js';
 import { logger } from '../../app/logger.js';
 import clipboardy from 'clipboardy'; // <-- 1. IMPORTAR LA NUEVA LIBRERÍA
+import type { Language, MobileFramework } from '../../core/formatters/types.js'; // <-- NUEVO
 
 export async function processMobileAndOutput(
   elements: MobileElementInfo[],
@@ -37,7 +38,12 @@ export async function processMobileAndOutput(
       selectorResult = generator.generateMobileSelector(elementInfo);
     }
     
-    const formattedCode = formatter.formatMobile(selectorResult, platform, finalLanguage);
+    const formattedCode = formatter.formatMobile(
+      selectorResult,
+      platform as MobileFramework,            // <-- CAST
+      finalLanguage as Language               // <-- CAST
+    );
+
     results.push({
       order: elementInfo.index || 0,
       code: formattedCode,
