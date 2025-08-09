@@ -4,8 +4,11 @@ import { AIEngine } from './ai-engine.js';
 import { BestLocatorConfig, SelectorResult, ElementInfo, PageContext } from '../types/index.js';
 import { AriaCalculator } from './ai/aria-calculator.js';
 import { logger } from '../app/logger.js';
+// +++ INICIO DE CAMBIOS +++
+import { ISelectorGenerator, AnyElementInfo } from './processing/types.js';
 
-export class SelectorGenerator {
+export class SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
+// --- FIN DE CAMBIOS ---
   private aiEngine?: AIEngine;
   private config: BestLocatorConfig;
   private ariaCalculator: AriaCalculator; // 🆕 NUEVO
@@ -34,9 +37,11 @@ export class SelectorGenerator {
     return this.generateSelector(elementInfo);
   }
 
-  public generateSelector(elementInfo: ElementInfo): SelectorResult {
+  // +++ INICIO DE CAMBIOS +++
+  public generateSelector(elementInfo: AnyElementInfo): SelectorResult { // <- TIPO MODIFICADO
+  // --- FIN DE CAMBIOS ---
     // 🛡️ SANITIZAR DATOS DE ENTRADA (mantenemos la lógica existente)
-    const sanitizedElement = this.sanitizeElementInfo(elementInfo);
+    const sanitizedElement = this.sanitizeElementInfo(elementInfo as ElementInfo);
     
     // 🆕 MEJORAR CON INFORMACIÓN ARIA
     const enhancedElement = this.enhanceWithAria(sanitizedElement);

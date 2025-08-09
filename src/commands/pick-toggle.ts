@@ -3,7 +3,11 @@
 import { CommandOptions } from '../types/index.js';
 import { withBrowserSession } from './shared/browser-utils.js';
 import { captureElements } from './shared/element-capture.js';
-import { processAndOutput } from './shared/selector-processing.js';
+// +++ INICIO DE CAMBIOS +++
+import { processAndOutput } from './shared/selector-processor.js';
+import { SelectorGenerator } from '../core/selector-generator.js';
+import { FrameworkFormatter } from '../core/framework-formatter.js';
+// --- FIN DE CAMBIOS ---
 import { logger } from '../app/logger.js';
 
 export async function handlePickToggleCommand(
@@ -35,8 +39,14 @@ export async function handlePickToggleCommand(
     logger.nl();
     logger.success(`🎯 Sesión completada! ${elements.length} elementos capturados.`);
     
-    // 5. Procesar y mostrar resultados
-    await processAndOutput(elements, session, options, framework, language);
+    // +++ INICIO DE CAMBIOS +++
+    // 5. Crea los "especialistas" para la web
+    const generator = new SelectorGenerator(session.config);
+    const formatter = new FrameworkFormatter();
+
+    // 6. Llama al orquestador central con las herramientas web
+    await processAndOutput(elements, session, options, generator, formatter, framework, language);
+    // --- FIN DE CAMBIOS ---
   });
 }
 
