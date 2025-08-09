@@ -3,18 +3,22 @@
 // Solo importamos SelectorResult del core; Language NO viene del core.
 import type { SelectorResult as CoreSelectorResult } from '../types/index.js';
 
+// +++ INICIO DE CAMBIOS +++
 import {
   Framework,
   WebFramework,
   MobileFramework,
-  IFormatter,
+  IFormatter, // <- AÑADIDO
   IMobileFormatter,
   Language, // usamos el Language definido en formatters/types.ts
 } from './formatters/types.js';
+// --- FIN DE CAMBIOS ---
 
 import { webFormatters, mobileFormatters } from './formatters/registry.js';
 
-export class FrameworkFormatter {
+// +++ INICIO DE CAMBIOS +++
+export class FrameworkFormatter implements IFormatter { // <- AÑADIDO
+// --- FIN DE CAMBIOS ---
   public format(selectorResult: CoreSelectorResult, framework: WebFramework, language: Language): string {
     const formatter: IFormatter | undefined = webFormatters[framework];
     if (!formatter) throw new Error(`No formatter found for web framework: ${framework}`);

@@ -75,7 +75,7 @@ export class MobileInspector {
       const resultsToCopy: string[] = [];
       
       this.selectedElements.forEach(elementInfo => {
-        const selectorResult = generator.generateMobileSelector(elementInfo);
+        const selectorResult = generator.generateSelector(elementInfo);
         const formattedCode = formatter.formatMobile(selectorResult, this.platform, this.config.defaultLanguage);
         resultsToCopy.push(formattedCode);
         

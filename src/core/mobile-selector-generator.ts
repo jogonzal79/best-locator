@@ -2,8 +2,11 @@
 
 import { SelectorGenerator } from './selector-generator.js';
 import { BestLocatorConfig, MobileElementInfo, SelectorResult } from '../types/index.js';
+// +++ INICIO DE CAMBIOS +++
+import { ISelectorGenerator, AnyElementInfo } from './processing/types.js';
 
-export class MobileSelectorGenerator extends SelectorGenerator {
+export class MobileSelectorGenerator extends SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
+// --- FIN DE CAMBIOS ---
   private platform: 'ios' | 'android';
 
   constructor(config: BestLocatorConfig, platform: 'ios' | 'android') {
@@ -11,13 +14,17 @@ export class MobileSelectorGenerator extends SelectorGenerator {
     this.platform = platform;
   }
 
-  public generateMobileSelector(elementInfo: MobileElementInfo): SelectorResult {
+  // +++ INICIO DE CAMBIOS +++
+  // El método se renombra para cumplir con el contrato de la interfaz
+  public generateSelector(elementInfo: AnyElementInfo): SelectorResult { // <- RENOMBRADO Y TIPO MODIFICADO
+    const mobileElementInfo = elementInfo as MobileElementInfo;
     if (this.platform === 'ios') {
-      return this.generateIOSSelector(elementInfo);
+      return this.generateIOSSelector(mobileElementInfo);
     } else {
-      return this.generateAndroidSelector(elementInfo);
+      return this.generateAndroidSelector(mobileElementInfo);
     }
   }
+  // --- FIN DE CAMBIOS ---
 
   private generateIOSSelector(element: MobileElementInfo): SelectorResult {
     // ... (la lógica de iOS se mantiene igual)
