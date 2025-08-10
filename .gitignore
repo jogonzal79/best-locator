@@ -43,3 +43,6 @@ tmp/
 # Jest
 /jest.cache
 jest.config.js
+
+# Test coverage report
+/coverage/
