@@ -101,7 +101,7 @@ export class SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
       return this.result(`${tagName}[role="${attributes['role']}"]`, 85, 'css', `Uses ARIA role.`);
     }
 
-    // ESTRATEGIA 6: 🆕 Texto con filtrado mejorado (MEJORADO)
+    // ESTRATEGIA 6: 🆕 Texto con filtrado mejorado (MEJORADO + CAMBIO CLAVE)
     const textResult = this.tryImprovedTextStrategy(element);
     if (textResult && textResult.confidence >= 70) {
       return textResult;
@@ -158,7 +158,7 @@ export class SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
     return null;
   }
 
-  // 🆕 NUEVO: Estrategia de texto mejorada
+  // 🆕 MEJORADO: Estrategia de texto mejorada CON TAGNAME
   private tryImprovedTextStrategy(element: ElementInfo): SelectorResult | null {
     const cleanText = element.textContent?.trim();
     if (!cleanText || cleanText.length === 0) return null;
@@ -173,12 +173,14 @@ export class SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
     );
 
     if (isGeneric) {
-      return this.result(cleanText, 65, 'text', 'Uses text content (generic).');
+      // --- CAMBIO CLAVE: Incluir tagName para textos genéricos ---
+      return this.result(cleanText, 65, 'text', 'Uses text content (generic).', element.tagName);
     }
 
     // Texto específico y descriptivo
     if (cleanText.length >= 3) {
-      return this.result(cleanText, 80, 'text', 'Uses specific text content.');
+      // --- CAMBIO CLAVE: Incluir tagName para textos específicos ---
+      return this.result(cleanText, 80, 'text', 'Uses specific text content.', element.tagName);
     }
 
     return null;
@@ -314,9 +316,16 @@ export class SelectorGenerator implements ISelectorGenerator { // <- AÑADIDO
     return this.result(tagName, 20, 'css', 'Fallback: tag name only.');
   }
 
-  // MÉTODOS EXISTENTES (sin cambios)
-  private result(selector: string, confidence: number, type: string, reasoning: string): SelectorResult {
-    return { selector, confidence, type, reasoning };
+  // MÉTODO MODIFICADO: Ahora acepta tagName opcional
+  private result(selector: string, confidence: number, type: string, reasoning: string, tagName?: string): SelectorResult {
+    const result: SelectorResult = { selector, confidence, type, reasoning };
+    
+    // --- CAMBIO CLAVE: Añadir tagName si se proporciona ---
+    if (tagName) {
+      (result as any).tagName = tagName;
+    }
+    
+    return result;
   }
 
   private getPrioritySelector(elementInfo: ElementInfo): SelectorResult | null {

@@ -327,11 +327,13 @@ bestlocator validate https://your-app.com '[data-test="username"]'
 
 ### Web Frameworks
 
-| Framework  | JavaScript | TypeScript | Python | Java | C# |
-|------------|:----------:|:----------:|:------:|:----:|:--:|
-| Playwright |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
-| Selenium   |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
-| Cypress    |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
+| Framework   | JavaScript | TypeScript | Python | Java | C# |
+|-------------|:----------:|:----------:|:------:|:----:|:--:|
+| Playwright  |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
+| Selenium    |     ✅     |     ✅     |   ✅   |  ✅  | ✅ |
+| Cypress     |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
+| TestCafe    |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
+| WebdriverIO |     ✅     |     ✅     |   ❌   |  ❌  | ❌ |
 
 ### Mobile Frameworks (Appium)
 

@@ -25,4 +25,14 @@ describe('FrameworkFormatter – smoke', () => {
     const out = ff.formatMobile({ type: 'test-id', selector: 'login' } as any, 'android', 'typescript');
     expect(out).toContain(`driver.findElement('accessibility id', 'login')`);
   });
+  test('testcafe text', () => {
+    const out = ff.format({ type: 'text', selector: 'Welcome', tagName: 'h1' } as any, 'testcafe', 'typescript');
+    expect(out).toBe("Selector('h1').withText('Welcome')");
+  });
+
+  test('webdriverio css', () => {
+    const out = ff.format({ type: 'css', selector: '.user-profile' } as any, 'webdriverio', 'typescript');
+    expect(out).toBe("await browser.$('.user-profile')");
+  });
+
 });

@@ -4,7 +4,7 @@ import { AIConfig } from '../core/ai-config.js';
 import { AppiumConfig } from './mobile.js'; // <-- 1. AÑADIR ESTA LÍNEA
 
 export interface BestLocatorConfig {
-  defaultFramework: 'playwright' | 'cypress' | 'selenium' | 'testcafe';
+  defaultFramework: 'playwright' | 'cypress' | 'selenium' | 'testcafe' | 'webdriverio';
   defaultLanguage: 'typescript' | 'javascript' | 'python' | 'java' | 'csharp';
   timeouts: { pageLoad: number; elementSelection: number; validation: number; };
   projectAttributes: string[];
@@ -38,6 +38,7 @@ export interface SelectorResult {
   aiEnhanced?: boolean;
   reasoning?: string;
   code?: string;
+  tagName?: string;
 }
 
 export interface CommandOptions {

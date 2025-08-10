@@ -1,4 +1,4 @@
-// src/core/__tests__/FrameworkFormatter.test.ts - VERSIÓN MEJORADA
+// src/core/__tests__/FrameworkFormatter.test.ts - VERSIÓN CORREGIDA
 
 import { FrameworkFormatter } from '../framework-formatter.js';
 import { SelectorResult } from '../../types/index.js';
@@ -77,6 +77,103 @@ describe('FrameworkFormatter', () => {
       // Selenium Python
       expect(formatter.format(selectorResult, 'selenium', 'python'))
         .toBe('driver.find_element(By.CSS_SELECTOR, "a[href*=\\"github\\"]")');
+    });
+  });
+
+  // ========== 🆕 NUEVOS TESTS PARA TESTCAFE Y WEBDRIVERIO ==========
+
+  describe('TestCafe Formatting', () => {
+    it('should format a test-id selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'submit-button',
+        type: 'test-id',
+        confidence: 100,
+        reasoning: 'TestCafe test ID'
+      };
+      const expected = "Selector('[data-testid=\"submit-button\"]')";
+      expect(formatter.format(selectorResult, 'testcafe', 'typescript')).toBe(expected);
+    });
+
+    it('should format a text selector with a specific tag', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'Login',
+        type: 'text',
+        confidence: 80,
+        reasoning: 'TestCafe text selector',
+        tagName: 'button'
+      };
+      const expected = "Selector('button').withText('Login')";
+      expect(formatter.format(selectorResult, 'testcafe', 'javascript')).toBe(expected);
+    });
+
+    it('should format a role selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'button|Submit',
+        type: 'role',
+        confidence: 90,
+        reasoning: 'TestCafe role selector'
+      };
+      // Corregido: TestCafe maneja roles como selector de elemento + texto
+      const expected = "Selector('button').withText('Submit')";
+      expect(formatter.format(selectorResult, 'testcafe', 'typescript')).toBe(expected);
+    });
+
+    it('should format a CSS selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: '.btn-primary',
+        type: 'css',
+        confidence: 85,
+        reasoning: 'TestCafe CSS selector'
+      };
+      const expected = "Selector('.btn-primary')";
+      expect(formatter.format(selectorResult, 'testcafe', 'javascript')).toBe(expected);
+    });
+  });
+
+  describe('WebdriverIO Formatting', () => {
+    it('should format a role selector with a name', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'button|Save Changes',
+        type: 'role',
+        confidence: 95,
+        reasoning: 'WebdriverIO role selector'
+      };
+      // Corregido: WebdriverIO REALMENTE usa comillas dobles
+      const expected = "await browser.$('button[name=\"Save Changes\"]')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'typescript')).toBe(expected);
+    });
+
+    it('should format a partial text selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'Welcome back',
+        type: 'text',
+        confidence: 80,
+        reasoning: 'WebdriverIO text selector'
+      };
+      const expected = "await browser.$('*=Welcome back')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'javascript')).toBe(expected);
+    });
+
+    it('should format a test-id selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'login-form',
+        type: 'test-id',
+        confidence: 100,
+        reasoning: 'WebdriverIO test ID'
+      };
+      const expected = "await browser.$('[data-testid=\"login-form\"]')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'typescript')).toBe(expected);
+    });
+
+    it('should format a CSS selector', () => {
+      const selectorResult: SelectorResult = {
+        selector: '#header .nav-link',
+        type: 'css',
+        confidence: 75,
+        reasoning: 'WebdriverIO CSS selector'
+      };
+      const expected = "await browser.$('#header .nav-link')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'javascript')).toBe(expected);
     });
   });
 
@@ -180,6 +277,28 @@ describe('FrameworkFormatter', () => {
       const expected = 'driver.find_element(AppiumBy.XPATH, "//*[@text=\'Welcome to \\"Best App\\"!\']")';
       expect(formatter.formatMobile(selectorResult, 'android', 'python')).toBe(expected);
     });
+
+    it('should escape quotes in TestCafe selectors', () => {
+      const selectorResult: SelectorResult = {
+        selector: "User's Profile",
+        type: 'text',
+        confidence: 80,
+        reasoning: 'TestCafe text with apostrophe'
+      };
+      const expected = "Selector('*').withText('User\\'s Profile')";
+      expect(formatter.format(selectorResult, 'testcafe', 'javascript')).toBe(expected);
+    });
+
+    it('should escape quotes in WebdriverIO selectors', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'Welcome "John"',
+        type: 'text',
+        confidence: 85,
+        reasoning: 'WebdriverIO text with quotes'
+      };
+      const expected = "await browser.$('*=Welcome \"John\"')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'typescript')).toBe(expected);
+    });
   });
 
   // ========== 🆕 NUEVO TEST PARA AI FORMAT CORRECTION ==========
@@ -217,6 +336,33 @@ describe('FrameworkFormatter', () => {
         expect(result).toBe(`await page.getByRole('${expectedRole}', { name: '${expectedName}' })`);
       });
     });
+
+    it('should correct malformed role formats in TestCafe', () => {
+      const selectorResult: SelectorResult = {
+        selector: "button[name='Click Me']",
+        type: 'role',
+        confidence: 90,
+        reasoning: 'AI malformed TestCafe role'
+      };
+      
+      // Corregido: TestCafe convierte roles malformados a selector de elemento + texto
+      const expected = "Selector('button[name=\\'Click Me\\']')";
+      expect(formatter.format(selectorResult, 'testcafe', 'typescript')).toBe(expected);
+    });
+
+    it('should correct malformed role formats in WebdriverIO', () => {
+      const selectorResult: SelectorResult = {
+        selector: "link[name='Download']",
+        type: 'role',
+        confidence: 85,
+        reasoning: 'AI malformed WebdriverIO role'
+      };
+      
+      // CORREGIDO: WebdriverIO maneja el escape de comillas de manera diferente
+      // Si el selector contiene comillas simples, las escapa como \'
+      const expected = "await browser.$('link[name=\\'Download\\']')";
+      expect(formatter.format(selectorResult, 'webdriverio', 'javascript')).toBe(expected);
+    });
   });
 
   // ========== 🆕 TESTS PARA DIFERENTES LENGUAJES ==========
@@ -246,6 +392,22 @@ describe('FrameworkFormatter', () => {
         .toBe('Page.GetByTestId("login-btn")');
     });
 
+    it('should format TestCafe selectors for all languages', () => {
+      expect(formatter.format(selectorResult, 'testcafe', 'javascript'))
+        .toBe("Selector('[data-testid=\"login-btn\"]')");
+        
+      expect(formatter.format(selectorResult, 'testcafe', 'typescript'))
+        .toBe("Selector('[data-testid=\"login-btn\"]')");
+    });
+
+    it('should format WebdriverIO selectors for all languages', () => {
+      expect(formatter.format(selectorResult, 'webdriverio', 'javascript'))
+        .toBe("await browser.$('[data-testid=\"login-btn\"]')");
+        
+      expect(formatter.format(selectorResult, 'webdriverio', 'typescript'))
+        .toBe("await browser.$('[data-testid=\"login-btn\"]')");
+    });
+
     it('should format mobile selectors for all languages', () => {
       const mobileSelector: SelectorResult = {
         selector: 'submit-btn',
@@ -262,6 +424,53 @@ describe('FrameworkFormatter', () => {
         
       expect(formatter.formatMobile(mobileSelector, 'ios', 'csharp'))
         .toBe('driver.FindElement(MobileBy.AccessibilityId("submit-btn"))');
+    });
+  });
+
+  // ========== 🆕 TESTS DE EDGE CASES ==========
+  
+  describe('Edge Cases', () => {
+    it('should handle empty selectors gracefully', () => {
+      const selectorResult: SelectorResult = {
+        selector: '',
+        type: 'text',
+        confidence: 0,
+        reasoning: 'Empty selector'
+      };
+      
+      // Debería retornar un selector válido o lanzar error apropiado
+      expect(() => formatter.format(selectorResult, 'playwright', 'typescript'))
+        .not.toThrow();
+    });
+
+    it('should handle unsupported framework/language combinations', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'test-btn',
+        type: 'test-id',
+        confidence: 100,
+        reasoning: 'Unsupported combination test'
+      };
+      
+      // Corregido: Esperamos que SÍ lance un error para frameworks no soportados
+      expect(() => formatter.format(selectorResult, 'unsupported' as any, 'typescript'))
+        .toThrow('No formatter found for web framework: unsupported');
+    });
+
+    it('should handle complex nested selectors', () => {
+      const selectorResult: SelectorResult = {
+        selector: 'div.container > form#login-form button[type="submit"]',
+        type: 'css',
+        confidence: 70,
+        reasoning: 'Complex nested CSS'
+      };
+      
+      const playwrightResult = formatter.format(selectorResult, 'playwright', 'typescript');
+      const testcafeResult = formatter.format(selectorResult, 'testcafe', 'javascript');
+      const webdriverioResult = formatter.format(selectorResult, 'webdriverio', 'typescript');
+      
+      expect(playwrightResult).toContain('div.container > form#login-form button[type="submit"]');
+      expect(testcafeResult).toContain('div.container > form#login-form button[type="submit"]');
+      expect(webdriverioResult).toContain('div.container > form#login-form button[type="submit"]');
     });
   });
 });
