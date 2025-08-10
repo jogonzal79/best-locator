@@ -5,11 +5,9 @@ export default {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   moduleNameMapper: {
-    // Maneja las extensiones .js en los imports de ESM
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {
-    // Usa ts-jest para los archivos .ts
     '^.+\\.ts$': [
       'ts-jest',
       {
@@ -18,7 +16,20 @@ export default {
     ],
   },
   testMatch: [
-    // Busca archivos de prueba en todo el proyecto
     '**/__tests__/**/*.test.ts',
   ],
+  // +++ INICIO DE CAMBIOS +++
+  // Directorio donde se guardarán los informes de cobertura
+  coverageDirectory: 'coverage',
+  // Especifica qué archivos deben ser incluidos en el informe de cobertura
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    // Excluye los archivos de tipos, el index principal y los archivos de pruebas
+    '!src/types/**/*.ts',
+    '!src/index.ts',
+    '!src/**/*.test.ts',
+    // Excluye la GUI por ahora
+    '!src/gui/**/*.ts',
+  ],
+  // --- FIN DE CAMBIOS ---
 };

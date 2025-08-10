@@ -11,7 +11,7 @@ export type SelectorResult = CoreSelectorResult;
 export type Language = 'javascript' | 'typescript' | 'python' | 'java' | 'csharp';
 
 // Frameworks soportados
-export type WebFramework = 'playwright' | 'cypress' | 'selenium';
+export type WebFramework = 'playwright' | 'cypress' | 'selenium' | 'testcafe' | 'webdriverio';
 export type MobileFramework = 'ios' | 'android';
 export type Framework = WebFramework | MobileFramework;
 
