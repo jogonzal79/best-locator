@@ -1,6 +1,6 @@
 {
   "name": "bestlocator",
-  "version": "2.2.19",
+  "version": "2.2.20",
   "type": "module",
   "description": "Universal AI-powered selector generator for UI testing with organic navigation and intelligent analysis.",
   "main": "dist/index.js",
