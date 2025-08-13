@@ -846,7 +846,7 @@
   // UI - CONTROL PANEL
   // ============================================================================
   let stateManager, overlayManager, highlightOverlay, controlPanel, navDetector, rafId = null;
-  let dragMouseDownHandler, mouseMoveHandler, mouseUpHandler, clickHandler, keydownHandler;
+  let dragMouseDownHandler, mouseMoveHandler, mouseUpHandler, clickHandler, keydownHandler, onBeforeUnloadHandler;
 
   function createControlPanel() {
     controlPanel.innerHTML = `
@@ -1084,6 +1084,7 @@
     document.removeEventListener('mouseup', mouseUpHandler);
     document.removeEventListener('click', clickHandler, true);
     document.removeEventListener('keydown', keydownHandler, true);
+    window.removeEventListener('beforeunload', onBeforeUnloadHandler);
     if (navDetector) navDetector.disconnect();
     if (overlayManager) overlayManager.destroy();
     if (rafId) cancelAnimationFrame(rafId);
@@ -1237,22 +1238,15 @@
     document.addEventListener('mouseup', mouseUpHandler);
     document.addEventListener('click', clickHandler, true);
     document.addEventListener('keydown', keydownHandler, true);
+    
+    // Add beforeunload handler to save state on full page navigations
+    onBeforeUnloadHandler = () => stateManager.saveToStorage();
+    window.addEventListener('beforeunload', onBeforeUnloadHandler);
 
-    // Navigation detector + smart reinjection
+    // Navigation detector for SPAs (non-destructive)
     navDetector = new NavigationDetector(() => {
-      console.log('🔄 Navigation detected, preparing reinjection...');
-      stateManager.saveToStorage();
-      const savedState = { ...stateManager.state };
-      cleanup();
-      waitForDOMStability(() => {
-        console.log('✅ DOM stable, reinjecting...');
-        initialize();
-        if (window.bestLocatorState) {
-          window.bestLocatorState.selectedElements = savedState.selectedElements;
-          window.bestLocatorState.captureMode = savedState.captureMode;
-        }
-        showNotification('🔄 Toggle Mode restored after navigation', 'success');
-      });
+        console.log('🔄 SPA Navigation Detected. Saving state.');
+        stateManager.saveToStorage();
     });
 
     console.log('✅ Best-Locator Toggle Mode Ultimate initialized');
