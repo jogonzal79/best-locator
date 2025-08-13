@@ -111,7 +111,7 @@ async function ensureToggleModeActive(page: any, browserManager: any, attempt: n
         sessionActive: window.bestLocatorState?.sessionActive ?? true,
         elementCount: window.bestLocatorState?.selectedElements?.length || 0
       };
-    });
+    }).catch(() => ({ initialized: false, stateExists: false, sessionActive: true, elementCount: 0 }));
     
     // Solo reinyectar si es necesario y la sesión sigue activa
     if ((!toggleStatus.initialized || !toggleStatus.stateExists) && toggleStatus.sessionActive !== false) {
@@ -139,116 +139,65 @@ async function waitForUserToFinishSession(page: any, timeout: number): Promise<v
   const startTime = Date.now();
   const checkInterval = 500; // Verificar cada 500ms
   let lastElementCount = 0;
-  let sessionFinished = false;
   
   logger.info('⏳ Esperando a que termines la sesión (presiona ESC o el botón FINISH)...');
   
-  // Configurar listener para mensajes específicos de finalización
-  const finishPromise = new Promise<void>((resolve) => {
-    const consoleHandler = (msg: any) => {
-      const text = msg.text();
-      // Solo detectar el mensaje específico de finalización, no otros logs
-      if (text.includes('BEST_LOCATOR::FINISHED') || 
-          text.includes('Best-Locator Toggle Mode Ultimate v1.0.0 - Loaded') && sessionFinished) {
-        page.off('console', consoleHandler);
-        resolve();
-      }
-    };
-    page.on('console', consoleHandler);
-  });
-  
   // Polling principal
-  const pollingPromise = new Promise<void>(async (resolve) => {
-    while (Date.now() - startTime < timeout) {
-      try {
-        // Verificar si la página sigue activa
-        const pageActive = await page.evaluate(() => true).catch(() => false);
-        if (!pageActive) {
-          resolve();
-          break;
-        }
+  while (Date.now() - startTime < timeout) {
+    try {
+      // Verificar múltiples indicadores de finalización
+      const status = await page.evaluate(() => {
+        const state = window.bestLocatorState;
+        const finishedFlag = sessionStorage.getItem('bestLocator:finished');
         
-        // Verificar múltiples indicadores de finalización
-        const status = await page.evaluate(() => {
-          const state = window.bestLocatorState;
-          const finishedFlag = sessionStorage.getItem('bestLocator:finished');
-          const panelExists = !!document.getElementById('bl-overlay-control');
-          
-          return {
-            sessionActive: state?.sessionActive ?? true,
-            elementCount: state?.selectedElements?.length || 0,
-            finishedFlag: !!finishedFlag,
-            panelExists: panelExists,
-            stateExists: !!state
-          };
-        }).catch(() => ({
-          sessionActive: true,
-          elementCount: 0,
-          finishedFlag: false,
-          panelExists: false,
-          stateExists: false
-        }));
-        
-        // Actualizar contador si cambió
-        if (status.elementCount !== lastElementCount) {
-          lastElementCount = status.elementCount;
-          logger.info(`📦 Elementos capturados: ${lastElementCount}`);
-        }
-        
-        // Verificar condiciones de finalización
-        if (!status.sessionActive || status.finishedFlag) {
-          sessionFinished = true;
-          logger.success(`🏁 Sesión terminada (${status.elementCount} elementos capturados)`);
-          
-          // Dar tiempo para que se guarde el estado
-          await page.waitForTimeout(1000);
-          resolve();
-          break;
-        }
-        
-        // Si el panel no existe y había elementos, probablemente se ejecutó cleanup
-        if (!status.panelExists && status.elementCount > 0 && !status.stateExists) {
-          sessionFinished = true;
-          logger.success('🏁 Sesión terminada (cleanup detectado)');
-          resolve();
-          break;
-        }
-        
-        // Esperar antes del siguiente check
-        await page.waitForTimeout(checkInterval);
-        
-      } catch (error) {
-        // Si hay error, probablemente la página se cerró
-        if (error.message?.includes('closed')) {
-          resolve();
-          break;
-        }
-        // Otros errores, continuar
-        await new Promise(r => setTimeout(r, checkInterval));
+        return {
+          sessionActive: state?.sessionActive ?? true,
+          elementCount: state?.selectedElements?.length || 0,
+          finishedFlag: !!finishedFlag,
+        };
+      }).catch(() => null); // Devuelve null en error para indicar posible navegación
+      
+      // Si el evaluate falla (ej. durante navegación), esperar y continuar el loop
+      if (status === null) {
+          await page.waitForTimeout(checkInterval);
+          continue;
       }
-    }
-    
-    // Timeout alcanzado
-    if (Date.now() - startTime >= timeout) {
-      logger.warning('⏰ Timeout alcanzado - finalizando sesión');
       
-      // Intentar finalizar la sesión
-      await page.evaluate(() => {
-        if (window.bestLocatorState) {
-          window.bestLocatorState.sessionActive = false;
-        }
-      }).catch(() => {});
+      // Actualizar contador si cambió
+      if (status.elementCount !== lastElementCount) {
+        lastElementCount = status.elementCount;
+        logger.info(`📦 Elementos capturados: ${lastElementCount}`);
+      }
       
-      resolve();
+      // Verificar condiciones de finalización explícitas
+      if (!status.sessionActive || status.finishedFlag) {
+        logger.success(`🏁 Sesión terminada (${status.elementCount} elementos capturados)`);
+        await page.waitForTimeout(1000); // Dar tiempo para que se guarde el estado
+        return; // Salir del loop
+      }
+      
+      await page.waitForTimeout(checkInterval);
+      
+    } catch (error) {
+      // Si hay error, probablemente la página o el browser se cerró de verdad
+      if (error.message?.includes('closed') || error.message?.includes('Target page')) {
+        logger.warning('🚪 Browser o tab cerrado. Finalizando sesión.');
+        return; // Salir del loop
+      }
+      // Ignorar otros errores y continuar
+      await new Promise(r => setTimeout(r, checkInterval));
     }
-  });
+  }
   
-  // Esperar a que se cumpla alguna condición
-  await Promise.race([finishPromise, pollingPromise]);
-  
-  // Limpiar listener si quedó activo
-  page.removeAllListeners('console');
+  // Timeout alcanzado
+  logger.warning('⏰ Timeout alcanzado - finalizando sesión');
+  await page.evaluate(() => {
+    try {
+        if (window.bestLocatorState) window.bestLocatorState.sessionActive = false;
+    } catch {}
+  }).catch(() => {});
 }
+
 
 /**
  * Capturar elementos de todas las fuentes posibles
@@ -257,18 +206,8 @@ async function captureElementsFromAllSources(page: any): Promise<any[]> {
   try {
     // Intentar múltiples fuentes en orden de preferencia
     
-    // 1. Desde memoria (estado actual)
+    // 1. Desde sessionStorage
     let elements = await page.evaluate(() => {
-      return window.bestLocatorState?.selectedElements || null;
-    }).catch(() => null);
-    
-    if (elements && elements.length > 0) {
-      logger.info(`📦 Elementos recuperados de memoria: ${elements.length}`);
-      return sanitizeElements(elements);
-    }
-    
-    // 2. Desde sessionStorage
-    elements = await page.evaluate(() => {
       try {
         const stored = sessionStorage.getItem('bestLocatorToggleState');
         if (stored) {
@@ -281,6 +220,16 @@ async function captureElementsFromAllSources(page: any): Promise<any[]> {
     
     if (elements && elements.length > 0) {
       logger.info(`📦 Elementos recuperados de sessionStorage: ${elements.length}`);
+      return sanitizeElements(elements);
+    }
+    
+    // 2. Desde memoria (estado actual)
+    elements = await page.evaluate(() => {
+      return window.bestLocatorState?.selectedElements || null;
+    }).catch(() => null);
+    
+    if (elements && elements.length > 0) {
+      logger.info(`📦 Elementos recuperados de memoria: ${elements.length}`);
       return sanitizeElements(elements);
     }
     
