@@ -17,7 +17,11 @@
     "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "clean": "rimraf dist",
-    "postinstall": "echo '🎉 Best-Locator installed! Run: bestlocator hello'"
+    "postinstall": "echo '🎉 Best-Locator installed! Run: bestlocator hello'",
+    "test:legacy": "USE_NEW_GENERATORS=false npm test",
+    "test:compare": "npm run test:legacy && npm run test:generators",
+    "test:generators": "jest src/core/generators/__tests__/all-generators.test.ts",
+    "test:generators:watch": "jest src/core/generators/__tests__/all-generators.test.ts --watch"
   },
   "keywords": [
     "testing",
@@ -52,6 +56,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.13",
     "cpr": "^3.0.1",
+    "dotenv": "^17.2.1",
     "electron": "^32.0.0",
     "electron-builder": "^25.0.0",
     "jest": "^30.0.5",

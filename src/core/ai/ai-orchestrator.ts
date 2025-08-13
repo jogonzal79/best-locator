@@ -1,189 +1,245 @@
-// src/core/ai/ai-orchestrator.ts – versión endurecida 🛡️ (logger-agnóstico, sin errores TS)
+// src/core/ai/ai-orchestrator.ts
+import type { SelectorResult, ElementInfo, PageContext } from '../../types/index.js';
+import type { BestLocatorConfig } from '../../types/index.js';
 
-import { z } from 'zod';
-import { IAIProvider } from './iai-provider.js';
-import { ElementInfo } from '../../types/index.js';
-import { PromptTemplates } from '../prompt-templates.js';
-import { logger } from '../../app/logger.js';
-
-/* -------------------------------------------------------------------------- */
-/*                         Helper de logging sin dependencias                */
-/* -------------------------------------------------------------------------- */
-/**
- * Emite mensajes en nivel debug si existe, o degrada a info/console.log.
- * - Evita error TS2339 porque accedemos a las claves mediante indexación.
- * - Evita error TS2556 usando cast a any para el spread de argumentos.
- */
-function logDebug(...msg: unknown[]): void {
-  if ('debug' in logger && typeof (logger as any)['debug'] === 'function') {
-    (logger as any)['debug'](...msg);
-  } else if (
-    'info' in logger &&
-    typeof (logger as any)['info'] === 'function'
-  ) {
-    (logger as any)['info'](...msg);
-  } else {
-    // eslint-disable-next-line no-console
-    console.log(...msg);
-  }
+// Interfaz mínima esperada del provider (ajústala si tu provider difiere)
+export interface AIProvider {
+  ask(prompt: string): Promise<string>;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                   Schemas                                  */
-/* -------------------------------------------------------------------------- */
+type RawAISuggestion = {
+  strategy?: string;
+  value?: string;
+  reasoning?: string;
+};
 
-const ANSWER_REGEX = /<ANSWER>([\s\S]*?)<\/ANSWER>/;
+// ----------------- Utils -----------------
 
-const LocatorStrategySchema = z.object({
-  strategy: z.enum([
-    'test-id',
-    'role',
-    'text',
-    'placeholder',
-    'id',
-    'css',
-    'link-href',
-  ]),
-  value: z.string().min(1),
-  reasoning: z.string().optional(),
-});
+const STRATEGY_ALIASES: Record<string, 'role' | 'css' | 'xpath' | 'id' | 'name' | 'text' | 'placeholder' | 'test-id'> = {
+  'role': 'role',
+  'aria role': 'role',
+  'aria-role': 'role',
+  'ariarole': 'role',
+  'aria': 'role',
+  'css': 'css',
+  'selector': 'css',
+  'xpath': 'xpath',
+  'id': 'id',
+  'name': 'name',
+  'text': 'text',
+  'innertext': 'text',
+  'placeholder': 'placeholder',
+  'test-id': 'test-id',
+  'data-test': 'test-id',
+  'data-testid': 'test-id',
+  'data-cy': 'test-id',
+  'data-qa': 'test-id',
+};
 
-export type ValidatedStrategy = z.infer<typeof LocatorStrategySchema>;
+function normalizeStrategyName(s?: string): keyof typeof STRATEGY_ALIASES | undefined {
+  if (!s) return undefined;
+  const k = s.toLowerCase().replace(/\s+/g, ''); // "aria role" -> "ariarole"
+  // probar exacto
+  if (STRATEGY_ALIASES[s.toLowerCase()]) return s.toLowerCase() as any;
+  // probar compactado
+  const compact = s.toLowerCase().replace(/\s+/g, ' ');
+  if (STRATEGY_ALIASES[compact]) return compact as any;
+  // probar sin espacios
+  if (STRATEGY_ALIASES[k]) return k as any;
+  return undefined;
+}
 
-/* -------------------------------------------------------------------------- */
-/*                             Public orchestrator                            */
-/* -------------------------------------------------------------------------- */
+function toCanonicalType(s?: string): SelectorResult['type'] | undefined {
+  const norm = normalizeStrategyName(s);
+  return norm ? STRATEGY_ALIASES[norm] : undefined;
+}
 
-export async function getBestLocatorStrategy(
-  provider: IAIProvider,
-  element: ElementInfo,
-): Promise<ValidatedStrategy> {
-  const templates = new PromptTemplates();
+// role|name
+const RE_ROLE_PIPE = /^(\w+)\|(.+)$/;
+// role[name='...']
+const RE_ROLE_NAME = /^(\w+)\[name=['"]([^'"]+)['"]\]$/;
+// CSS [role='button'][aria-label='X'] o [role="button"][name="X"] o [role][title]
+const RE_CSS_ROLE_ARIA = /\[role=['"]([^'"]+)['"]\][^\[]*(?:\[(?:aria-label|name|title)=['"]([^'"]+)['"]\])/i;
+// getByRole('button', { name: 'X' })
+const RE_PLAYWRIGHT_ROLE = /getByRole\(\s*['"]([^'"]+)['"]\s*,\s*\{\s*name\s*:\s*['"]([^'"]+)['"]\s*\}\s*\)/i;
 
-  let prompt = templates.getUniversalLocatorPrompt(element);
-  let lastOutput = '';
+function trimQuotes(s: string): string {
+  return String(s).replace(/^['"]|['"]$/g, '');
+}
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    /* ----------------------------- Llamada a IA ---------------------------- */
-    const raw = await provider.generateText(prompt);
-    lastOutput = raw;
-    logDebug(`AI attempt #${attempt}, raw length: ${raw.length}`);
+function parseRoleish(value: string): { role?: string; name?: string } | null {
+  const v = String(value).trim();
 
-    /* ----------------------- Extracción + validación ----------------------- */
-    const { jsonContent, violations } = extractJsonContent(raw);
+  let m = v.match(RE_ROLE_PIPE);
+  if (m) return { role: m[1], name: m[2] };
 
-    if (!jsonContent) {
-      prompt = templates.getRepairPrompt(raw, [
-        ...violations,
-        'No valid JSON found in response',
-      ]);
-      await sleep(200 * attempt);
-      continue;
-    }
+  m = v.match(RE_ROLE_NAME);
+  if (m) return { role: m[1], name: m[2] };
 
+  m = v.match(RE_CSS_ROLE_ARIA);
+  if (m) return { role: m[1], name: m[2] };
+
+  m = v.match(RE_PLAYWRIGHT_ROLE);
+  if (m) return { role: m[1], name: m[2] };
+
+  // casos como "button[aria-label='X']" sin [role=...] explícito
+  const cssRole = v.match(/^([a-z]+)\s*\[\s*(?:aria-label|name|title)\s*=\s*['"]([^'"]+)['"]\s*\]$/i);
+  if (cssRole) return { role: cssRole[1], name: cssRole[2] };
+
+  return null;
+}
+
+// Preferir accessibleName si el "name" parece ID ASP.NET o coincide con @name
+function preferAccessibleName(candidateName: string | undefined, el: ElementInfo): string | undefined {
+  if (!candidateName) return candidateName;
+  const acc = el.accessibleName?.trim();
+  const equalsDomName = el.attributes?.name && el.attributes.name === candidateName;
+  const looksAspNet = candidateName.includes('$');
+  if (acc && (equalsDomName || looksAspNet) && acc !== candidateName) {
+    return acc;
+  }
+  return candidateName;
+}
+
+function makeRoleResult(role: string, name: string, baseConfidence = 95, reasoning?: string): SelectorResult {
+  return {
+    selector: `${role}|${name}`,
+    type: 'role',
+    confidence: baseConfidence,
+    aiEnhanced: true,
+    reasoning,
+  };
+}
+
+function salvageFromElement(el: ElementInfo, reasoning: string): SelectorResult {
+  // Orden de salvage: accessibleName (role?), id estable, name attr, placeholder, texto, tag
+  const acc = el.accessibleName?.trim();
+  const role = el.computedRole?.trim();
+  if (acc && role) {
+    return makeRoleResult(role, acc, 94, `(salvaged) ${reasoning}`);
+  }
+  if (el.id) {
+    return { selector: el.id, type: 'id', confidence: 92, aiEnhanced: true, reasoning: `(salvaged) ${reasoning}` };
+  }
+  if (el.attributes?.name) {
+    return { selector: `[name="${el.attributes.name}"]`, type: 'css', confidence: 90, aiEnhanced: true, reasoning: `(salvaged) ${reasoning}` };
+  }
+  if (el.attributes?.placeholder) {
+    return { selector: el.attributes.placeholder, type: 'placeholder', confidence: 88, aiEnhanced: true, reasoning: `(salvaged) ${reasoning}` };
+  }
+  if (el.textContent?.trim()) {
+    return { selector: el.textContent.trim(), type: 'text', confidence: 80, aiEnhanced: true, reasoning: `(salvaged) ${reasoning}` };
+  }
+  return { selector: el.tagName || 'div', type: 'css', confidence: 50, aiEnhanced: true, reasoning: `(salvaged) ${reasoning}` };
+}
+
+function tryParseJSONBlock(raw: string): RawAISuggestion | null {
+  // intenta JSON puro
+  try {
+    const j = JSON.parse(raw);
+    if (j && typeof j === 'object') return j as RawAISuggestion;
+  } catch {}
+  // intenta extraer entre <ANSWER> ... </ANSWER>
+  const m = raw.match(/<ANSWER>\s*([\s\S]*?)\s*<\/ANSWER>/i);
+  if (m) {
     try {
-      const obj = JSON.parse(jsonContent);
-
-      // Validación previa opcional de estrategia
-      if (
-        ![
-          'test-id',
-          'role',
-          'text',
-          'placeholder',
-          'id',
-          'css',
-          'link-href',
-        ].includes(obj.strategy)
-      ) {
-        prompt = templates.getRepairPrompt(raw, [
-          ...violations,
-          `Invalid strategy value: ${obj.strategy}`,
-        ]);
-        await sleep(200 * attempt);
-        continue;
-      }
-
-      // 🆕 Validación específica para link-href
-      if (obj.strategy === 'link-href' && obj.value.startsWith('http')) {
-        prompt = templates.getRepairPrompt(raw, [
-          ...violations,
-          `Invalid link-href value: should be keyword like "discord", not full URL`,
-        ]);
-        await sleep(200 * attempt);
-        continue;
-      }
-
-      const parsed = LocatorStrategySchema.parse(obj);
-      if (violations.length) {
-        logDebug(
-          `Selector válido con violaciones menores: ${violations.join(', ')}`,
-        );
-      }
-      logDebug(`✅ Selector: ${parsed.strategy} → ${parsed.value}`);
-      return parsed;
-    } catch (e: any) {
-      const errMsg =
-        e instanceof z.ZodError ? 'Schema validation failed' : 'Invalid JSON';
-      logDebug(`❌ Parse error: ${errMsg}: ${e.message}`);
-
-      prompt = templates.getRepairPrompt(raw, [...violations, errMsg]);
-      await sleep(200 * attempt);
-    }
-  }
-
-  throw new Error(
-    `Unable to produce a valid locator strategy after 3 attempts.\nLast output:\n${lastOutput}`,
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*                           Helper – JSON extraction                         */
-/* -------------------------------------------------------------------------- */
-function extractJsonContent(
-  raw: string,
-): { jsonContent: string | null; violations: string[] } {
-  const violations: string[] = [];
-
-  let zone = raw;
-  const answerMatch = ANSWER_REGEX.exec(raw);
-  if (answerMatch?.[1]) {
-    zone = answerMatch[1];
-  } else {
-    violations.push('Missing <ANSWER> wrapper');
-  }
-
-  const fenced = zone.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  if (fenced?.[1]) zone = fenced[1];
-
-  const jsonContent = findBalancedJson(zone);
-  if (!jsonContent) violations.push('Unable to find balanced JSON object');
-
-  return { jsonContent, violations };
-}
-
-function findBalancedJson(text: string): string | null {
-  let depth = 0;
-  let start = -1;
-
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === '{') {
-      if (depth === 0) start = i;
-      depth++;
-    } else if (text[i] === '}') {
-      depth--;
-      if (depth === 0 && start !== -1) {
-        return text.slice(start, i + 1);
-      }
-    }
+      const j = JSON.parse(m[1]);
+      if (j && typeof j === 'object') return j as RawAISuggestion;
+    } catch {}
   }
   return null;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 Utilities                                  */
-/* -------------------------------------------------------------------------- */
+// ----------------- Orchestrator principal -----------------
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((res) => setTimeout(res, ms));
+export async function getBestLocatorStrategy(
+  provider: AIProvider,
+  config: BestLocatorConfig,
+  element: ElementInfo,
+  _context: PageContext,
+  prompt: string,
+  attempts = 3
+): Promise<SelectorResult> {
+  let lastRaw = '';
+  for (let i = 0; i < attempts; i++) {
+    lastRaw = await provider.ask(prompt);
+
+    // 1) Intentar parseo JSON estructurado
+    const parsed = tryParseJSONBlock(lastRaw);
+    if (parsed?.value) {
+      const t = toCanonicalType(parsed.strategy);
+      // 1.a) rol canónico (o deducido desde value)
+      if (t === 'role') {
+        const roleish = parseRoleish(parsed.value);
+        if (roleish?.role && roleish.name) {
+          const fixedName = preferAccessibleName(roleish.name, element);
+          return makeRoleResult(roleish.role, fixedName!, 96, parsed.reasoning);
+        }
+      }
+
+      // 1.b) Si el strategy no es role pero el value PARECE role=> convertir
+      const asRole = parseRoleish(parsed.value);
+      if (asRole?.role && asRole.name) {
+        const fixedName = preferAccessibleName(asRole.name, element);
+        return makeRoleResult(asRole.role, fixedName!, 95, parsed.reasoning);
+      }
+
+      // 1.c) Otras estrategias: cubrirlas todas
+      if (t === 'id') {
+        return { selector: trimQuotes(parsed.value), type: 'id', confidence: 94, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      if (t === 'name') {
+        const v = trimQuotes(parsed.value);
+        return { selector: `[name="${v}"]`, type: 'css', confidence: 92, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      if (t === 'placeholder') {
+        return { selector: trimQuotes(parsed.value), type: 'placeholder', confidence: 90, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      if (t === 'text') {
+        let v = trimQuotes(parsed.value);
+        // Normalizar si “texto” parece ASP.NET name o coincide con @name → usar accessibleName
+        const acc = preferAccessibleName(v, element);
+        if (acc && acc !== v) v = acc;
+        return { selector: v, type: 'text', confidence: 90, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      if (t === 'css') {
+        // si es CSS con role/aria-label -> convertir a role|name
+        const roleish2 = parseRoleish(parsed.value);
+        if (roleish2?.role && roleish2.name) {
+          const fixedName = preferAccessibleName(roleish2.name, element);
+          return makeRoleResult(roleish2.role, fixedName!, 95, parsed.reasoning);
+        }
+        return { selector: String(parsed.value), type: 'css', confidence: 88, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      if (t === 'xpath') {
+        return { selector: String(parsed.value), type: 'xpath', confidence: 88, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+
+      // 1.d) Si el strategy es desconocido, intentar deducir desde value
+      const roleish3 = parseRoleish(parsed.value);
+      if (roleish3?.role && roleish3.name) {
+        const fixedName = preferAccessibleName(roleish3.name, element);
+        return makeRoleResult(roleish3.role, fixedName!, 95, parsed.reasoning);
+      }
+      // si se ve como #id
+      if (/^#[-A-Za-z0-9_:.\u00A0-\uFFFF]+$/.test(parsed.value)) {
+        return { selector: parsed.value.replace(/^#/, ''), type: 'id', confidence: 93, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+      // name=...
+      const nameMatch = parsed.value.match(/^\[?name=['"]([^'"]+)['"]\]?$/i);
+      if (nameMatch) {
+        return { selector: `[name="${nameMatch[1]}"]`, type: 'css', confidence: 92, aiEnhanced: true, reasoning: parsed.reasoning };
+      }
+    }
+
+    // 2) Si no se pudo parsear JSON, intentar deducir desde el raw
+    const roleishRaw = parseRoleish(lastRaw);
+    if (roleishRaw?.role && roleishRaw.name) {
+      const fixedName = preferAccessibleName(roleishRaw.name, element);
+      return makeRoleResult(roleishRaw.role, fixedName!, 95, 'Recovered from raw output');
+    }
+  }
+
+  // 3) Nunca devolver error: salvamos algo coherente
+  return salvageFromElement(element, 'AI output not strictly valid, salvaged.');
 }

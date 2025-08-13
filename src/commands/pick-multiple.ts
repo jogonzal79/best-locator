@@ -7,6 +7,7 @@ import { captureElements } from './shared/element-capture.js';
 import { processAndOutput } from './shared/selector-processor.js';
 import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
+import { GeneratorFactory } from '../core/generators/factory.js';
 // --- FIN DE CAMBIOS ---
 
 export async function handlePickMultipleCommand(
@@ -22,7 +23,10 @@ export async function handlePickMultipleCommand(
 
     // +++ INICIO DE CAMBIOS +++
     // 2. Crea los "especialistas" para la web
-    const generator = new SelectorGenerator(session.config);
+    const generator = GeneratorFactory.create(
+      framework || session.config.defaultFramework,
+      session.config
+    );
     const formatter = new FrameworkFormatter();
 
     // 3. Llama al orquestador central con las herramientas web
