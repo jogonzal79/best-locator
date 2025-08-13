@@ -51,7 +51,7 @@
       "temperature": 0.3
     },
     "openai": {
-      "apiKey": "",
+      "apiKey": null,
       "model": "gpt-4o",
       "timeout": 20000,
       "temperature": 0.1

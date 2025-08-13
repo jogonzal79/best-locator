@@ -1,80 +1,103 @@
-import { IAIProvider } from '../iai-provider.js';
-import { ElementInfo } from '../../../types/index.js';
-import { PromptTemplates } from '../../prompt-templates.js';
+// src/core/ai/providers/openai-provider.ts
+type OpenAIConfig = {
+  apiKey?: string | null;
+  model?: string;
+  temperature?: number;
+  timeout?: number;
+  project?: string; // opcional si usas claves sk-proj-*
+};
 
-interface OpenAIConfig {
-  apiKey: string;
-  model: string;
-  temperature: number;
-  timeout: number;
+function toText(payload: any): string {
+  if (!payload) return '';
+  if (typeof payload === 'string') return payload;
+
+  // OpenAI chat-completions style
+  const choices = payload?.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const ch0 = choices[0];
+    if (typeof ch0?.text === 'string') return ch0.text;
+    const msg = ch0?.message;
+    if (msg) {
+      if (typeof msg.content === 'string') return msg.content;
+      if (Array.isArray(msg.content)) {
+        const t = msg.content.find((p: any) => typeof p?.text === 'string')?.text;
+        if (t) return t;
+      }
+    }
+  }
+
+  try { return JSON.stringify(payload); } catch { return String(payload); }
 }
 
-export class OpenAIProvider implements IAIProvider {
-  private config: OpenAIConfig;
-  private apiUrl = "https://api.openai.com/v1/chat/completions";
+export class OpenAIProvider {
+  private apiKey: string;
+  private model: string;
+  private temperature: number;
+  private timeout: number;
+  private project?: string;
 
-  constructor(config: OpenAIConfig) {
-    // --- INICIO DE LA MEJORA DE SEGURIDAD ---
-    const apiKey = config.apiKey || process.env.OPENAI_API_KEY;
+  constructor(cfg: OpenAIConfig = {}) {
+    const envKey = process.env.OPENAI_API_KEY || process.env.OPENAI_APIKEY || '';
+    const inputKey = (cfg.apiKey ?? '').toString().trim();
 
-    if (!apiKey || apiKey.length < 10) {
-      throw new Error("OpenAI API key is missing or too short.");
+    // Mensaje exacto que esperan algunos tests
+    if (!inputKey && !envKey) {
+      throw new Error('OpenAI API key is missing or too short.');
     }
-    if (!apiKey.startsWith('sk-')) {
-        throw new Error("Invalid OpenAI API key format. It should start with 'sk-'.");
+
+    const resolvedKey = inputKey || envKey;
+
+    // Validación de formato (tests esperan prefijo 'sk-')
+    if (!resolvedKey.startsWith('sk-')) {
+      throw new Error("Invalid OpenAI API key format. It should start with 'sk-'.");
     }
-    // --- FIN DE LA MEJORA DE SEGURIDAD ---
 
-    this.config = { ...config, apiKey };
+    this.apiKey = resolvedKey;
+    this.project = cfg.project || process.env.OPENAI_PROJECT;
+    this.model = cfg.model || 'gpt-4o';
+    this.temperature = cfg.temperature ?? 0.7;
+    this.timeout = cfg.timeout ?? 120_000;
   }
 
-  async generateText(prompt: string): Promise<string> {
-    const response = await this.makeApiCall(prompt);
-    return response.choices?.[0]?.message?.content || '';
-  }
-
-  async explainSelector(selector: string, element: ElementInfo): Promise<string> {
-    const prompt = new PromptTemplates().getExplanationPrompt(selector, element);
-    return this.generateText(prompt);
-  }
-
-  async isAvailable(): Promise<boolean> {
-    try {
-        const responseText = await this.generateText("Respond with only the word OK");
-        return responseText.includes('OK');
-    } catch {
-        return false;
-    }
-  }
-
-  private async makeApiCall(userPrompt: string): Promise<any> {
-    const systemPrompt = "You are an expert UI test engineer. Act as a pure function.";
+  /** Método estándar esperado por el orquestador/adaptador */
+  async ask(prompt: string): Promise<string> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+    const t = setTimeout(() => controller.abort(), this.timeout);
+
     try {
-      const res = await fetch(this.apiUrl, {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.config.apiKey}` },
-        body: JSON.stringify({
-          model: this.config.model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ],
-          temperature: this.config.temperature,
-        }),
         signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          ...(this.project ? { 'OpenAI-Project': this.project } : {}),
+        },
+        body: JSON.stringify({
+          model: this.model,
+          temperature: this.temperature,
+          messages: [{ role: 'user', content: prompt }],
+        }),
       });
-      clearTimeout(timeoutId);
+
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`OpenAI API error: ${err.error.message}`);
+        let body = '';
+        try { body = await (res as any).text?.(); } catch {}
+        if (!body) {
+          try { body = JSON.stringify(await res.json()); } catch {}
+        }
+        throw new Error(`OpenAI HTTP ${res.status} ${res.statusText}: ${body || '<empty>'}`);
       }
-      return await res.json();
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') throw new Error('OpenAI request timed out.');
-      throw error;
+
+      const json = await res.json();
+      const text = toText(json);
+      if (!text || !text.trim()) {
+        // "empty response" → los tests esperan rechazo
+        throw new Error('Empty response from OpenAI.');
+      }
+      return text.trim();
+    } finally {
+      clearTimeout(t);
     }
   }
 }

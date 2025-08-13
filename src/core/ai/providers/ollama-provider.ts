@@ -1,66 +1,51 @@
-import { IAIProvider } from '../iai-provider.js';
-import { ElementInfo } from '../../../types/index.js';
-import { PromptTemplates } from '../../prompt-templates.js';
+// src/core/ai/providers/ollama-provider.ts
+// Implementación mínima contra la API HTTP de Ollama
 
-interface OllamaConfig {
-  host: string;
-  model: string;
+export type OllamaConfig = {
+  host: string;        // ej. http://localhost:11434
+  model: string;       // ej. llama3.1
+  temperature: number; // usamos options.temperature
   timeout: number;
-  temperature: number;
-}
+};
 
-export class OllamaProvider implements IAIProvider {
-  private config: OllamaConfig;
+export class OllamaProvider {
+  private cfg: OllamaConfig;
 
-  constructor(config: OllamaConfig) {
-    this.config = config;
+  constructor(cfg: OllamaConfig) {
+    this.cfg = cfg;
   }
 
-  async generateText(prompt: string): Promise<string> {
-    const response = await this.makeApiCall(prompt);
-    return response.response || '';
-  }
+  public async ask(prompt: string): Promise<string> {
+    const base = this.cfg.host.replace(/\/+$/, '');
+    const url = `${base}/api/generate`;
 
-  async explainSelector(selector: string, element: ElementInfo): Promise<string> {
-    const prompt = new PromptTemplates().getExplanationPrompt(selector, element);
-    return this.generateText(prompt);
-  }
-
-  async isAvailable(): Promise<boolean> {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      const response = await fetch(this.config.host, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  private async makeApiCall(prompt: string): Promise<any> {
-    // ... (la lógica de la llamada fetch a Ollama)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+    const timer = setTimeout(() => controller.abort(), this.cfg.timeout);
+
     try {
-      const res = await fetch(`${this.config.host}/api/generate`, {
+      const res = await fetch(url, {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: this.config.model,
+          model: this.cfg.model,
           prompt,
           stream: false,
-          options: { temperature: this.config.temperature, num_predict: 150 },
+          options: { temperature: this.cfg.temperature },
         }),
-        signal: controller.signal,
       });
-      clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(`Ollama API error: ${res.status}`);
-      return await res.json();
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') throw new Error('Ollama request timed out.');
-      throw error;
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(`Ollama HTTP ${res.status} ${res.statusText}: ${txt}`);
+      }
+
+      const data: any = await res.json();
+      // Ollama responde típicamente { response: "..." }
+      const out = data?.response ?? data?.text ?? '';
+      return String(out ?? '').trim();
+    } finally {
+      clearTimeout(timer);
     }
   }
 }

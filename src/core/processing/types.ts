@@ -1,29 +1,31 @@
 // src/core/processing/types.ts
-import {
-  SelectorResult,
-  ElementInfo,
-  MobileElementInfo,
-  PageContext,
-} from '../../types/index.js';
-import { WebFramework, MobileFramework, Language } from '../formatters/types.js';
+import type { SelectorResult, PageContext } from '../../types/index.js';
+import type { WebFramework, MobileFramework, Language } from '../formatters/types.js';
 
-// Un tipo que representa cualquier tipo de información de elemento.
-export type AnyElementInfo = ElementInfo | MobileElementInfo;
+// Mantén esto agnóstico: cada generador castea internamente al tipo que necesite
+export type AnyElementInfo = unknown;
 
 /**
- * Define el contrato para cualquier generador de selectores, ya sea para web o móvil.
- * Un generador debe ser capaz de producir un `SelectorResult` a partir de un elemento.
+ * Contrato de generadores de selectores (web o móvil).
+ * `generateSelectorWithAI` es opcional y solo lo implementan los que soportan AI.
  */
 export interface ISelectorGenerator {
   generateSelector(element: AnyElementInfo): SelectorResult;
-  generateSelectorWithAI?(element: AnyElementInfo, context: PageContext): Promise<SelectorResult>;
+  generateSelectorWithAI?(
+    element: AnyElementInfo,
+    context: PageContext
+  ): Promise<SelectorResult>;
 }
 
 /**
- * Define el contrato para cualquier formateador de frameworks.
- * Un formateador debe ser capaz de convertir un `SelectorResult` en un string de código.
+ * Contrato de formatters por framework.
+ * Para web es `format`. Para móvil dejamos `formatMobile` como opcional.
  */
 export interface IFormatter {
   format(result: SelectorResult, framework: WebFramework, language: Language): string;
-  formatMobile(result: SelectorResult, platform: MobileFramework, language: Language): string;
+  formatMobile?(
+    result: SelectorResult,
+    platform: MobileFramework,
+    language: Language
+  ): string;
 }

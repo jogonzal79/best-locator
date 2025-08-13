@@ -6,6 +6,7 @@ import { processAndOutput } from './shared/selector-processor.js';
 import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { logger } from '../app/logger.js';
+import { GeneratorFactory } from '../core/generators/factory.js';
 
 export async function handlePickToggleCommand(
   url: string,
@@ -42,7 +43,10 @@ export async function handlePickToggleCommand(
       logger.success(`🎯 Sesión completada! ${elements.length} elementos capturados.`);
       
       // 6. Procesar y mostrar resultados
-      const generator = new SelectorGenerator(session.config);
+      const generator = GeneratorFactory.create(
+        framework || session.config.defaultFramework,
+        session.config
+      );
       const formatter = new FrameworkFormatter();
       await processAndOutput(elements, session, options, generator, formatter, framework, language);
     } else {
