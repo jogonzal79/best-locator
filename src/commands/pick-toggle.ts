@@ -1,4 +1,4 @@
-// src/commands/pick-toggle.ts - VERSIÓN FINAL ESTABLE
+// src/commands/pick-toggle.ts
 
 import { CommandOptions } from '../types/index.js';
 import { withBrowserSession } from './shared/browser-utils.js';
@@ -42,7 +42,7 @@ export async function handlePickToggleCommand(
       logger.nl();
       logger.success(`🎯 Sesión completada! ${elements.length} elementos capturados.`);
       
-      // 6. Procesar y mostrar resultados
+      // 6. Procesar y mostrar resultados (usando el patrón de los archivos de ejemplo)
       const generator = GeneratorFactory.create(
         framework || session.config.defaultFramework,
         session.config
@@ -63,7 +63,6 @@ async function setupRobustAutoReinjection(page: any, browserManager: any): Promi
   let reinjectionCount = 0;
   let isReinjecting = false;
   
-  // Detectar navegaciones pero con debounce
   const reinjectIfNeeded = async () => {
     if (isReinjecting) return;
     isReinjecting = true;
@@ -72,7 +71,6 @@ async function setupRobustAutoReinjection(page: any, browserManager: any): Promi
       await page.waitForTimeout(1000);
       await ensureToggleModeActive(page, browserManager, ++reinjectionCount);
     } catch (error) {
-      // Ignorar errores si la página se cerró
       if (!error.message?.includes('Target page, context or browser has been closed')) {
         logger.warning(`⚠️ Error en reinyección: ${error.message}`);
       }
@@ -81,10 +79,7 @@ async function setupRobustAutoReinjection(page: any, browserManager: any): Promi
     }
   };
   
-  // Detectar cargas de página
   page.on('domcontentloaded', reinjectIfNeeded);
-  
-  // Detectar navegaciones de frames
   page.on('framenavigated', async (frame: any) => {
     if (frame === page.mainFrame()) {
       await reinjectIfNeeded();
@@ -97,13 +92,11 @@ async function setupRobustAutoReinjection(page: any, browserManager: any): Promi
  */
 async function ensureToggleModeActive(page: any, browserManager: any, attempt: number): Promise<void> {
   try {
-    // Verificar si la página sigue activa
     const pageActive = await page.evaluate(() => true).catch(() => false);
     if (!pageActive) return;
     
     const currentUrl = await page.url();
     
-    // Verificar estado del toggle mode
     const toggleStatus = await page.evaluate(() => {
       return {
         initialized: window.bestLocatorToggleInitialized === true,
@@ -113,7 +106,6 @@ async function ensureToggleModeActive(page: any, browserManager: any, attempt: n
       };
     }).catch(() => ({ initialized: false, stateExists: false, sessionActive: true, elementCount: 0 }));
     
-    // Solo reinyectar si es necesario y la sesión sigue activa
     if ((!toggleStatus.initialized || !toggleStatus.stateExists) && toggleStatus.sessionActive !== false) {
       logger.info(`🔄 Re-inyectando toggle mode (intento ${attempt}) en: ${currentUrl}`);
       await browserManager.runScriptInPage('toggle-mode.js');
@@ -125,7 +117,6 @@ async function ensureToggleModeActive(page: any, browserManager: any, attempt: n
       }
     }
   } catch (error) {
-    // Solo loguear si no es un error de página cerrada
     if (!error.message?.includes('closed')) {
       logger.warning(`⚠️ Error en verificación: ${error.message}`);
     }
@@ -137,15 +128,13 @@ async function ensureToggleModeActive(page: any, browserManager: any, attempt: n
  */
 async function waitForUserToFinishSession(page: any, timeout: number): Promise<void> {
   const startTime = Date.now();
-  const checkInterval = 500; // Verificar cada 500ms
+  const checkInterval = 500;
   let lastElementCount = 0;
   
   logger.info('⏳ Esperando a que termines la sesión (presiona ESC o el botón FINISH)...');
   
-  // Polling principal
   while (Date.now() - startTime < timeout) {
     try {
-      // Verificar múltiples indicadores de finalización
       const status = await page.evaluate(() => {
         const state = window.bestLocatorState;
         const finishedFlag = sessionStorage.getItem('bestLocator:finished');
@@ -155,41 +144,35 @@ async function waitForUserToFinishSession(page: any, timeout: number): Promise<v
           elementCount: state?.selectedElements?.length || 0,
           finishedFlag: !!finishedFlag,
         };
-      }).catch(() => null); // Devuelve null en error para indicar posible navegación
+      }).catch(() => null);
       
-      // Si el evaluate falla (ej. durante navegación), esperar y continuar el loop
       if (status === null) {
           await page.waitForTimeout(checkInterval);
           continue;
       }
       
-      // Actualizar contador si cambió
       if (status.elementCount !== lastElementCount) {
         lastElementCount = status.elementCount;
         logger.info(`📦 Elementos capturados: ${lastElementCount}`);
       }
       
-      // Verificar condiciones de finalización explícitas
       if (!status.sessionActive || status.finishedFlag) {
         logger.success(`🏁 Sesión terminada (${status.elementCount} elementos capturados)`);
-        await page.waitForTimeout(1000); // Dar tiempo para que se guarde el estado
-        return; // Salir del loop
+        await page.waitForTimeout(1000);
+        return;
       }
       
       await page.waitForTimeout(checkInterval);
       
     } catch (error) {
-      // Si hay error, probablemente la página o el browser se cerró de verdad
       if (error.message?.includes('closed') || error.message?.includes('Target page')) {
         logger.warning('🚪 Browser o tab cerrado. Finalizando sesión.');
-        return; // Salir del loop
+        return;
       }
-      // Ignorar otros errores y continuar
       await new Promise(r => setTimeout(r, checkInterval));
     }
   }
   
-  // Timeout alcanzado
   logger.warning('⏰ Timeout alcanzado - finalizando sesión');
   await page.evaluate(() => {
     try {
@@ -198,15 +181,11 @@ async function waitForUserToFinishSession(page: any, timeout: number): Promise<v
   }).catch(() => {});
 }
 
-
 /**
  * Capturar elementos de todas las fuentes posibles
  */
 async function captureElementsFromAllSources(page: any): Promise<any[]> {
   try {
-    // Intentar múltiples fuentes en orden de preferencia
-    
-    // 1. Desde sessionStorage
     let elements = await page.evaluate(() => {
       try {
         const stored = sessionStorage.getItem('bestLocatorToggleState');
@@ -223,7 +202,6 @@ async function captureElementsFromAllSources(page: any): Promise<any[]> {
       return sanitizeElements(elements);
     }
     
-    // 2. Desde memoria (estado actual)
     elements = await page.evaluate(() => {
       return window.bestLocatorState?.selectedElements || null;
     }).catch(() => null);
@@ -233,7 +211,6 @@ async function captureElementsFromAllSources(page: any): Promise<any[]> {
       return sanitizeElements(elements);
     }
     
-    // 3. Desde localStorage backup
     elements = await page.evaluate(() => {
       try {
         const backup = localStorage.getItem('bestLocatorToggleState_backup');
@@ -250,7 +227,6 @@ async function captureElementsFromAllSources(page: any): Promise<any[]> {
       return sanitizeElements(elements);
     }
     
-    // 4. Desde IndexedDB (último recurso)
     elements = await page.evaluate(async () => {
       try {
         const openDB = (): Promise<any> => new Promise((resolve, reject) => {
