@@ -9,8 +9,9 @@ import { BestLocatorConfig, MobileElementInfo } from '../types/index.js';
 import { logger } from './logger.js';
 import { MobileSelectorGenerator } from '../core/mobile-selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
+import { getPageContext } from '../core/utils/page-context.js';
 import clipboardy from 'clipboardy';
-import open from 'open'; // <-- ESTA ES LA LÍNEA QUE FALTABA
+import open from 'open';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -74,9 +75,10 @@ export class MobileInspector {
       const formatter = new FrameworkFormatter();
       const resultsToCopy: string[] = [];
       
-      this.selectedElements.forEach(elementInfo => {
-        const selectorResult = generator.generateSelector(elementInfo);
-        const formattedCode = formatter.formatMobile(selectorResult, this.platform, this.config.defaultLanguage);
+      this.selectedElements.forEach(async elementInfo => {
+        const context = await getPageContext(); // ✅ Devuelve { url, title }
+        const selectorResult = await generator.generateSelector(elementInfo, context);
+        const formattedCode = formatter.formatMobile!(selectorResult, this.platform, this.config.defaultLanguage);
         resultsToCopy.push(formattedCode);
         
         logger.info(`Element: ${elementInfo.tagName} (Text: "${elementInfo.text}")`);
@@ -93,6 +95,7 @@ export class MobileInspector {
         logger.warning('⚠️ Could not copy to clipboard.');
       }
       
+      // Limpiar la selección después del procesamiento exitoso
       this.selectedElements = [];
       res.json({ success: true });
     });

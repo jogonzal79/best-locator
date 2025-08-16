@@ -103,6 +103,10 @@ export interface ElementInfo {
   order?: number;
   computedRole?: string | null;
   accessibleName?: string | null;
+  
+  // 🔧 AGREGADAS: Propiedades para fallback strategies
+  index?: number;        // Índice del elemento entre sus hermanos
+  parentTag?: string;    // Tag del elemento padre
 }
 
 export interface PageContext {
@@ -150,6 +154,7 @@ export interface CommandOptions {
   ai?: boolean;
   explain?: boolean;
   noFallback?: boolean;
+  stack?: string;
 }
 
 // Re-exportar tipos móviles para fácil acceso en otras partes del proyecto

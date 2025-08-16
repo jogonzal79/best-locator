@@ -5,6 +5,7 @@ import { captureElements } from './shared/element-capture.js';
 import { processAndOutput } from './shared/selector-processor.js';
 import { GeneratorFactory } from '../core/generators/factory.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
+import { IAsyncSelectorGenerator } from '../core/generators/interfaces.js';
 
 export async function handleGoCommand(
   alias: string, 
@@ -17,9 +18,10 @@ export async function handleGoCommand(
 
     // 2. Usar el framework por defecto del config
     const generator = GeneratorFactory.create(
-      session.config.defaultFramework,  // <-- CAMBIO AQUÍ
+      session.config.defaultFramework,
       session.config
-    );
+    ) as IAsyncSelectorGenerator; // ✅ CAST EXPLÍCITO
+
     const formatter = new FrameworkFormatter();
 
     // 3. Llamar al procesador sin framework explícito

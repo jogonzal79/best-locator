@@ -7,6 +7,7 @@ import { SelectorGenerator } from '../core/selector-generator.js';
 import { FrameworkFormatter } from '../core/framework-formatter.js';
 import { logger } from '../app/logger.js';
 import { GeneratorFactory } from '../core/generators/factory.js';
+import { IAsyncSelectorGenerator } from '../core/generators/interfaces.js';
 
 export async function handlePickToggleCommand(
   url: string,
@@ -46,7 +47,7 @@ export async function handlePickToggleCommand(
       const generator = GeneratorFactory.create(
         framework || session.config.defaultFramework,
         session.config
-      );
+      ) as IAsyncSelectorGenerator;
       const formatter = new FrameworkFormatter();
       await processAndOutput(elements, session, options, generator, formatter, framework, language);
     } else {

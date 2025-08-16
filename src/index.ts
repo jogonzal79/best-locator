@@ -37,6 +37,7 @@ program
   .option('--ai', 'Enable AI-powered selector generation')
   .option('--explain', 'Explain AI decisions')
   .option('--no-fallback', 'Disable fallback to traditional method')
+  .option('--stack <stack>', 'Force a specific stack strategy (e.g. react, angular, aspnet)')
   .action(handlePickCommand);
 
 program
@@ -45,6 +46,7 @@ program
   .option('--ai', 'Enable AI-powered selector generation')
   .option('--explain', 'Explain AI decisions')
   .option('--no-fallback', 'Disable fallback to traditional method')
+  .option('--stack <stack>', 'Force a specific stack strategy (e.g. react, angular, aspnet)')
   .action(handlePickMultipleCommand);
 
 program
@@ -53,6 +55,7 @@ program
   .option('--ai', 'Enable AI-powered selector generation')
   .option('--explain', 'Explain AI decisions')
   .option('--no-fallback', 'Disable fallback to traditional method')
+  .option('--stack <stack>', 'Force a specific stack strategy (e.g. react, angular, aspnet)')
   .action(handlePickToggleCommand);
   
 program
