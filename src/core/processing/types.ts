@@ -1,18 +1,21 @@
 // src/core/processing/types.ts
-import type { SelectorResult, PageContext } from '../../types/index.js';
+import type { SelectorResult, PageContext, ElementInfo } from '../../types/index.js';
 import type { WebFramework, MobileFramework, Language } from '../formatters/types.js';
 
-// Mantén esto agnóstico: cada generador castea internamente al tipo que necesite
-export type AnyElementInfo = unknown;
+/**
+ * Contrato para generadores antiguos SIN contexto ni async.
+ */
+export interface ISyncSelectorGenerator {
+  generateSelector(element: ElementInfo): SelectorResult;
+}
 
 /**
- * Contrato de generadores de selectores (web o móvil).
- * `generateSelectorWithAI` es opcional y solo lo implementan los que soportan AI.
+ * Contrato para generadores nuevos CON contexto y async.
  */
-export interface ISelectorGenerator {
-  generateSelector(element: AnyElementInfo): SelectorResult;
+export interface IAsyncSelectorGenerator {
+  generateSelector(element: ElementInfo, context: PageContext): Promise<SelectorResult>;
   generateSelectorWithAI?(
-    element: AnyElementInfo,
+    element: ElementInfo,
     context: PageContext
   ): Promise<SelectorResult>;
 }
@@ -29,3 +32,6 @@ export interface IFormatter {
     language: Language
   ): string;
 }
+
+// 🔧 Tipado que admite elementos web y móviles
+export type AnyElementInfo = ElementInfo | import('../../types/mobile.js').MobileElementInfo;

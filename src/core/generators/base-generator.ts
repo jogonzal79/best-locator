@@ -1,10 +1,10 @@
 // src/core/generators/base-generator.ts
 import { BestLocatorConfig, ElementInfo, SelectorResult } from '../../types/index.js';
-import { ISelectorGenerator, AnyElementInfo } from '../processing/types.js';
+import { ISyncSelectorGenerator, AnyElementInfo } from '../processing/types.js';
 import { AriaCalculator } from '../ai/aria-calculator.js';
 import { AIEngine } from '../ai-engine.js';
 
-export abstract class BaseWebGenerator implements ISelectorGenerator {
+export abstract class BaseWebGenerator implements ISyncSelectorGenerator {
   protected ariaCalculator: AriaCalculator;
   protected aiEngine?: AIEngine;
 
